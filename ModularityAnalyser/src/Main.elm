@@ -14,15 +14,15 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Time exposing (..)
 
-import Dashboard.Home as Home exposing (..)
-import Dashboard.AST as AST exposing (Model, update, view)
-import Dashboard.Dependencies as Dependencies exposing (Model, update, view)
-import Dashboard.Metrics as Metrics exposing (Model, update, view)
-import Dashboard.Modules as Modules exposing (Model, update, view)
-import Dashboard.Hints as Hints exposing (Model, update, view)
-import Dashboard.Settings as Settings exposing (Model, update, view)
-import Dashboard.Preferences as Preferences exposing (Model, update, view)
-import Dashboard.About as About exposing (Model, update, view)
+import Dashboard.Analysis.Home as Home exposing (..)
+import Dashboard.Analysis.AST as AST exposing (Model, update, view)
+import Dashboard.Analysis.Dependencies as Dependencies exposing (Model, update, view)
+import Dashboard.Analysis.Metrics as Metrics exposing (Model, update, view)
+import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)
+import Dashboard.Analysis.Hints as Hints exposing (Model, update, view)
+import Dashboard.Settings.Settings as Settings exposing (Model, update, view)
+import Dashboard.Settings.Preferences as Preferences exposing (Model, update, view)
+import Dashboard.Settings.About as About exposing (Model, update, view)
 
 ---- MODEL ----
 
@@ -181,7 +181,7 @@ viewNav model =
 
                 li[ class "menu-heading"][
                     h3[][
-                        text "Admin"
+                        text "Analysis"
                     ]
                 ],
 

@@ -1,4 +1,4 @@
-module Dashboard.Settings exposing (..)
+module Dashboard.Settings.About exposing (..)
 
 import Svg exposing (svg)
 import Html exposing (..)
@@ -27,7 +27,7 @@ view: Model -> Html Msg
 view model =
     section[ class "grid" ][
         article[][
-            h2[][ text "Settings" ]
+            h2[] [ text "About" ]
         ]
     ]
 

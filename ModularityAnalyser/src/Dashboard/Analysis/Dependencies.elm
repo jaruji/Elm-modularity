@@ -1,4 +1,4 @@
-module Dashboard.Metrics exposing (..)
+module Dashboard.Analysis.Dependencies exposing (..)
 
 import Svg exposing (svg)
 import Html exposing (..)
@@ -27,7 +27,7 @@ view: Model -> Html Msg
 view model =
     section[ class "grid" ][
         article[][
-            h2[] [ text "Metrics" ]
+            h2[][ text "Dependencies" ]
         ]
     ]
 

@@ -1,4 +1,4 @@
-module Dashboard.Home exposing (..)
+module Dashboard.Analysis.Home exposing (..)
 
 import Color exposing (Color)
 import Material.Icons.Navigation exposing (close)

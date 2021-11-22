@@ -1,4 +1,4 @@
-module Dashboard.AST exposing (..)
+module Dashboard.Analysis.AST exposing (..)
 
 import Color exposing (Color)
 import Elm.Parser
