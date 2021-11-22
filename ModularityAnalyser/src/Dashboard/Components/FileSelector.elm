@@ -12,7 +12,7 @@ import Html
 -- import Html.Styled.Events exposing (onClick)
 import Svg.Styled exposing (toUnstyled, fromUnstyled)
 import Time exposing (..)
-import File exposing (File)
+import File exposing (File, mime)
 import File.Select as Select
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -44,7 +44,7 @@ update msg model =
   case msg of
     Pick ->
       ( model
-      , Select.files ["image/*"] GotFiles
+      , Select.files ["*"] GotFiles
       )
 
     DragEnter ->
@@ -70,7 +70,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
-
 view : Model -> Html Msg
 view model =
   div
@@ -89,9 +88,18 @@ view model =
     , hijackOn "dragleave" (D.succeed DragLeave)
     , hijackOn "drop" dropDecoder
     ]
-    [ button [ onClick Pick ] [ text "Upload Images" ]
+    [ button [ onClick Pick ] [ text "Upload Files" ]
     , span [ style "color" "#ccc" ] [ text (Debug.toString model) ]
+    , div[] [
+      div[] (List.map text (List.map mime model.files))
+    ] 
     ]
+  
+viewMime: String -> Html Msg
+viewMime string =
+  div[][
+    text string
+  ]
 
 
 dropDecoder : D.Decoder Msg
@@ -111,3 +119,7 @@ hijack msg =
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
   model
+
+getFiles: Model -> List File
+getFiles model =
+  model.files

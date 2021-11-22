@@ -1,8 +1,26 @@
-module Dashboard.Dependencies exposing (..)
+module Dashboard.AST exposing (..)
 
+import Color exposing (Color)
+import Elm.Parser
 import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Time exposing (..)
+import File exposing (..)
+import Task
+
+src = """module Foo exposing(foo)
+
+foo = 1
+"""
+
+parse : String -> String
+parse input =
+  case Elm.Parser.parse input of
+    Err e ->
+      "Failed: " ++ Debug.toString e
+    Ok v ->
+      "Success: " ++ Debug.toString v
 
 type alias Model = 
     {
@@ -27,7 +45,7 @@ view: Model -> Html Msg
 view model =
     section[ class "grid" ][
         article[][
-            h2[][ text "Dependencies" ]
+            text (parse src)
         ]
     ]
 

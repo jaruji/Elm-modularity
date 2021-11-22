@@ -93,6 +93,43 @@ img {
   max-width: 200px;
 }
 
+.page-content {
+  position: relative;
+  left: var(--page-header-width);
+  width: calc(100% - var(--page-header-width));
+  min-height: 100vh;
+  padding: 30px;
+  color: var(--page-content-txtColor);
+  background: var(--page-content-bgColor);
+}
+
+.page-content .grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 30px;
+}
+
+.page-content .grid > article {
+  display: flex;
+  height: 300px;
+  background: var(--page-content-blockColor);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.page-content .grid > article:first-child,
+.page-content .grid > article:last-child {
+  grid-column: 1 / -1;
+}
+
+.page-content .grid h1,
+.page-content .grid h2,
+.page-content .grid h3,
+.page-content .grid h4,
+.page-content .grid h5 {
+  margin: auto;
+}
+
 :root {
   --page-header-bgColor: #242e42;
   --page-header-bgColor-hover: #1d2636;
