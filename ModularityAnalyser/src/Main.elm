@@ -244,7 +244,6 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.info 20 Inherit ], text "About" ]],
 
-                
                 div[ class "credits" ][
                     li[ class "menu-heading"][
                         h3[][

@@ -10,17 +10,23 @@ import File exposing (..)
 import Task
 
 src = """module Foo exposing(foo)
-
-foo = 1
+--testComment
+parse : String -> String
+parse input =
+  case Elm.Parser.parse input of
+    Err err ->
+      "Error: " ++ Debug.toString err
+    Ok resp ->
+      Debug.toString resp
 """
 
 parse : String -> String
 parse input =
   case Elm.Parser.parse input of
-    Err e ->
-      "Failed: " ++ Debug.toString e
-    Ok v ->
-      "Success: " ++ Debug.toString v
+    Err err ->
+      "Error: " ++ Debug.toString err
+    Ok resp ->
+      Debug.toString resp
 
 type alias Model = 
     {
