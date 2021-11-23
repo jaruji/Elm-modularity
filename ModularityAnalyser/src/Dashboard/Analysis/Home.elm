@@ -49,13 +49,32 @@ view: Model -> Html Msg
 view model =
     section[ class "grid" ][
         article[][
-            FileSelector.view (FileSelector.getModel model.projectFiles) |> Html.map FileSelectorMsg
-        ]
+            FileSelector.view (FileSelector.getModel model.projectFiles) |> Html.map FileSelectorMsg,
+            label[ attribute "for" "project", class "my-file-upload" ][ 
+                text "Upload project directory"
+            ],
+            input [ attribute "id" "project", 
+            attribute "directory" "", 
+            attribute "multiple" "", 
+            attribute "accept" ".elm",
+            type_ "file", 
+            attribute "webkitdirectory" "" ][ 
+                text "Choose directory"
+            ]
+        ],
+        article[][],
+        article[][],
+        article[][]
     ]
 
 readFiles : File -> Cmd Msg
 readFiles file =
   Task.perform FileContentLoaded (File.toString file)
+
+
+getFiles: Model -> List File
+getFiles model =
+    FileSelector.getFiles (FileSelector.getModel model.projectFiles)
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =

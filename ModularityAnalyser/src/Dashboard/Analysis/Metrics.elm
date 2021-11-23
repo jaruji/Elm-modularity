@@ -28,9 +28,16 @@ view model =
     section[ class "grid" ][
         article[][
             h2[] [ text "Metrics" ]
-        ]
+        ],
+        article[][],
+        article[][],
+        article[][],
+        article[][],
+        article[][],
+        article[][],
+        article[][]
     ]
-
+    
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
   model

@@ -40,6 +40,11 @@
   margin-bottom: 20px;
 } */
 
+.menu .credits{
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+
 .menu li > * {
   width: 100%;
   padding: 12px 15px;
@@ -128,6 +133,17 @@ img {
 .page-content .grid h4,
 .page-content .grid h5 {
   margin: auto;
+}
+
+/* input[type="file"] {
+    display: none;
+} */
+
+.my-file.upload.custom-file-upload {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
 }
 
 :root {

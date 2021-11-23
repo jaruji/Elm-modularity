@@ -8,6 +8,7 @@ import Color
 import Material.Icons as Filled
 import Material.Icons.Outlined as Outlined
 import Material.Icons.Types exposing (Coloring(..))
+import File exposing (..)
 import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -29,7 +30,8 @@ import Dashboard.Settings.About as About exposing (Model, update, view)
 
 type alias Model =
     {
-        dashboard: Dashboard
+        dashboard: Dashboard,
+        projects: List File
     }
 
 type Dashboard
@@ -47,12 +49,10 @@ type Dashboard
 
 init : ( Model, Cmd Msg )
 init =
-    ( { dashboard = HomePage (Home.getModel Home.init) }, Cmd.none )
-
+    ( { dashboard = HomePage (Home.getModel Home.init), projects = []}, Cmd.none )
 
 
 ---- UPDATE ----
-
 
 type Msg
     = NoOp
@@ -132,7 +132,7 @@ update msg model =
 
 homeHelper: Model -> (Home.Model, Cmd Home.Msg) -> (Model, Cmd Msg)
 homeHelper model (home, cmd) =
-  ({ model | dashboard = HomePage home }, Cmd.map HomeMsg cmd)
+  ({ model | dashboard = HomePage home, projects = Home.getFiles home }, Cmd.map HomeMsg cmd)
 
 
 ---- VIEW ----
@@ -142,7 +142,6 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ 
-            Html.h1 [] [ Html.text "Elmetrics" ],
             viewNav model,
             section[ class "page-content" ][
                 case model.dashboard of
@@ -165,7 +164,7 @@ view model =
                     AboutPage abo ->
                         About.view abo |> Html.map AboutMsg
                     -- _ ->
-                    --     text "Hello motherfucker"
+                    --     text "Hello world"
             ]
         ]
 
@@ -175,7 +174,7 @@ viewNav: Model -> Html Msg
 viewNav model =
     header [ class "navHeader"]
     [
-        img [ src "/logo.svg", class "logo" ] [],
+        a[ href "#home", onClick (ChangePage (HomePage (Home.getModel Home.init))) ][ img [ src "/logo.svg", class "logo" ] [] ],
         nav[][
             ul [ class "menu" ][
 
@@ -243,7 +242,22 @@ viewNav model =
                     case model.dashboard of 
                         AboutPage x -> class "selected"
                         _ -> class ""
-                    ][ span[][ Outlined.info 20 Inherit ], text "About" ]]
+                    ][ span[][ Outlined.info 20 Inherit ], text "About" ]],
+
+                
+                div[ class "credits" ][
+                    li[ class "menu-heading"][
+                        h3[][
+                            text "Credits"
+                        ]
+                    ],
+                    li[][
+                        button[][  span[][ Outlined.copyright 20 Inherit ], text "Juraj Bedej" ]
+                    ],
+                    li[][
+                        button[][a[ href "https://github.com/jaruji/Elm-modularity/tree/main"][ span[][ Outlined.source 20 Inherit ], text "GitHub" ]]
+                    ]
+                ]
 
             ]
         ]
