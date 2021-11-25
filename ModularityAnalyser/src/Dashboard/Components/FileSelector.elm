@@ -1,120 +1,149 @@
 module Dashboard.Components.FileSelector exposing (..)
 
-import Color exposing (Color)
-import Material.Icons.Navigation exposing (close)
-import Css exposing (..)
-import Css.Transitions exposing (easeInOut, transition, linear)
-import Css.Animations exposing (keyframes, property)
-import Svg exposing (svg)
-import Html
--- import Html.Styled exposing (..)
--- import Html.Styled.Attributes exposing (css, href, src)
--- import Html.Styled.Events exposing (onClick)
-import Svg.Styled exposing (toUnstyled, fromUnstyled)
-import Time exposing (..)
-import File exposing (File, mime)
-import File.Select as Select
+import Browser
+import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Decode as D
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline exposing (required, optional, hardcoded)
+import Regex
+import String exposing (String)
+import Task
 
+--load the files
+--take only .elm or .json, otherwise from them out
+--read their content, convert it into String and update the parent state with its values.
+--add filter - accept a list of extensions that it should/should accept, when * accepts every extension!
+
+type alias MyFile =
+    { 
+      buff : File,
+      path: String, 
+      name: String, 
+      content : String 
+    }
 
 type alias Model =
-  { 
-    hover : Bool,
-    files : List File
-  }
+    { 
+      files : List MyFile,
+      extensions : List String 
+    }
 
-
-init : (Model, Cmd Msg)
-init =
-  (Model False [], Cmd.none)
+init : List String -> ( Model, Cmd msg )
+init  extensions =
+    ( { files = [], extensions = extensions }, Cmd.none )
 
 
 type Msg
-  = Pick
-  | DragEnter
-  | DragLeave
-  | GotFiles File (List File)
+    = ChooseDirectory (List File)
+    | ReadFiles
+    | FileReadSuccess String String
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case msg of
-    Pick ->
-      ( model
-      , Select.files [".elm"] GotFiles
-      )
+    case msg of
+        ChooseDirectory files ->
+            ({ model | files = List.filter (isValid model.extensions) (convertFiles files)}, Cmd.none)
 
-    DragEnter ->
-      ( { model | hover = True }
-      , Cmd.none
-      )
+        ReadFiles ->
+            ( model
+            , List.map
+                (\file ->
+                    File.toString file.buff |> Task.perform (FileReadSuccess (File.name file.buff))
+                )
+                model.files
+                |> Cmd.batch
+            )
 
-    DragLeave ->
-      ( { model | hover = False }
-      , Cmd.none
-      )
-
-    GotFiles file files ->
-      ( { model
-            | files = file :: files
-            , hover = False
-        }
-      , Cmd.none
-      )
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Sub.none
+        FileReadSuccess name content ->
+            ( { model
+                | files =
+                    List.map
+                        (\file ->
+                            if File.name file.buff == name then
+                                { file | content = content }
+                            else
+                                file
+                        )
+                        model.files
+              }
+            , Cmd.none
+            )
 
 view : Model -> Html Msg
 view model =
-  div
-    [ style "border" (if model.hover then "6px dashed purple" else "6px dashed #ccc")
-    , style "border-radius" "20px"
-    , style "width" "480px"
-    , style "height" "100px"
-    , style "margin" "100px auto"
-    , style "padding" "20px"
-    , style "display" "flex"
-    , style "flex-direction" "column"
-    , style "justify-content" "center"
-    , style "align-items" "center"
-    , hijackOn "dragenter" (D.succeed DragEnter)
-    , hijackOn "dragover" (D.succeed DragEnter)
-    , hijackOn "dragleave" (D.succeed DragLeave)
-    , hijackOn "drop" dropDecoder
-    ]
-    [ button [ onClick Pick ] [ text "Upload Files" ]
-    , span [ style "color" "#ccc" ] [ text (Debug.toString model) ]
-    , div[] [
-      div[] (List.map text (List.map mime model.files))
-    ] 
-    ]
-  
-viewMime: String -> Html Msg
-viewMime string =
-  div[][
-    text string
-  ]
+    div []
+        [ input
+            [ type_ "file"
+            , attribute "webkitdirectory" ""
+            , attribute "directory" ""
+            , attribute "id" "filepicker"
+            , on "change" (Decode.map ChooseDirectory filesDecoder)
+            ]
+            []
+        , button [ onClick ReadFiles ] [ text "Read" ]
+        , div [] <|
+            List.map
+                (\file ->
+                    div []
+                        [ p [] [ text (File.name file.buff) ]
+                        -- , div[] (List.map text model.paths)
+                        , text file.path
+                        , text file.content
+                        , hr [] []
+                        ]
+                )
+                model.files
+        ]
 
 
-dropDecoder : D.Decoder Msg
-dropDecoder =
-  D.at ["dataTransfer","files"] (D.oneOrMore GotFiles File.decoder)
+-- fileDecoder: Decode.Decoder MyFile
+-- fileDecoder =
+--   Decode.map3 MyFile
+--     (Decode.at [ "target", "files" ] File.decoder)
+--     (Decode.at ["target", "files", "webkitRelativePath"] Decode.string)
+--     (Decode.succeed "lmao") --default value during decoding!
+
+--dude this is harder then the da vinci code???
+
+-- fileDecoder: Decode.Decoder MyFile
+-- fileDecoder =
+--   Decode.succeed MyFile
+--   |> Pipeline.required "File" File.decoder
+--   |> Pipeline.required "webkitRelativePath" Decode.string
+--   |> Pipeline.required "name" Decode.string
+--   |> Pipeline.hardcoded ""
 
 
-hijackOn : String -> D.Decoder msg -> Attribute msg
-hijackOn event decoder =
-  preventDefaultOn event (D.map hijack decoder)
+filesDecoder =
+  Decode.at [ "target", "files" ] (Decode.list File.decoder)
 
+-- filesDecoder =
+--   Decode.at [ "target", "files" ] (Decode.list fileDecoder)
 
-hijack : msg -> (msg, Bool)
-hijack msg =
-  (msg, True)
+-- pathDecoder =
+--   Decode.at ["target", "files", "webkitRelativePath"] (Decode.list Decode.string)
+
+isValid: List String -> MyFile -> Bool
+isValid extensions file =
+  if Regex.contains (Regex.fromString (String.join "$|" extensions) |> Maybe.withDefault Regex.never) (File.name file.buff) then
+    True
+  else
+    False
+  -- if String.contains ".elm" (File.name file.buff) then
+  --   True
+  -- else
+  --   False
+
+convertFiles: List File -> List MyFile
+convertFiles files =
+  List.map(\file -> MyFile file "" "" "") files
+
+initMyFile: File -> MyFile
+initMyFile file =
+  MyFile file "" "" ""
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
@@ -122,4 +151,17 @@ getModel (model, cmd) =
 
 getFiles: Model -> List File
 getFiles model =
-  model.files
+  List.map getFile model.files
+
+getFile: MyFile -> File
+getFile file =
+  file.buff
+
+getFilesContent: Model -> List String
+getFilesContent model =
+  List.map getFileContent model.files
+
+getFileContent: MyFile -> String
+getFileContent file =
+  file.content
+

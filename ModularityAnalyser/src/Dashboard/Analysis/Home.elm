@@ -13,8 +13,6 @@ import File exposing (..)
 import Task
 import Dashboard.Components.FileSelector as FileSelector exposing (..)
 
---need to remake this for elm-css (same for FileSelector component)
-
 type alias Model = 
     {
         projectFiles: (FileSelector.Model, Cmd FileSelector.Msg),
@@ -29,7 +27,7 @@ type Msg
 
 init: ( Model, Cmd Msg)
 init =
-    ({ projectFiles = FileSelector.init, content = ""}, Cmd.none)
+    ({ projectFiles = FileSelector.init [".elm", ".json"], content = ""}, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -53,7 +51,7 @@ view model =
             -- label[ attribute "for" "project", class "my-file-upload" ][ 
             --     text "Upload project directory"
             -- ],
-            -- input [ attribute "id" "project", 
+            -- input [ attribute "id" "filepicker", 
             -- attribute "directory" "", 
             -- attribute "multiple" "", 
             -- attribute "accept" ".elm",
@@ -62,7 +60,9 @@ view model =
             --     text "Choose directory"
             -- ]
         ],
-        article[][],
+        article[][
+            -- ul [ attribute "id" "listing" ][]
+        ],
         article[][],
         article[][]
     ]

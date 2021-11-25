@@ -15,6 +15,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Time exposing (..)
 
+import Ports exposing (request)
 import Dashboard.Analysis.Home as Home exposing (..)
 import Dashboard.Analysis.AST as AST exposing (Model, update, view)
 import Dashboard.Analysis.Dependencies as Dependencies exposing (Model, update, view)
