@@ -2,13 +2,20 @@ module Dashboard.Components.FileSelector exposing (..)
 
 import Browser
 import File exposing (File)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline exposing (required, optional, hardcoded)
 import Regex
 import String exposing (String)
+import Css exposing (..)
+import Css.Transitions exposing (easeInOut, transition, linear)
+import Css.Animations exposing (keyframes, property)
+import Svg.Styled exposing (fromUnstyled)
+import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (..)
+import Html.Styled.Events exposing (..)
+import Material.Icons as Filled
+import Material.Icons.Outlined as Outlined
+import Material.Icons.Types exposing (Coloring(..))
 import Task
 
 --load the files
@@ -17,38 +24,46 @@ import Task
 --add filter - accept a list of extensions that it should/should accept, when * accepts every extension!
 
 type alias MyFile =
-    { 
-      buff : File,
-      path: String, 
-      name: String, 
-      content : String 
-    }
+  { 
+    buff : File,
+    path: String, 
+    name: String, 
+    content : String 
+  }
 
 type alias Model =
-    { 
-      files : List MyFile,
-      extensions : List String 
-    }
+  { 
+    files : List MyFile,
+    extensions : List String,
+    status: Status
+  }
 
-init : List String -> ( Model, Cmd msg )
+init : List String -> ( Model, Cmd Msg )
 init  extensions =
-    ( { files = [], extensions = extensions }, Cmd.none )
+    ( { files = [], extensions = extensions, status = Idle }, Cmd.none )
 
 
 type Msg
-    = ChooseDirectory (List File)
-    | ReadFiles
-    | FileReadSuccess String String
+  = ChooseDirectory (List File)
+  | ReadFiles
+  | FileReadSuccess String String
 
+type Status
+  --use this to load the files
+  = Idle
+  | Loading
+  | Success
+  | Failed String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChooseDirectory files ->
-            ({ model | files = List.filter (isValid model.extensions) (convertFiles files)}, Cmd.none)
+            --now this is amazing, allows to chain messages...didnt know this existed
+            update ReadFiles { model | files = List.filter (isValid model.extensions) (convertFiles files), status = Loading}
 
         ReadFiles ->
-            ( model
+            ( { model | files = List.map(\file -> {file | name = File.name file.buff}) model.files, status = Success }
             , List.map
                 (\file ->
                     File.toString file.buff |> Task.perform (FileReadSuccess (File.name file.buff))
@@ -71,32 +86,50 @@ update msg model =
               }
             , Cmd.none
             )
+        
+        -- RemoveFiles ->
+        --   ({ model | files = List.map (\file -> )})
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ input
-            [ type_ "file"
-            , attribute "webkitdirectory" ""
-            , attribute "directory" ""
-            , attribute "id" "filepicker"
-            , on "change" (Decode.map ChooseDirectory filesDecoder)
-            ]
-            []
-        , button [ onClick ReadFiles ] [ text "Read" ]
-        , div [] <|
-            List.map
-                (\file ->
-                    div []
-                        [ p [] [ text (File.name file.buff) ]
-                        -- , div[] (List.map text model.paths)
-                        , text file.path
-                        , text file.content
-                        , hr [] []
-                        ]
-                )
-                model.files
-        ]
+  div [][ 
+    label[ 
+      css [
+        cursor pointer,
+        border3 (px 1) solid (hex "#888"),
+        padding2 (px 6) (px 12),
+        color (rgb 255 255 255),
+        textAlign center,
+        textDecoration none,
+        fontSize (px 16),
+        backgroundColor (hex "#008CBA"),
+        margin auto,
+        display inlineBlock,
+        position relative
+      ]
+    ][
+      input [
+        css[ display none ],
+        type_ "file",
+        attribute "webkitdirectory" "",
+        attribute "directory" "",
+        attribute "id" "filepicker",
+        on "change" (Decode.map ChooseDirectory filesDecoder)
+      ][]
+      , span[][ text "Upload folder" ]
+    ],
+    button [ onClick ReadFiles ] [ text "Read" ],
+    List.map (
+      \file -> div [][ 
+        p [][ 
+          text file.name ],
+        --div[] (List.map text model.paths)
+          text file.path,
+          text file.content,
+          hr [] []
+      ]
+    ) model.files |> div[]
+  ]
 
 
 -- fileDecoder: Decode.Decoder MyFile
@@ -123,19 +156,24 @@ filesDecoder =
 -- filesDecoder =
 --   Decode.at [ "target", "files" ] (Decode.list fileDecoder)
 
--- pathDecoder =
---   Decode.at ["target", "files", "webkitRelativePath"] (Decode.list Decode.string)
+pathDecoder =
+  Decode.at ["webkitRelativePath"] Decode.string
 
 isValid: List String -> MyFile -> Bool
 isValid extensions file =
-  if Regex.contains (Regex.fromString (String.join "$|" extensions) |> Maybe.withDefault Regex.never) (File.name file.buff) then
-    True
-  else
-    False
-  -- if String.contains ".elm" (File.name file.buff) then
-  --   True
-  -- else
-  --   False
+  let
+    filename = File.name file.buff
+  in
+    if List.length extensions == 1 then
+      if Regex.contains (Regex.fromString (String.append (String.join "" extensions) "$") |> Maybe.withDefault Regex.never) filename then
+        True
+      else
+        False  
+    else
+      if Regex.contains (Regex.fromString (String.join "$|" extensions) |> Maybe.withDefault Regex.never) filename then
+        True
+      else
+        False
 
 convertFiles: List File -> List MyFile
 convertFiles files =
@@ -157,11 +195,11 @@ getFile: MyFile -> File
 getFile file =
   file.buff
 
-getFilesContent: Model -> List String
+getFilesContent: Model -> List (String, String)
 getFilesContent model =
   List.map getFileContent model.files
 
-getFileContent: MyFile -> String
+getFileContent: MyFile -> (String, String)
 getFileContent file =
-  file.content
+  (file.name, file.content)
 

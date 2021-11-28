@@ -8,6 +8,7 @@ import Css.Animations exposing (keyframes, property)
 import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Styled exposing(toUnstyled)
 import Time exposing (..)
 import File exposing (..)
 import Task
@@ -47,22 +48,12 @@ view: Model -> Html Msg
 view model =
     section[ class "grid" ][
         article[][
-            FileSelector.view (FileSelector.getModel model.projectFiles) |> Html.map FileSelectorMsg
-            -- label[ attribute "for" "project", class "my-file-upload" ][ 
-            --     text "Upload project directory"
-            -- ],
-            -- input [ attribute "id" "filepicker", 
-            -- attribute "directory" "", 
-            -- attribute "multiple" "", 
-            -- attribute "accept" ".elm",
-            -- type_ "file", 
-            -- attribute "webkitdirectory" "" ][ 
-            --     text "Choose directory"
-            -- ]
+            h1[][ text "Welcome to ElMetrics"],
+            text "Welcome to my little game",
+            -- h4[][ text "The solution for modular Elm code"],
+            FileSelector.view (FileSelector.getModel model.projectFiles) |> toUnstyled |> Html.map FileSelectorMsg 
         ],
-        article[][
-            -- ul [ attribute "id" "listing" ][]
-        ],
+        article[][],
         article[][],
         article[][]
     ]
@@ -72,9 +63,9 @@ readFiles file =
   Task.perform FileContentLoaded (File.toString file)
 
 
-getFiles: Model -> List File
+getFiles: Model -> List (String, String)
 getFiles model =
-    FileSelector.getFiles (FileSelector.getModel model.projectFiles)
+    FileSelector.getFilesContent (FileSelector.getModel model.projectFiles)
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =

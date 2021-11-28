@@ -3,7 +3,6 @@ module Main exposing (..)
 import Browser
 import Browser.Navigation as Nav exposing (pushUrl)
 import Color exposing (Color)
-import Material.Icons exposing(home, close)
 import Color
 import Material.Icons as Filled
 import Material.Icons.Outlined as Outlined
@@ -32,7 +31,7 @@ import Dashboard.Settings.About as About exposing (Model, update, view)
 type alias Model =
     {
         dashboard: Dashboard,
-        projects: List File
+        files: List (String, String)
     }
 
 type Dashboard
@@ -50,7 +49,7 @@ type Dashboard
 
 init : ( Model, Cmd Msg )
 init =
-    ( { dashboard = HomePage (Home.getModel Home.init), projects = []}, Cmd.none )
+    ( { dashboard = HomePage (Home.getModel Home.init), files = []}, Cmd.none )
 
 
 ---- UPDATE ----
@@ -133,7 +132,7 @@ update msg model =
 
 homeHelper: Model -> (Home.Model, Cmd Home.Msg) -> (Model, Cmd Msg)
 homeHelper model (home, cmd) =
-  ({ model | dashboard = HomePage home, projects = Home.getFiles home }, Cmd.map HomeMsg cmd)
+  ({ model | dashboard = HomePage home, files = Home.getFiles home }, Cmd.map HomeMsg cmd)
 
 
 ---- VIEW ----
@@ -191,7 +190,7 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.home 20 Inherit ], text "Home" ]],
 
-                li[][ button[ onClick (ChangePage (ASTPage (AST.getModel AST.init))),
+                li[][ button[ onClick (ChangePage (ASTPage (AST.getModel (AST.init model.files)))),
                     case model.dashboard of 
                         ASTPage x -> class "selected"
                         _ -> class ""
@@ -201,7 +200,7 @@ viewNav model =
                     case model.dashboard of 
                         MetricsPage x -> class "selected"
                         _ -> class ""
-                    ][ span[][ Filled.analytics 20 Inherit ], text "Software Metrics" ]],
+                    ][ span[][ Filled.analytics 20 Inherit ], text "Metrics" ]],
 
                 li[][ button[ onClick (ChangePage (DependenciesPage (Dependencies.getModel Dependencies.init))),
                     case model.dashboard of 
