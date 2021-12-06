@@ -17,6 +17,11 @@ import Material.Icons as Filled
 import Material.Icons.Outlined as Outlined
 import Material.Icons.Types exposing (Coloring(..))
 import Task
+import Loading exposing (LoaderType(..), defaultConfig, render)
+import Elm.Parser exposing (parse)
+import Elm.RawFile exposing (..)
+import Elm.Syntax.File exposing (..)
+import Elm.Processing exposing (process, init)
 
 --load the files
 --take only .elm or .json, otherwise from them out
@@ -25,10 +30,11 @@ import Task
 
 type alias MyFile =
   { 
-    buff : File,
+    buff : File.File,
     path: String, 
     name: String, 
-    content : String 
+    content : String,
+    ast : Maybe Elm.RawFile.RawFile
   }
 
 type alias Model =
@@ -44,16 +50,16 @@ init  extensions =
 
 
 type Msg
-  = ChooseDirectory (List File)
+  = ChooseDirectory (List File.File)
   | ReadFiles
   | FileReadSuccess String String
+  | ParseFiles
 
 type Status
   --use this to load the files
   = Idle
   | Loading
   | Success
-  | Failed String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -63,73 +69,103 @@ update msg model =
             update ReadFiles { model | files = List.filter (isValid model.extensions) (convertFiles files), status = Loading}
 
         ReadFiles ->
-            ( { model | files = List.map(\file -> {file | name = File.name file.buff}) model.files, status = Success }
+            ( { model | files = List.map(\file -> {file | name = File.name file.buff}) model.files }
             , List.map
                 (\file ->
                     File.toString file.buff |> Task.perform (FileReadSuccess (File.name file.buff))
                 )
-                model.files
-                |> Cmd.batch
+                model.files |> Cmd.batch
             )
 
         FileReadSuccess name content ->
-            ( { model
-                | files =
+          update ParseFiles 
+              { model | files =
                     List.map
                         (\file ->
-                            if File.name file.buff == name then
-                                { file | content = content }
-                            else
-                                file
+                          if File.name file.buff == name then
+                              --somehow extract the path here
+                            { file | content = content }
+                          else
+                            file
                         )
                         model.files
               }
-            , Cmd.none
-            )
-        
+        ParseFiles ->
+          ({ model | files = 
+            List.map(
+              \file ->
+                let
+                  res = parse file.content
+                in
+                  case res of
+                    Ok rawFile ->
+                      { file | ast = Just rawFile }
+                    Err _ ->
+                      file
+              
+           ) model.files, status = Success}, Cmd.none)
+
         -- RemoveFiles ->
         --   ({ model | files = List.map (\file -> )})
 
 view : Model -> Html Msg
 view model =
-  div [][ 
-    label[ 
-      css [
-        cursor pointer,
-        border3 (px 1) solid (hex "#888"),
-        padding2 (px 6) (px 12),
-        color (rgb 255 255 255),
-        textAlign center,
-        textDecoration none,
-        fontSize (px 16),
-        backgroundColor (hex "#008CBA"),
-        margin auto,
-        display inlineBlock,
-        position relative
-      ]
-    ][
-      input [
-        css[ display none ],
-        type_ "file",
-        attribute "webkitdirectory" "",
-        attribute "directory" "",
-        attribute "id" "filepicker",
-        on "change" (Decode.map ChooseDirectory filesDecoder)
-      ][]
-      , span[][ text "Upload folder" ]
-    ],
-    button [ onClick ReadFiles ] [ text "Read" ],
-    List.map (
-      \file -> div [][ 
-        p [][ 
-          text file.name ],
-        --div[] (List.map text model.paths)
-          text file.path,
-          text file.content,
-          hr [] []
-      ]
-    ) model.files |> div[]
-  ]
+  let folderInput =
+        label[ 
+          css [
+            cursor pointer,
+            border3 (px 1) solid (hex "#888"),
+            padding2 (px 6) (px 12),
+            color (rgb 255 255 255),
+            textAlign center,
+            textDecoration none,
+            fontSize (px 16),
+            backgroundColor (hex "#008CBA"),
+            margin auto,
+            display inlineBlock,
+            position relative
+          ]
+        ][
+          input [
+            css[ display none ],
+            type_ "file",
+            attribute "webkitdirectory" "",
+            attribute "directory" "",
+            attribute "id" "filepicker",
+            on "change" (Decode.map ChooseDirectory filesDecoder)
+          ][],
+          button[ class "bold" ][ text "Upload project" ]     
+        ]
+  in
+    case model.status of
+      Idle ->
+        folderInput
+      Loading ->
+        div[][
+            h3[][text "Loading"],
+            div[ class "subtext" ][text "Processing your files..."],
+            Loading.render Loading.Circle {defaultConfig | size = 60} Loading.On |> Html.Styled.fromUnstyled
+        ]
+      Success ->
+        div[][
+            h3[][ text ("Loaded files (" ++ String.fromInt (List.length model.files) ++ ")") ],
+            hr[][],
+            List.map (
+              \file -> div [][ 
+                p [][ 
+                  text file.name 
+                ]
+                --div[] (List.map text model.paths)
+                --text file.path,
+                --text file.content,
+              ]
+            ) 
+            model.files |> div[],
+            h3[][ text "Upload another project" ],
+            hr[][],
+            div[ style "margin-bottom" "10px" ][ folderInput ]
+        ]
+
 
 
 -- fileDecoder: Decode.Decoder MyFile
@@ -175,31 +211,27 @@ isValid extensions file =
       else
         False
 
-convertFiles: List File -> List MyFile
+convertFiles: List File.File -> List MyFile
 convertFiles files =
-  List.map(\file -> MyFile file "" "" "") files
+  List.map(\file -> MyFile file "" "" "" Nothing) files
 
-initMyFile: File -> MyFile
+initMyFile: File.File -> MyFile
 initMyFile file =
-  MyFile file "" "" ""
+  MyFile file "" "" "" Nothing
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
   model
 
-getFiles: Model -> List File
+getFiles: Model -> List File.File
 getFiles model =
   List.map getFile model.files
 
-getFile: MyFile -> File
+getFile: MyFile -> File.File
 getFile file =
   file.buff
 
-getFilesContent: Model -> List (String, String)
+getFilesContent: Model -> List MyFile
 getFilesContent model =
-  List.map getFileContent model.files
-
-getFileContent: MyFile -> (String, String)
-getFileContent file =
-  (file.name, file.content)
+  model.files
 

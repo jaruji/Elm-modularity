@@ -47,15 +47,20 @@ fileSelectorHelper model (fileSelector, cmd) =
 view: Model -> Html Msg
 view model =
     section[ class "grid" ][
+        h1[][ text "Welcome to ElMetrics"],
+        div[ class "subtext" ][ text "Analytic tool to measure the quality of your Elm codebase."],
         article[][
-            h1[][ text "Welcome to ElMetrics"],
-            text "Welcome to my little game",
+            h2[] [ text "Getting started" ],
+            text "Please, select an Elm project directory that you want to analyse by clicking the button ",
+            span[ class "bold" ][ text "Upload Folder " ],
+            text "button.",
+            hr[][],
             -- h4[][ text "The solution for modular Elm code"],
             FileSelector.view (FileSelector.getModel model.projectFiles) |> toUnstyled |> Html.map FileSelectorMsg 
-        ],
-        article[][],
-        article[][],
-        article[][]
+        ]
+        -- article[][],
+        -- article[][],
+        -- article[][]
     ]
 
 readFiles : File -> Cmd Msg
@@ -63,7 +68,7 @@ readFiles file =
   Task.perform FileContentLoaded (File.toString file)
 
 
-getFiles: Model -> List (String, String)
+getFiles: Model -> List FileSelector.MyFile
 getFiles model =
     FileSelector.getFilesContent (FileSelector.getModel model.projectFiles)
 

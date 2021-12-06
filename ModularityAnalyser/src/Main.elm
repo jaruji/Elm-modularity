@@ -13,6 +13,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Time exposing (..)
+import List.Extra exposing(iterate, find)
+import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 
 import Ports exposing (request)
 import Dashboard.Analysis.Home as Home exposing (..)
@@ -31,7 +33,7 @@ import Dashboard.Settings.About as About exposing (Model, update, view)
 type alias Model =
     {
         dashboard: Dashboard,
-        files: List (String, String)
+        files: List MyFile
     }
 
 type Dashboard
@@ -195,18 +197,18 @@ viewNav model =
                         ASTPage x -> class "selected"
                         _ -> class ""
                     ][ span[][ Outlined.account_tree 20 Inherit ], text "AST" ]],
+                
+                li[][ button[ onClick (ChangePage (DependenciesPage (Dependencies.getModel (Dependencies.init (getElmJson model.files))))),
+                    case model.dashboard of 
+                        DependenciesPage x -> class "selected"
+                        _ -> class ""
+                    ][ span[][ Outlined.inventory_2 20 Inherit ], text "Dependencies" ]],
 
                 li[][ button[ onClick (ChangePage (MetricsPage (Metrics.getModel Metrics.init))),
                     case model.dashboard of 
                         MetricsPage x -> class "selected"
                         _ -> class ""
                     ][ span[][ Filled.analytics 20 Inherit ], text "Metrics" ]],
-
-                li[][ button[ onClick (ChangePage (DependenciesPage (Dependencies.getModel Dependencies.init))),
-                    case model.dashboard of 
-                        DependenciesPage x -> class "selected"
-                        _ -> class ""
-                    ][ span[][ Outlined.inventory_2 20 Inherit ], text "Dependencies" ]],
 
                 li[][ button[ onClick (ChangePage (ModulePage (Modules.getModel Modules.init))),
                     case model.dashboard of 
@@ -254,7 +256,10 @@ viewNav model =
                         button[][  span[][ Outlined.copyright 20 Inherit ], text "Juraj Bedej" ]
                     ],
                     li[][
-                        button[][a[ href "https://github.com/jaruji/Elm-modularity/tree/main"][ span[][ Outlined.source 20 Inherit ], text "GitHub" ]]
+                        button[][a[ href "https://github.com/jaruji/Elm-modularity/tree/main", attribute "target" "_blank"][ 
+                            span[][ Outlined.source 20 Inherit ], text "GitHub" 
+                            ]
+                        ]
                     ]
                 ]
 
@@ -262,19 +267,25 @@ viewNav model =
         ]
     ]
 
+isElmJson: MyFile -> Bool
+isElmJson file =
+    if file.name == "elm.json" then
+        True
+    else
+        False
 
-viewPageContentHeader: Html Msg
-viewPageContentHeader =
-    section [ class "page-content-header" ][
-    ]
-
-
--- isSelected: String -> Dashboard -> Attribute Msg
--- isSelected dashboard:
-
-
+getElmJson: List MyFile -> Maybe String
+getElmJson files =
+    let
+        result = List.Extra.find isElmJson files
+    in
+        case result of
+            Nothing ->
+                Nothing
+            Just val ->
+                Just val.content
+    
 ---- PROGRAM ----
-
 
 main : Program () Model Msg
 main =

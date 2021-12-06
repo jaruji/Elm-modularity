@@ -7,27 +7,27 @@ var app = Elm.Main.init({
 });
 
 //need to get to the files here, that means parsing the folder and creating document tree + File list
-// document.getElementById("filepicker").addEventListener("change", function (event) {
-//   // let output = document.getElementById("listing");
-//   // let files = event.target.files;
-//   // let arr = [];
+document.getElementById("filepicker").addEventListener("change", function (event) {
+  // let output = document.getElementById("listing");
+  // let files = event.target.files;
+  // let arr = [];
 
-//   // for (let i = 0; i < files.length; i++) {
-//   //   let item = document.createElement("li");
-//   //   item.innerHTML = files[i].webkitRelativePath;
-//   //   arr.push(files[i].webkitRelativePath);
-//   //   output.appendChild(item);
-//   //   console.log(item);
-//   // };
+  // for (let i = 0; i < files.length; i++) {
+  //   let item = document.createElement("li");
+  //   item.innerHTML = files[i].webkitRelativePath;
+  //   arr.push(files[i].webkitRelativePath);
+  //   output.appendChild(item);
+  //   console.log(item);
+  // };
 
-//   // send parsed tree structure as a JSON to Elm
-//   // this crashes ofc
-//   // app.ports.getProjectDirTree.send(JSON.parse(arr));
+  // send parsed tree structure as a JSON to Elm
+  // this crashes ofc
+  // app.ports.getProjectDirTree.send(JSON.parse(arr));
 
-//   // send all the files as JSON to Elm I guess?
-//   console.log(event.target.files)
-//   console.log(event.target.files.webkitRelativePath)
-// }, false);
+  // send all the files as JSON to Elm I guess?
+  console.log(event.target.files)
+  console.log(event.target.files.webkitRelativePath)
+}, false);
 
 // if(app){
 //   app.ports.request.subscribe(() => {
