@@ -16,7 +16,7 @@ import Dashboard.Components.FileSelector as FileSelector exposing (..)
 
 type alias Model = 
     {
-        projectFiles: (FileSelector.Model, Cmd FileSelector.Msg),
+        fileSelector: (FileSelector.Model, Cmd FileSelector.Msg),
         content: String
     }
 
@@ -28,13 +28,13 @@ type Msg
 
 init: ( Model, Cmd Msg)
 init =
-    ({ projectFiles = FileSelector.init [".elm", ".json"], content = ""}, Cmd.none)
+    ({ fileSelector = FileSelector.init [".elm", ".json"], content = ""}, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         FileSelectorMsg mesg ->
-            fileSelectorHelper model (FileSelector.update mesg (FileSelector.getModel model.projectFiles))
+            fileSelectorHelper model (FileSelector.update mesg (FileSelector.getModel model.fileSelector))
         FileContentLoaded fileContent ->
             ({ model | content = fileContent}, Cmd.none)
         _ ->
@@ -42,7 +42,7 @@ update msg model =
 
 fileSelectorHelper: Model -> (FileSelector.Model, Cmd FileSelector.Msg) -> (Model, Cmd Msg)
 fileSelectorHelper model (fileSelector, cmd) =
-  ({ model | projectFiles = (fileSelector, cmd) }, Cmd.map FileSelectorMsg cmd)
+  ({ model | fileSelector = (fileSelector, cmd) }, Cmd.map FileSelectorMsg cmd)
 
 view: Model -> Html Msg
 view model =
@@ -56,7 +56,7 @@ view model =
             text "button.",
             hr[][],
             -- h4[][ text "The solution for modular Elm code"],
-            FileSelector.view (FileSelector.getModel model.projectFiles) |> toUnstyled |> Html.map FileSelectorMsg 
+            FileSelector.view (FileSelector.getModel model.fileSelector) |> toUnstyled |> Html.map FileSelectorMsg 
         ]
         -- article[][],
         -- article[][],
@@ -70,7 +70,7 @@ readFiles file =
 
 getFiles: Model -> List FileSelector.MyFile
 getFiles model =
-    FileSelector.getFilesContent (FileSelector.getModel model.projectFiles)
+    FileSelector.getFilesContent (FileSelector.getModel model.fileSelector)
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =

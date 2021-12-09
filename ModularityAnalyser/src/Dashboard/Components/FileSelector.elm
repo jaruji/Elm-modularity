@@ -22,6 +22,7 @@ import Elm.Parser exposing (parse)
 import Elm.RawFile exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Processing exposing (process, init)
+import Update.Extra exposing (andThen)
 
 --load the files
 --take only .elm or .json, otherwise from them out
@@ -54,6 +55,7 @@ type Msg
   | ReadFiles
   | FileReadSuccess String String
   | ParseFiles
+  | Succeed
 
 type Status
   --use this to load the files
@@ -90,6 +92,7 @@ update msg model =
                         )
                         model.files
               }
+        
         ParseFiles ->
           ({ model | files = 
             List.map(
@@ -101,9 +104,11 @@ update msg model =
                     Ok rawFile ->
                       { file | ast = Just rawFile }
                     Err _ ->
-                      file
-              
-           ) model.files, status = Success}, Cmd.none)
+                      file 
+           ) model.files}, Cmd.none) |> andThen update Succeed
+        
+        Succeed ->
+          ({ model | status = Success }, Cmd.none)
 
         -- RemoveFiles ->
         --   ({ model | files = List.map (\file -> )})

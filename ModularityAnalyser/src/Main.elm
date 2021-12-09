@@ -29,7 +29,6 @@ import Dashboard.Settings.About as About exposing (Model, update, view)
 
 ---- MODEL ----
 
-
 type alias Model =
     {
         dashboard: Dashboard,
@@ -204,7 +203,7 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.inventory_2 20 Inherit ], text "Dependencies" ]],
 
-                li[][ button[ onClick (ChangePage (MetricsPage (Metrics.getModel Metrics.init))),
+                li[][ button[ onClick (ChangePage (MetricsPage (Metrics.getModel (Metrics.init model.files)))),
                     case model.dashboard of 
                         MetricsPage x -> class "selected"
                         _ -> class ""

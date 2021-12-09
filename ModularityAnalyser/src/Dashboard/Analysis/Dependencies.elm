@@ -43,7 +43,8 @@ view model =
                         Ok result ->
                             Dependency.view result
                         Err err ->
-                            text (Debug.toString err)
+                            text ("Error while loading elm.json file")
+                            --Debug.toString err
         ]
     ]
 

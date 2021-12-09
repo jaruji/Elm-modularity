@@ -8,6 +8,7 @@
         "direct": {
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
             "avh4/elm-color": "1.0.0",
+            "ccapndave/elm-update-extra": "4.0.0",
             "danmarcab/material-icons": "1.0.0",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
@@ -19,6 +20,8 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm-community/list-extra": "8.5.1",
+            "elm-community/typed-svg": "7.0.0",
+            "gampleman/elm-visualization": "2.3.0",
             "icidasset/elm-material-icons": "9.0.0",
             "perzanko/elm-loading": "2.0.4",
             "rtfeldman/elm-css": "16.1.1",
@@ -27,10 +30,25 @@
         },
         "indirect": {
             "elm/bytes": "1.0.8",
+            "elm/random": "1.0.0",
             "elm/url": "1.0.0",
             "elm/virtual-dom": "1.0.2",
+            "folkertdev/elm-deque": "3.0.1",
+            "folkertdev/one-true-path-experiment": "6.0.0",
+            "folkertdev/svg-path-lowlevel": "4.0.1",
+            "ianmackenzie/elm-1d-parameter": "1.0.1",
+            "ianmackenzie/elm-float-extra": "1.1.0",
+            "ianmackenzie/elm-geometry": "3.9.1",
+            "ianmackenzie/elm-interval": "2.0.0",
+            "ianmackenzie/elm-triangular-mesh": "1.1.0",
+            "ianmackenzie/elm-units": "2.9.0",
+            "ianmackenzie/elm-units-interval": "2.3.0",
+            "ianmackenzie/elm-units-prefixed": "2.7.0",
+            "justinmimbs/date": "3.2.1",
+            "justinmimbs/time-extra": "1.1.0",
             "miniBill/elm-unicode": "1.0.2",
             "rtfeldman/elm-hex": "1.0.0",
+            "ryannhg/date-format": "2.3.0",
             "stil4m/structured-writer": "1.0.3"
         }
     },
@@ -38,8 +56,6 @@
         "direct": {
             "elm-explorations/test": "1.2.2"
         },
-        "indirect": {
-            "elm/random": "1.0.0"
-        }
+        "indirect": {}
     }
 }
