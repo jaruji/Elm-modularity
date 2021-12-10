@@ -19,6 +19,7 @@
             "elm/regex": "1.0.0",
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
+            "elm-community/graph": "6.0.0",
             "elm-community/list-extra": "8.5.1",
             "elm-community/typed-svg": "7.0.0",
             "gampleman/elm-visualization": "2.3.0",
@@ -29,10 +30,12 @@
             "tj/elm-svg-loaders": "1.0.0"
         },
         "indirect": {
+            "avh4/elm-fifo": "1.0.4",
             "elm/bytes": "1.0.8",
             "elm/random": "1.0.0",
             "elm/url": "1.0.0",
             "elm/virtual-dom": "1.0.2",
+            "elm-community/intdict": "3.0.0",
             "folkertdev/elm-deque": "3.0.1",
             "folkertdev/one-true-path-experiment": "6.0.0",
             "folkertdev/svg-path-lowlevel": "4.0.1",

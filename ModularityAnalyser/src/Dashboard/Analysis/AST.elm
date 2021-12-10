@@ -58,38 +58,32 @@ view model =
         ]
         else
             section[ class "grid" ][
-                
                 div[][
                     h1[][ text "Abstract syntax tree"],
                     div[ class "subtext" ][ text "Preview of loaded modules and their AST's."],
                     label [ for "search" ] [ text "Search:" ],
-                    input [ id "search", type_ "text", class "form-control", Html.Attributes.value model.search, onInput Search ] [],
-                    List.map( \file -> 
-                            case file.ast of
-                                Nothing ->
-                                    text ""
-                                Just ast ->
-                                    if String.contains model.search file.name then
-                                        article[ style "max-width" "30%" ][
-                                            h3[][ text file.name],
-                                            text (ASTHelper.joinPath ast),
-                                            --List.map text (ASTHelper.getImports ast) |> div[],
-                                            List.map (\line -> 
-                                                pre[][ code[] [ text line ] ]
-                                            ) (String.lines file.content) |> div[]
-                                        ]
-                                    else
-                                        text ""
-                                        --(List.map displayModulePath (moduleNameToString (moduleName ast))) |> div[],
-                                        -- h2[][ text (moduleName ast)],
-                                        -- button[][ text "Show source code" ],
-                                        -- button[][ text "Show AST" ],
-                                        -- button[][ text "Hide comments" ],
-                                        --text (Debug.toString (ASTHelper.getCommentLines (ASTHelper.processRawFile ast)))
-                                        --pre[][ code[][ text file.content]]
-                    ) model.files |> div[]
+                    input [ id "search", type_ "text", Html.Attributes.value model.search, onInput Search ] [],
+                    section[ class "codeSnippet" ] (List.map viewCard model.files)
                 ]
             ]
+
+viewCard: MyFile -> Html Msg
+viewCard file =
+    case file.ast of
+        Nothing ->
+            text ""
+        Just ast ->
+            article[ style "max-width" "100%" ][
+                h2[][ text file.name],
+                hr[][],
+                text (ASTHelper.joinPath ast),
+                text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
+                --List.map text (ASTHelper.getImports ast) |> div[],
+                List.map (\line -> 
+                    pre[][ code[] [ text line ] ]
+                ) (String.lines file.content) |> div[]
+            ]
+
 
 displayModulePath: String -> Html msg
 displayModulePath string =

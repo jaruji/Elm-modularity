@@ -209,7 +209,7 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Filled.analytics 20 Inherit ], text "Metrics" ]],
 
-                li[][ button[ onClick (ChangePage (ModulePage (Modules.getModel Modules.init))),
+                li[][ button[ onClick (ChangePage (ModulePage (Modules.getModel (Modules.init model.files)))),
                     case model.dashboard of 
                         ModulePage x -> class "selected"
                         _ -> class ""

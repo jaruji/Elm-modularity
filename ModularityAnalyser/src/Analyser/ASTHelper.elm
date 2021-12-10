@@ -8,6 +8,10 @@ import Elm.Syntax.File exposing (..)
 import Elm.Processing as Processing exposing (..)
 import Elm.Writer exposing (..)
 import Elm.Syntax.Range exposing (..)
+import Elm.Syntax.Declaration exposing (..)
+import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Signature exposing (..)
+import Elm.Syntax.TypeAlias exposing (..)
 
 getImports: RawFile -> List String
 getImports ast =
@@ -50,3 +54,13 @@ getCommentLines: File -> List (Int, Int)
 getCommentLines {moduleDefinition, imports, declarations, comments} =
     List.map getNodeRange comments
 
+getDeclarationLines: File -> List (Int, Int)
+getDeclarationLines {moduleDefinition, imports, declarations, comments} = 
+    List.map 
+        (\declaration -> 
+            getStartEnd (range declaration)
+        ) declarations
+
+numberOfDeclarations: File -> Int
+numberOfDeclarations {moduleDefinition, imports, declarations, comments} =
+   List.length declarations

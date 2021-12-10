@@ -118,6 +118,19 @@ img {
   box-shadow: var(--box-shadow);
 }
 
+.page-content .grid .codeSnippet > article {
+  text-align: left;
+  min-height: 300px;
+  margin-bottom: 30px;
+  background: var(--page-content-blockColor);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+pre{
+  white-space: pre-wrap;
+}
+
 /* 
 .page-content .grid > article:first-child,
 .page-content .grid > article:last-child {

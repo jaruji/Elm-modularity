@@ -54,13 +54,17 @@ view model =
                                                     h2[][ text file.name ],
                                                     let 
                                                         parsedString = String.lines file.content
+                                                        processedFile = ASTHelper.processRawFile ast
                                                     in
                                                         div[][
                                                             text ("Total lines: " ++ String.fromInt (List.length parsedString)),
                                                             br[][],
                                                             text ("LOC: " ++ String.fromInt (List.length (List.filter removeEmpty parsedString))),
                                                             div[][
-                                                                text ( "Comment line count: " ++ String.fromInt (List.foldl numberOfCommentedLines 0 (ASTHelper.getCommentLines (ASTHelper.processRawFile ast))))
+                                                                text ( "Comment line count: " ++ String.fromInt (List.foldl numberOfCommentedLines 0 (ASTHelper.getCommentLines processedFile)))
+                                                            ],
+                                                            div[][
+                                                                text ( "Number of declarations(NoD): " ++ String.fromInt (ASTHelper.numberOfDeclarations processedFile))
                                                             ]
                                                         ]
                                                 ]
