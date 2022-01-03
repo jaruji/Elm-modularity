@@ -64,3 +64,36 @@ getDeclarationLines {moduleDefinition, imports, declarations, comments} =
 numberOfDeclarations: File -> Int
 numberOfDeclarations {moduleDefinition, imports, declarations, comments} =
    List.length declarations
+
+numberOfFunctions: File -> Int
+numberOfFunctions {moduleDefinition, imports, declarations, comments} =
+    List.foldl 
+        (\declaration acc ->
+            case value declaration of
+                FunctionDeclaration _ ->
+                    acc + 1
+                _ ->
+                    acc
+        ) 0 declarations
+
+numberOfTypes: File -> Int
+numberOfTypes {moduleDefinition, imports, declarations, comments} =
+    List.foldl 
+        (\declaration acc ->
+            case value declaration of
+                CustomTypeDeclaration _ ->
+                    acc + 1
+                _ ->
+                    acc
+        ) 0 declarations
+
+numberOfTypeAliases: File -> Int
+numberOfTypeAliases {moduleDefinition, imports, declarations, comments} =
+    List.foldl 
+        (\declaration acc ->
+            case value declaration of
+                AliasDeclaration _ ->
+                    acc + 1
+                _ ->
+                    acc
+        ) 0 declarations

@@ -81,7 +81,7 @@ update msg model =
         ASTMsg mesg ->
             case model.dashboard of
                 ASTPage ast ->
-                     ({ model | dashboard = ASTPage ast }, Cmd.none)
+                    astHelper model (AST.update mesg ast)
                 _ ->
                     (model, Cmd.none)
         DependenciesMsg mesg ->
@@ -134,6 +134,10 @@ update msg model =
 homeHelper: Model -> (Home.Model, Cmd Home.Msg) -> (Model, Cmd Msg)
 homeHelper model (home, cmd) =
   ({ model | dashboard = HomePage home, files = Home.getFiles home }, Cmd.map HomeMsg cmd)
+
+astHelper: Model -> (AST.Model, Cmd AST.Msg) -> (Model, Cmd Msg)
+astHelper model (ast, cmd) =
+  ({ model | dashboard = ASTPage ast }, Cmd.map ASTMsg cmd)
 
 
 ---- VIEW ----

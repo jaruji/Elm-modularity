@@ -65,6 +65,15 @@ view model =
                                                             ],
                                                             div[][
                                                                 text ( "Number of declarations(NoD): " ++ String.fromInt (ASTHelper.numberOfDeclarations processedFile))
+                                                            ],
+                                                            div[][
+                                                                text ( "Number of functions: " ++ String.fromInt (ASTHelper.numberOfFunctions processedFile))
+                                                            ],
+                                                            div[][
+                                                                text ( "Number of types: " ++ String.fromInt (ASTHelper.numberOfTypes processedFile))
+                                                            ],
+                                                            div[][
+                                                                text ( "Number of aliases: " ++ String.fromInt (ASTHelper.numberOfTypeAliases processedFile))
                                                             ]
                                                         ]
                                                 ]

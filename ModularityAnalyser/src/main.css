@@ -253,9 +253,9 @@ button {
   cursor: pointer;
 }
 
-input {
+/* input {
   -webkit-appearance: none;
-}
+} */
 
 [type="checkbox"] {
   position: absolute;
@@ -266,8 +266,7 @@ label {
   cursor: pointer;
 }
 
-button,
-input {
+button{
   border: none;
 }
 

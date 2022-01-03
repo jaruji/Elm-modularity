@@ -31,7 +31,7 @@ import Update.Extra exposing (andThen)
 
 type alias MyFile =
   { 
-    buff : File.File,
+    buff : Maybe File.File,
     path: String, 
     name: String, 
     content : String,
@@ -71,10 +71,21 @@ update msg model =
             update ReadFiles { model | files = List.filter (isValid model.extensions) (convertFiles files), status = Loading}
 
         ReadFiles ->
-            ( { model | files = List.map(\file -> {file | name = File.name file.buff}) model.files }
+            ( { model | files = List.map(\file -> 
+              {file | name = 
+                case file.buff of
+                  Just buff ->
+                    File.name buff
+                  Nothing ->
+                    ""
+              }) model.files }
             , List.map
                 (\file ->
-                    File.toString file.buff |> Task.perform (FileReadSuccess (File.name file.buff))
+                    case file.buff of
+                      Just buff -> 
+                        File.toString buff |> Task.perform (FileReadSuccess (File.name buff))
+                      Nothing ->
+                        Debug.todo "can't happen"
                 )
                 model.files |> Cmd.batch
             )
@@ -84,11 +95,15 @@ update msg model =
               { model | files =
                     List.map
                         (\file ->
-                          if File.name file.buff == name then
-                              --somehow extract the path here
-                            { file | content = content }
-                          else
-                            file
+                          case file.buff of
+                            Just buff ->
+                              if File.name buff == name then
+                                  --somehow extract the path here
+                                { file | content = content }
+                              else
+                                file
+                            Nothing ->
+                              file
                         )
                         model.files
               }
@@ -102,7 +117,7 @@ update msg model =
                 in
                   case res of
                     Ok rawFile ->
-                      { file | ast = Just rawFile }
+                      { file | ast = Just rawFile, buff = Nothing }
                     Err _ ->
                       file 
            ) model.files}, Cmd.none) |> andThen update Succeed
@@ -172,30 +187,8 @@ view model =
         ]
 
 
-
--- fileDecoder: Decode.Decoder MyFile
--- fileDecoder =
---   Decode.map3 MyFile
---     (Decode.at [ "target", "files" ] File.decoder)
---     (Decode.at ["target", "files", "webkitRelativePath"] Decode.string)
---     (Decode.succeed "lmao") --default value during decoding!
-
---dude this is harder then the da vinci code???
-
--- fileDecoder: Decode.Decoder MyFile
--- fileDecoder =
---   Decode.succeed MyFile
---   |> Pipeline.required "File" File.decoder
---   |> Pipeline.required "webkitRelativePath" Decode.string
---   |> Pipeline.required "name" Decode.string
---   |> Pipeline.hardcoded ""
-
-
 filesDecoder =
   Decode.at [ "target", "files" ] (Decode.list File.decoder)
-
--- filesDecoder =
---   Decode.at [ "target", "files" ] (Decode.list fileDecoder)
 
 pathDecoder =
   Decode.at ["webkitRelativePath"] Decode.string
@@ -203,7 +196,12 @@ pathDecoder =
 isValid: List String -> MyFile -> Bool
 isValid extensions file =
   let
-    filename = File.name file.buff
+    filename = 
+      case file.buff of
+        Just buff ->
+          File.name buff
+        Nothing ->
+          ""
   in
     if List.length extensions == 1 then
       if Regex.contains (Regex.fromString (String.append (String.join "" extensions) "$") |> Maybe.withDefault Regex.never) filename then
@@ -218,23 +216,23 @@ isValid extensions file =
 
 convertFiles: List File.File -> List MyFile
 convertFiles files =
-  List.map(\file -> MyFile file "" "" "" Nothing) files
+  List.map(\file -> MyFile (Just file) "" "" "" Nothing) files
 
 initMyFile: File.File -> MyFile
 initMyFile file =
-  MyFile file "" "" "" Nothing
+  MyFile (Just file) "" "" "" Nothing
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
   model
 
-getFiles: Model -> List File.File
-getFiles model =
-  List.map getFile model.files
+-- getFiles: Model -> List File.File
+-- getFiles model =
+--   List.map getFile model.files
 
-getFile: MyFile -> File.File
-getFile file =
-  file.buff
+-- getFile: MyFile -> File.File
+-- getFile file =
+--   file.buff
 
 getFilesContent: Model -> List MyFile
 getFilesContent model =

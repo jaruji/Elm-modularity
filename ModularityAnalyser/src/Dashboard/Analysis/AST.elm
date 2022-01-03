@@ -5,7 +5,7 @@ import Elm.Parser
 import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (..)
+import Html.Events exposing (onClick, onInput)
 import Time exposing (..)
 import File exposing (..)
 import Task
@@ -15,33 +15,48 @@ import List.Extra exposing (..)
 import Regex exposing (..)
 import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
+import SyntaxHighlight exposing (useTheme, monokai, elm, toBlockHtml)
 
 
 type alias Model = 
     {
         files: List MyFile,
-        search: String
+        search: String,
+        mode: Mode
     }
 
 type Msg
     = NoOp
     | ShowCard Int
-    | Search String
+    | UpdateSearch String
+    | SwapMode
 
+type Mode
+    = AbstractSyntaxTree
+    | Code
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    ({files = files, search = ""}, Cmd.none)
+    ({files = files, search = "", mode = Code}, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         NoOp ->
             (model, Cmd.none)
-        Search string ->
-            ({ model | search = string }, Cmd.none)
+        UpdateSearch val ->
+            ({ model | search = val }, Cmd.none)
         ShowCard index ->
             (model, Cmd.none)
+        SwapMode ->
+            ({ model | mode = 
+                case model.mode of
+                    Code ->
+                        AbstractSyntaxTree
+                    AbstractSyntaxTree ->
+                        Code
+
+            }, Cmd.none)
 
 view: Model -> Html Msg
 view model =
@@ -61,28 +76,37 @@ view model =
                 div[][
                     h1[][ text "Abstract syntax tree"],
                     div[ class "subtext" ][ text "Preview of loaded modules and their AST's."],
-                    label [ for "search" ] [ text "Search:" ],
-                    input [ id "search", type_ "text", Html.Attributes.value model.search, onInput Search ] [],
-                    section[ class "codeSnippet" ] (List.map viewCard model.files)
+                    input [ id "search", value model.search, placeholder "Search", onInput UpdateSearch ] [],
+                    button [ onClick SwapMode ][ text "Swap" ],
+                    section[ class "codeSnippet" ] (List.map (viewCard model) model.files)
                 ]
             ]
 
-viewCard: MyFile -> Html Msg
-viewCard file =
+viewCard: Model -> MyFile -> Html Msg
+viewCard model file =
     case file.ast of
         Nothing ->
             text ""
         Just ast ->
-            article[ style "max-width" "100%" ][
-                h2[][ text file.name],
-                hr[][],
-                text (ASTHelper.joinPath ast),
-                text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
-                --List.map text (ASTHelper.getImports ast) |> div[],
-                List.map (\line -> 
-                    pre[][ code[] [ text line ] ]
-                ) (String.lines file.content) |> div[]
-            ]
+            if String.contains (String.toLower model.search) (String.toLower file.name) then
+                article[ style "max-width" "100%" ][
+                    h2[][ text file.name],
+                    hr[][],
+                    text (ASTHelper.joinPath ast),
+                    text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
+                    --List.map text (ASTHelper.getImports ast) |> div[],
+                    case model.mode of
+                        Code ->
+                            List.map (\line -> 
+                                pre[][ code[] [ text line ] ]
+                            ) (String.lines file.content) |> div[]
+                        AbstractSyntaxTree ->
+                            List.map (\line -> 
+                                pre[][ code[] [ text line ] ]
+                            ) (String.lines (Debug.toString ast)) |> div[]
+                ]
+            else
+                text ""
 
 
 displayModulePath: String -> Html msg

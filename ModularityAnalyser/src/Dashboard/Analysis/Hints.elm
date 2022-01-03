@@ -26,8 +26,9 @@ update msg model =
 view: Model -> Html Msg
 view model =
     section[ class "grid" ][
+        h1[][ text "Hints"],
+        div[ class "subtext" ][ text "Collection of hints for improving your code."],
         article[][
-            h2[][ text "Hints" ]
         ]
     ]
 
