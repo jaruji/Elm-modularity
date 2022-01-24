@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
+import RadarChart exposing (..)
 
 {--
     metrics:
@@ -48,40 +49,54 @@ view model =
                 0 ->
                     article[][ text "No Elm project loaded" ]
                 _ ->
-                    article[]((List.map (\file -> case file.ast of
-                                            Just ast ->
-                                                div[][
-                                                    h2[][ text file.name ],
-                                                    let 
-                                                        parsedString = String.lines file.content
-                                                        processedFile = ASTHelper.processRawFile ast
-                                                    in
-                                                        div[][
-                                                            text ("Total lines: " ++ String.fromInt (List.length parsedString)),
-                                                            br[][],
-                                                            text ("LOC: " ++ String.fromInt (List.length (List.filter removeEmpty parsedString))),
-                                                            div[][
-                                                                text ( "Comment line count: " ++ String.fromInt (List.foldl numberOfCommentedLines 0 (ASTHelper.getCommentLines processedFile)))
-                                                            ],
-                                                            div[][
-                                                                text ( "Number of declarations(NoD): " ++ String.fromInt (ASTHelper.numberOfDeclarations processedFile))
-                                                            ],
-                                                            div[][
-                                                                text ( "Number of functions: " ++ String.fromInt (ASTHelper.numberOfFunctions processedFile))
-                                                            ],
-                                                            div[][
-                                                                text ( "Number of types: " ++ String.fromInt (ASTHelper.numberOfTypes processedFile))
-                                                            ],
-                                                            div[][
-                                                                text ( "Number of aliases: " ++ String.fromInt (ASTHelper.numberOfTypeAliases processedFile))
-                                                            ]
-                                                        ]
-                                                ]
-                                            Nothing ->
-                                                text ""
-                                        )
-                            ) files)
+                    table[ style "text-align" "left" ][
+                        tr[][
+                            th[][ text "Module"],
+                            th[][ text "LOC" ],
+                            th[][ text "Comments" ],
+                            th[][ text "NoD" ],
+                            th[][ text "NoF" ],
+                            th[][ text "NoT" ],
+                            th[][ text "NoA" ]
+                        ],
+                        List.map tableContent files |> tbody[]
+                    ]
     ]
+
+tableContent: MyFile -> Html msg
+tableContent file =
+    case file.ast of
+        Just ast ->
+            let 
+                parsedString = String.lines file.content
+                processedFile = ASTHelper.processRawFile ast
+            in
+                tr[][
+                    td[][ text file.name ],
+                    td[][ 
+                        text (String.fromInt (List.length parsedString))
+                    ],
+                    -- td[][ 
+                    --     text (String.fromInt (List.length (List.filter removeEmpty parsedString)))
+                    -- ],
+                    td[][
+                        text (String.fromInt (List.foldl numberOfCommentedLines 0 (ASTHelper.getCommentLines processedFile)))
+                    ],
+                    td[][
+                        text (String.fromInt (ASTHelper.numberOfDeclarations processedFile))
+                    ],
+                    td[][
+                        text ( String.fromInt (ASTHelper.numberOfFunctions processedFile))
+                    ],
+                    td[][
+                        text (String.fromInt (ASTHelper.numberOfTypes processedFile))
+                    ],
+                    td[][
+                        text (String.fromInt (ASTHelper.numberOfTypeAliases processedFile))
+                    ]
+                ]
+        Nothing ->
+            text ""
 
 removeEmpty: String -> Bool
 removeEmpty string =
