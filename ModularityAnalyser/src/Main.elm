@@ -93,7 +93,7 @@ update msg model =
         MetricsMsg mesg ->
             case model.dashboard of
                 MetricsPage met ->
-                     ({ model | dashboard = MetricsPage met }, Cmd.none)
+                    metricsHelper model (Metrics.update mesg met)
                 _ ->
                     (model, Cmd.none)
         ModuleMsg mesg ->
@@ -138,6 +138,10 @@ homeHelper model (home, cmd) =
 astHelper: Model -> (AST.Model, Cmd AST.Msg) -> (Model, Cmd Msg)
 astHelper model (ast, cmd) =
   ({ model | dashboard = ASTPage ast }, Cmd.map ASTMsg cmd)
+
+metricsHelper: Model -> (Metrics.Model, Cmd Metrics.Msg) -> (Model, Cmd Msg)
+metricsHelper model (metrics, cmd) =
+  ({ model | dashboard = MetricsPage metrics }, Cmd.map MetricsMsg cmd)
 
 
 ---- VIEW ----

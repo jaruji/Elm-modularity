@@ -47,8 +47,8 @@ fileSelectorHelper model (fileSelector, cmd) =
 view: Model -> Html Msg
 view model =
     section[ class "grid" ][
-        h1[][ text "Welcome to ElMetrics"],
-        div[ class "subtext" ][ text "Analytic tool to measure the quality of your Elm codebase."],
+        h1[][ text "Welcome to Elm Metrics"],
+        div[ class "subtext" ][ text "Analytical tool to measure the quality of your Elm codebase through the usage of software metrics and numerous visualizations."],
         article[][
             h2[] [ text "Getting started" ],
             text "Please, select an Elm project directory that you want to analyse by clicking the button ",

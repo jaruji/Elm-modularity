@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
 import RadarChart exposing (..)
+import Html.Events exposing (onClick)
 
 {--
     metrics:
@@ -20,28 +21,40 @@ import RadarChart exposing (..)
 
 type alias Model = 
     {
-        files: List MyFile
+        files: List MyFile,
+        page: Page
     }
+
+type Page 
+    = Global
+    | Local
 
 type Msg
     = NoOp
+    | Swap Page
 
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    ({files = files}, Cmd.none)
+    ({files = files, page = Local}, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         NoOp ->
             (model, Cmd.none)
+        Swap page ->
+            ({ model | page = page }, Cmd.none)
 
 view: Model -> Html Msg
 view model =
     section[ class "grid" ][
         h1[][ text "Elm metrics"],
         div[ class "subtext" ][ text "Software metrics used to compute and visualize the complexity of the project, relationships between modules and their modularity."],
+        div[][
+            button [ onClick (Swap Global) ][ text "Project" ],
+            button [ onClick (Swap Local) ][ text "Modules"]
+        ],
         let
             files = model.files
         in
@@ -49,22 +62,26 @@ view model =
                 0 ->
                     article[][ text "No Elm project loaded" ]
                 _ ->
-                    table[ style "text-align" "left" ][
-                        tr[][
-                            th[][ text "Module"],
-                            th[][ text "LOC" ],
-                            th[][ text "Comments" ],
-                            th[][ text "NoD" ],
-                            th[][ text "NoF" ],
-                            th[][ text "NoT" ],
-                            th[][ text "NoA" ]
-                        ],
-                        List.map tableContent files |> tbody[]
-                    ]
+                    case model.page of
+                        Local ->
+                            table[ style "text-align" "left" ][
+                                tr[][
+                                    th[][ text "Module"],
+                                    th[][ text "LOC" ],
+                                    th[][ text "Comments" ],
+                                    th[][ text "NoD" ],
+                                    th[][ text "NoF" ],
+                                    th[][ text "NoT" ],
+                                    th[][ text "NoA" ]
+                                ],
+                                List.map localTableContent files |> tbody[]
+                            ]
+                        Global ->
+                            text "Global mode"
     ]
 
-tableContent: MyFile -> Html msg
-tableContent file =
+localTableContent: MyFile -> Html msg
+localTableContent file =
     case file.ast of
         Just ast ->
             let 
@@ -97,6 +114,12 @@ tableContent file =
                 ]
         Nothing ->
             text ""
+        
+globalTableContent: MyFile -> Html msg
+globalTableContent file =
+    div[][
+        
+    ]
 
 removeEmpty: String -> Bool
 removeEmpty string =

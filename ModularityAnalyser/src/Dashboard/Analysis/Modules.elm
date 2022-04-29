@@ -69,7 +69,7 @@ linkElement graph edge =
     in
     line
         [ strokeWidth 0.25
-        , stroke <| Paint <| Color.rgb255 170 170 170
+        , stroke <| Paint <| Color.grey
         , x1 source.x
         , y1 source.y
         , x2 target.x
@@ -80,7 +80,7 @@ linkElement graph edge =
 
 edgeColor : Paint
 edgeColor =
-    Paint <| Color.rgb255 180 180 180
+    Paint <| Color.grey
 
 arrowhead : Svg msg
 arrowhead =
@@ -105,8 +105,8 @@ nodeElement node =
     g [ TypedSvg.Attributes.class [ "node" ] ]
         [ circle
             [ r 5
-            , strokeWidth 1
-            , fill (Paint Color.blue)
+            , strokeWidth 0.5
+            , fill (Paint Color.orange)
             , stroke (Paint Color.black)
             --, cursor CursorPointer
             , cx node.label.x
