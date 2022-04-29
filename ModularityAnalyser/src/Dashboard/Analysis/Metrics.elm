@@ -7,16 +7,43 @@ import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
 -- import RadarChart exposing (..)
 import Html.Events exposing (onClick)
+import Analyser.Chart as Chart exposing (..)
 
 {--
     metrics:
-        LOC
-        Comments
-        Number of types
-        Number of functions
-        Number of Boilerplate Msgs
-        Locate MVU triplets
-        Number of imports used together with number of calls for each import
+        local:
+            LOC
+            Comments
+            Number of types
+            Number of functions
+            Number of Boilerplate Msgs
+            Locate MVU triplets
+            Number of imports used together with number of calls for each import
+
+            Number of lambdas (NoL)
+            Lambda score    (LS)
+            CPM (coupling)
+            MAD
+            MTD
+            MFD
+            Boilerplate
+        global:
+            ALOC
+            ANOT
+            ANOF
+            ANOD
+            ACPM
+            AMAD
+            AMTD
+            AMFD
+            Average boilerplate Msg
+            Average boilerplate loc
+        funkcie (ak zostane cas):
+            IDEG
+            OUTDEG
+            ATNR
+            CGDP
+            CGWD
 --}
 
 type alias Model = 
@@ -64,7 +91,7 @@ view model =
                 _ ->
                     case model.page of
                         Local ->
-                            table[ style "text-align" "left" ][
+                            table[ style "text-align" "left", style "background-color" "white" ][
                                 tr[][
                                     th[][ text "Module"],
                                     th[][ text "LOC" ],
@@ -77,7 +104,10 @@ view model =
                                 List.map localTableContent files |> tbody[]
                             ]
                         Global ->
-                            text "Global mode"
+                            div[ style "height" "500px", style "width" "500px"][
+                                text "Global mode",
+                                Chart.view
+                            ]
     ]
 
 localTableContent: MyFile -> Html msg

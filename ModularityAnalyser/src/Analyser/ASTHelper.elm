@@ -10,6 +10,7 @@ import Elm.Writer exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 
@@ -75,6 +76,10 @@ numberOfFunctions {moduleDefinition, imports, declarations, comments} =
                 _ ->
                     acc
         ) 0 declarations
+
+numberOfLambdas: File-> Int
+numberOfLambdas {moduleDefinition, imports, declarations, comments} =
+    0
 
 numberOfTypes: File -> Int
 numberOfTypes {moduleDefinition, imports, declarations, comments} =

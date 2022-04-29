@@ -68,8 +68,8 @@ view model =
                     ]
                 Just _ ->
                     div[][
-                        h3[][ text "A project is currently loaded in the tool." ],
-                        button[onClick Remove, class "button-special"][ text "Remove project" ]
+                        h4[ style "margin" "10px" ][ text "A project is currently loaded in the tool." ],
+                        button[onClick Remove, class "button-special", style "background-color" "darkred"][ text "Remove project" ]
                     ]
         ]
     ]
