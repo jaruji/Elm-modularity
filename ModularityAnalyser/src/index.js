@@ -25,8 +25,8 @@ document.getElementById("filepicker").addEventListener("change", function (event
   // app.ports.getProjectDirTree.send(JSON.parse(arr));
 
   // send all the files as JSON to Elm I guess?
-  console.log(event.target.files)
-  console.log(event.target.files.webkitRelativePath)
+  //console.log(event.target.files)
+  //console.log(event.target.files.webkitRelativePath)
 }, false);
 
 // if(app){

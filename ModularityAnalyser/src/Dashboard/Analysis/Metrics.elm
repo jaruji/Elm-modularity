@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
-import RadarChart exposing (..)
+-- import RadarChart exposing (..)
 import Html.Events exposing (onClick)
 
 {--
@@ -51,9 +51,9 @@ view model =
     section[ class "grid" ][
         h1[][ text "Elm metrics"],
         div[ class "subtext" ][ text "Software metrics used to compute and visualize the complexity of the project, relationships between modules and their modularity."],
-        div[][
-            button [ onClick (Swap Global) ][ text "Project" ],
-            button [ onClick (Swap Local) ][ text "Modules"]
+        div[ style "text-align" "center"][
+            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project" ],
+            button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"]
         ],
         let
             files = model.files

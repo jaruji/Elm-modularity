@@ -77,7 +77,7 @@ view model =
                     h1[][ text "Abstract syntax tree"],
                     div[ class "subtext" ][ text "Preview of loaded modules and their AST's."],
                     input [ id "search", value model.search, placeholder "Search", onInput UpdateSearch ] [],
-                    button [ onClick SwapMode ][ text "Swap" ],
+                    button [ onClick SwapMode, class "button-special" ][ text "Swap" ],
                     section[ class "codeSnippet" ] (List.map (viewCard model) model.files)
                 ]
             ]

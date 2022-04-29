@@ -180,12 +180,11 @@ view model =
                 --text file.content,
               ]
             ) 
-            model.files |> div[],
-            h3[][ text "Upload another project" ],
-            hr[][],
-            div[ style "margin-bottom" "10px" ][ folderInput ]
+            model.files |> div[]
+            -- h3[][ text "Upload another project" ],
+            -- hr[][],
+            -- div[ style "margin-bottom" "10px" ][ folderInput ]
         ]
-
 
 filesDecoder =
   Decode.at [ "target", "files" ] (Decode.list File.decoder)

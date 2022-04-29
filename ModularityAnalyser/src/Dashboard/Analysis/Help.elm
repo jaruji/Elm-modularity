@@ -1,4 +1,4 @@
-module Dashboard.Analysis.Hints exposing (..)
+module Dashboard.Analysis.Help exposing (..)
 
 import Svg exposing (svg)
 import Html exposing (..)
@@ -26,9 +26,10 @@ update msg model =
 view: Model -> Html Msg
 view model =
     section[ class "grid" ][
-        h1[][ text "Hints"],
-        div[ class "subtext" ][ text "Collection of hints for improving your code."],
+        h1[][ text "Help"],
+        div[ class "subtext" ][ text "Basic information about used metrics, what they measure and how were the threshold values obtained."],
         article[][
+            text "Metrics list..."
         ]
     ]
 

@@ -14,6 +14,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Time exposing (..)
 import List.Extra exposing(iterate, find)
+import List exposing (length)
 import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 
 import Ports exposing (request)
@@ -22,7 +23,7 @@ import Dashboard.Analysis.AST as AST exposing (Model, update, view)
 import Dashboard.Analysis.Dependencies as Dependencies exposing (Model, update, view)
 import Dashboard.Analysis.Metrics as Metrics exposing (Model, update, view)
 import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)
-import Dashboard.Analysis.Hints as Hints exposing (Model, update, view)
+import Dashboard.Analysis.Help as Help exposing (Model, update, view)
 import Dashboard.Settings.Settings as Settings exposing (Model, update, view)
 import Dashboard.Settings.Preferences as Preferences exposing (Model, update, view)
 import Dashboard.Settings.About as About exposing (Model, update, view)
@@ -41,7 +42,7 @@ type Dashboard
     | DependenciesPage Dependencies.Model
     | MetricsPage Metrics.Model
     | ModulePage Modules.Model
-    | HintsPage Hints.Model
+    | HelpPage Help.Model
     | SettingsPage Settings.Model
     | PreferencesPage Preferences.Model
     | AboutPage About.Model
@@ -50,7 +51,7 @@ type Dashboard
 
 init : ( Model, Cmd Msg )
 init =
-    ( { dashboard = HomePage (Home.getModel Home.init), files = []}, Cmd.none )
+    ( { dashboard = HomePage (Home.getModel (Home.init Nothing)), files = []}, Cmd.none )
 
 
 ---- UPDATE ----
@@ -63,7 +64,7 @@ type Msg
     | DependenciesMsg Dependencies.Msg
     | MetricsMsg Metrics.Msg
     | ModuleMsg Modules.Msg
-    | HintsMsg Hints.Msg
+    | HelpMsg Help.Msg
     | SettingsMsg Settings.Msg
     | PreferencesMsg Preferences.Msg
     | AboutMsg About.Msg
@@ -102,10 +103,10 @@ update msg model =
                      ({ model | dashboard = ModulePage mod }, Cmd.none)
                 _ ->
                     (model, Cmd.none)
-        HintsMsg mesg ->
+        HelpMsg mesg ->
             case model.dashboard of
-                HintsPage hint ->
-                     ({ model | dashboard = HintsPage hint }, Cmd.none)
+                HelpPage hint ->
+                     ({ model | dashboard = HelpPage hint }, Cmd.none)
                 _ ->
                     (model, Cmd.none)
         SettingsMsg mesg ->
@@ -164,8 +165,8 @@ view model =
                         Metrics.view met |> Html.map MetricsMsg
                     ModulePage mod ->
                         Modules.view mod |> Html.map ModuleMsg
-                    HintsPage hint ->
-                        Hints.view hint |> Html.map HintsMsg
+                    HelpPage hint ->
+                        Help.view hint |> Html.map HelpMsg
                     SettingsPage set ->
                         Settings.view set |> Html.map SettingsMsg
                     PreferencesPage pref ->
@@ -183,7 +184,7 @@ viewNav: Model -> Html Msg
 viewNav model =
     header [ class "navHeader"]
     [
-        a[ href "#home", onClick (ChangePage (HomePage (Home.getModel Home.init))) ][ img [ src "/logo.svg", class "logo" ] [] ],
+        a[ href "#home", onClick (ChangePage (HomePage (Home.getModel (Home.init (getLoadedFiles model))))) ][ img [ src "/logo.svg", class "logo" ] [] ],
         nav[][
             ul [ class "menu" ][
 
@@ -193,7 +194,7 @@ viewNav model =
                     ]
                 ],
 
-                li[][ button[ onClick (ChangePage (HomePage (Home.getModel Home.init))),
+                li[][ button[ onClick (ChangePage (HomePage (Home.getModel (Home.init (getLoadedFiles model))))),
                     case model.dashboard of 
                         HomePage x -> class "selected"
                         _ -> class ""
@@ -223,11 +224,11 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.view_module 20 Inherit ], text "Module Diagram" ]],
 
-                li[][ button[ onClick (ChangePage (HintsPage (Hints.getModel Hints.init))),
+                li[][ button[ onClick (ChangePage (HelpPage (Help.getModel Help.init))),
                     case model.dashboard of 
-                        HintsPage x -> class "selected"
+                        HelpPage x -> class "selected"
                         _ -> class ""
-                    ][ span[][ Outlined.lightbulb 20 Inherit ], text "Hints" ]],
+                    ][ span[][ Outlined.lightbulb 20 Inherit ], text "Help" ]],
 
                 li[ class "menu-heading"][
                     h3[][
@@ -291,6 +292,13 @@ getElmJson files =
                 Nothing
             Just val ->
                 Just val.content
+
+getLoadedFiles: Model -> Maybe (List MyFile)
+getLoadedFiles model =
+    if length model.files == 0 then
+        Nothing
+    else
+        Just model.files
     
 ---- PROGRAM ----
 
