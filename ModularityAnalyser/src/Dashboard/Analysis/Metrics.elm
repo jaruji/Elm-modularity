@@ -104,9 +104,9 @@ view model =
                                 List.map localTableContent files |> tbody[]
                             ]
                         Global ->
-                            div[ style "height" "500px", style "width" "500px"][
+                            div[ style "height" "500px", style "width" "500px", style "margin-left" "50px"][
                                 text "Global mode",
-                                Chart.view
+                                Chart.viewTemplateGraph
                             ]
     ]
 

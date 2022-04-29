@@ -3,8 +3,11 @@ import Html exposing (Html)
 import Chart as C
 import Chart.Attributes as CA
 
-view : Html msg
-view =
+--this module contains all the chart logic. It has no state nor any functionality except visualizing data through Html messages.
+--It uses the elm-charts library
+
+viewTemplateGraph : Html msg
+viewTemplateGraph =
   C.chart
     [ CA.width 300
     , CA.height 300
