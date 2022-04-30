@@ -104,10 +104,10 @@ nodeElement : Node Entity -> Svg Msg
 nodeElement node =
     g [ TypedSvg.Attributes.class [ "node" ] ]
         [ circle
-            [ r 5
-            , strokeWidth 0.5
-            , fill (Paint Color.orange)
-            , stroke (Paint Color.black)
+            [ r 5.5
+            , strokeWidth 0.25
+            , fill (Paint Color.lightBlue)
+            , stroke (Paint Color.darkBlue)
             --, cursor CursorPointer
             , cx node.label.x
             , cy node.label.y
@@ -136,9 +136,6 @@ view model =
             h1[][ text "Module diagram"],
             div[ Attributes.class "subtext" ][ text "Visualization of relationships between modules."]
         ],
-        div[ Attributes.class "main-header"][
-            text "Header"
-        ],
         article[][
             case List.length model.files of
                 0 ->
@@ -146,12 +143,16 @@ view model =
                         text "No Elm project currently loaded."
                     ]
                 _ -> 
-                    div[ Attributes.class "main-card"][
-                        div[ Attributes.class "card" ][
-                            viewGraph model
+                    div[][
+                        div[ Attributes.class "main-header"][
+                            text "Header"
+                        ],
+                        div[ Attributes.class "main-card"][
+                            div[ Attributes.class "card" ][
+                                viewGraph model
+                            ]
                         ]
                     ]
-                    
         ]
     ]
 

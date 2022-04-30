@@ -17,7 +17,8 @@ import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
 import SyntaxHighlight exposing (useTheme, monokai, elm, toBlockHtml)
 import Json.Decode as Decode
-import JsonTree exposing (defaultColors)
+import JsonTree
+import Set exposing (Set)
 
 exampleJsonInput =
     """
@@ -37,7 +38,9 @@ type alias Model =
     {
         files: List MyFile,
         search: String,
-        mode: Mode
+        mode: Mode,
+        astTreeState: JsonTree.State,
+        parsedJson: Result Decode.Error JsonTree.Node
     }
 
 type Msg
@@ -45,6 +48,7 @@ type Msg
     | ShowCard Int
     | UpdateSearch String
     | SwapMode
+    | SetTreeState JsonTree.State
 
 type Mode
     = AbstractSyntaxTree
@@ -52,7 +56,7 @@ type Mode
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    ({files = files, search = "", mode = Code}, Cmd.none)
+    ({files = files, search = "", mode = Code, astTreeState = JsonTree.defaultState, parsedJson = JsonTree.parseString exampleJsonInput }, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -72,6 +76,8 @@ update msg model =
                         Code
 
             }, Cmd.none)
+        SetTreeState state ->
+            ({ model | astTreeState = state }, Cmd.none)
 
 view: Model -> Html Msg
 view model =
@@ -100,7 +106,23 @@ view model =
                     ]
                 ]
         ]
-        
+
+viewJsonTree: Model -> Html Msg
+viewJsonTree model = 
+    let
+        config = { onSelect = Nothing, toMsg = SetTreeState, colors = JsonTree.defaultColors }
+    in
+        div[][
+            case model.parsedJson of
+                Ok node ->
+                    div[ style "margin-left" "-350px" ][
+                        JsonTree.view node (config) model.astTreeState
+                    ]
+                Err _ ->
+                    div[][
+                        text "Failed to parse AST"
+                    ]
+        ]
 
 viewCard: Model -> MyFile -> Html Msg
 viewCard model file =
@@ -109,8 +131,8 @@ viewCard model file =
             text ""
         Just ast ->
             if String.contains (String.toLower model.search) (String.toLower file.name) then
-                article[ class "card" ][
-                    h2[ style "padding" "25px" ][ text file.name],
+                div[ class "card" ][
+                    h2[ style "padding" "25px" ][ text file.name ],
                     hr[ style "width" "100%" ][],
                     -- text (ASTHelper.joinPath ast),
                     -- text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
@@ -123,13 +145,13 @@ viewCard model file =
                             ) (String.lines file.content) |> article[ style "padding" "10px" ]
                         AbstractSyntaxTree ->
                         --here make it so ast view is through an expandable tree
-                            List.map (\line -> 
-                                pre[][ code[] [ text line ] ]
-                            ) (String.lines (Debug.toString ast)) |> div[]
+                            viewJsonTree model
+                            -- List.map (\line -> 
+                            --     pre[][ code[] [ text line ] ]
+                            -- ) (String.lines (Debug.toString ast)) |> div[]
                 ]
             else
                 text ""
-
 
 displayModulePath: String -> Html msg
 displayModulePath string =

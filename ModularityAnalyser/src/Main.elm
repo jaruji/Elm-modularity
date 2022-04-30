@@ -25,7 +25,7 @@ import Dashboard.Analysis.Metrics as Metrics exposing (Model, update, view)
 import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)
 import Dashboard.Analysis.Help as Help exposing (Model, update, view)
 import Dashboard.Settings.Settings as Settings exposing (Model, update, view)
-import Dashboard.Settings.Preferences as Preferences exposing (Model, update, view)
+import Dashboard.Analysis.Checkpoints as Checkpoints exposing (Model, update, view)
 import Dashboard.Settings.About as About exposing (Model, update, view)
 
 ---- MODEL ----
@@ -44,7 +44,7 @@ type Dashboard
     | ModulePage Modules.Model
     | HelpPage Help.Model
     | SettingsPage Settings.Model
-    | PreferencesPage Preferences.Model
+    | CheckpointsPage Checkpoints.Model
     | AboutPage About.Model
     
 
@@ -66,7 +66,7 @@ type Msg
     | ModuleMsg Modules.Msg
     | HelpMsg Help.Msg
     | SettingsMsg Settings.Msg
-    | PreferencesMsg Preferences.Msg
+    | CheckpointsMsg Checkpoints.Msg
     | AboutMsg About.Msg
 
 
@@ -115,10 +115,10 @@ update msg model =
                      ({ model | dashboard = SettingsPage set }, Cmd.none)
                 _ ->
                     (model, Cmd.none)
-        PreferencesMsg mesg ->
+        CheckpointsMsg mesg ->
             case model.dashboard of
-                PreferencesPage pref ->
-                     ({ model | dashboard = PreferencesPage pref }, Cmd.none)
+                CheckpointsPage pref ->
+                     ({ model | dashboard = CheckpointsPage pref }, Cmd.none)
                 _ ->
                     (model, Cmd.none)
         AboutMsg mesg ->
@@ -169,8 +169,8 @@ view model =
                         Help.view hint |> Html.map HelpMsg
                     SettingsPage set ->
                         Settings.view set |> Html.map SettingsMsg
-                    PreferencesPage pref ->
-                        Preferences.view pref |> Html.map PreferencesMsg
+                    CheckpointsPage pref ->
+                        Checkpoints.view pref |> Html.map CheckpointsMsg
                     AboutPage abo ->
                         About.view abo |> Html.map AboutMsg
                     -- _ ->
@@ -224,6 +224,12 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.view_module 20 Inherit ], text "Module Diagram" ]],
 
+                li[][ button[ onClick (ChangePage (CheckpointsPage (Checkpoints.getModel Checkpoints.init))),
+                    case model.dashboard of 
+                        CheckpointsPage x -> class "selected"
+                        _ -> class ""
+                    ][ span[][ Outlined.psychology 20 Inherit ], text "Checkpoints" ]],
+
                 li[][ button[ onClick (ChangePage (HelpPage (Help.getModel Help.init))),
                     case model.dashboard of 
                         HelpPage x -> class "selected"
@@ -241,12 +247,6 @@ viewNav model =
                         SettingsPage x -> class "selected"
                         _ -> class ""
                     ][ span[][ Outlined.settings 20 Inherit ], text "Settings" ]],
-
-                li[][ button[ onClick (ChangePage (PreferencesPage (Preferences.getModel Preferences.init))),
-                    case model.dashboard of 
-                        PreferencesPage x -> class "selected"
-                        _ -> class ""
-                    ][ span[][ Outlined.psychology 20 Inherit ], text "Preferences" ]],
 
                 li[][ button[ onClick (ChangePage (AboutPage (About.getModel About.init))),
                     case model.dashboard of 

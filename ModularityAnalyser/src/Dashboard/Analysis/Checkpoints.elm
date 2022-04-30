@@ -1,4 +1,4 @@
-module Dashboard.Settings.Preferences exposing (..)
+module Dashboard.Analysis.Checkpoints exposing (..)
 
 import Svg exposing (svg)
 import Html exposing (..)
@@ -25,9 +25,12 @@ update msg model =
 
 view: Model -> Html Msg
 view model =
-    section[ class "grid" ][
-        article[][
-            h2[][ text "Preferences" ]
+    div[][
+        div[ class "header" ][
+            h1[][ text "Checkpoints"],
+            div[ class "subtext" ][ text "Follow the changes in your project through checkpoints."]
+        ],
+        div[ class "main-header" ][
         ]
     ]
 
