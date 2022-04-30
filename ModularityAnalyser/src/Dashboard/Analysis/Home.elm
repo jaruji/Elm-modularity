@@ -52,25 +52,56 @@ fileSelectorHelper model (fileSelector, cmd) =
 view: Model -> Html Msg
 view model =
     section[ class "grid" ][
-        h1[][ text "Welcome to Elm Metrics"],
-        div[ class "subtext" ][ text "Analytical tool to measure the quality of your Elm codebase through the usage of software metrics and numerous visualizations."],
-        article[][
+        div[ class "header" ][
+            h1[][ text "Welcome to Elm Metrics"],
+            div[ class "subtext" ][ text "Analytical tool to measure the quality of your Elm codebase through the usage of software metrics and numerous visualizations."]
+        ],
+        div[ class "main-header" ][
+            text "Header"
+        ],
+        
+        div[][
             case model.files of
                 Nothing ->
                     div[][
-                        h2[] [ text "Getting started" ],
-                        text "Please, select an Elm project directory that you want to analyse by clicking the ",
-                        span[ class "bold" ][ text "Upload Folder " ],
-                        text "button.",
-                        hr[][],
-                        -- h4[][ text "The solution for modular Elm code"],
-                        FileSelector.view (FileSelector.getModel model.fileSelector) |> toUnstyled |> Html.map FileSelectorMsg 
+                        div[class "main-overview"][
+                            div[ class "overviewcard" ][
+                                text "KUKLE"
+                            ],
+                            div[ class "overviewcard" ][
+                                text "KUKLE"
+                            ],
+                            div[ class "overviewcard" ][
+                                text "KUKLE"
+                            ],
+                            div[ class "overviewcard" ][
+                                text "KUKLE"
+                            ],
+                            div[ class "overviewcard" ][
+                                text "KUKLE"
+                            ]
+                        ],
+                        div[ class "main-cards" ][
+                            div[ class "card" ][
+                                div[][
+                                    h2[] [ text "Getting started" ],
+                                    text "Please, select an Elm project directory that you want to analyse by clicking the ",
+                                    span[ class "bold" ][ text "Upload Folder " ],
+                                    text "button.",
+                                    -- h4[][ text "The solution for modular Elm code"],
+                                    FileSelector.view (FileSelector.getModel model.fileSelector) |> toUnstyled |> Html.map FileSelectorMsg 
+                                ]
+                            ]
+                        ]        
                     ]
                 Just _ ->
-                    div[][
-                        h4[ style "margin" "10px" ][ text "A project is currently loaded in the tool." ],
-                        button[onClick Remove, class "button-special", style "background-color" "darkred"][ text "Remove project" ]
+                    div[ class "main-cards"][
+                        div[ class "card" ][
+                            h4[ ][ text "A project is currently loaded in the tool." ],
+                            button[onClick Remove, class "button-special", style "background-color" "darkred"][ text "Remove project" ]
+                        ]
                     ]
+                    
         ]
     ]
 

@@ -153,7 +153,7 @@ view model =
     Html.div []
         [ 
             viewNav model,
-            section[ class "page-content" ][
+            section[ class "dashboard" ][
                 case model.dashboard of
                     HomePage home ->
                         Home.view home |> Html.map HomeMsg

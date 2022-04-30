@@ -75,55 +75,68 @@ update msg model =
 
 view: Model -> Html Msg
 view model =
-    section[ class "grid" ][
-        h1[][ text "Elm metrics"],
-        div[ class "subtext" ][ text "Software metrics used to compute and visualize the complexity of the project, relationships between modules and their modularity."],
-        div[ style "text-align" "center"][
-            button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"],
-            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project" ]
+    div[][
+        div[ class "header" ][
+            h1[][ text "Elm metrics"],
+            div[ class "subtext" ][ text "Software metrics used to compute and visualize the complexity of the project, relationships between modules and their modularity."]
         ],
         let
             files = model.files
         in
             case List.length files of
                 0 ->
-                    article[][ text "No Elm project loaded" ]
+                    article[ class "main-header"][
+                        text "No Elm project currently loaded."
+                    ]
                 _ ->
-                    case model.page of
-                        Local ->
-                            section[][
-                                article[][
-                                    table[ style "text-align" "left", style "background-color" "white", style "width" "100%"][
-                                        tr[][
-                                            th[][ text "Module"],
-                                            th[][ text "LOC" ],
-                                            th[][ text "Comments" ],
-                                            th[][ text "NoD" ],
-                                            th[][ text "NoF" ],
-                                            th[][ text "NoT" ],
-                                            th[][ text "NoA" ]
+                    div[][
+                        div[ class "main-header" ][
+                            button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"],
+                            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project" ]
+                        ],
+                        case model.page of
+                            Local ->
+                                div[][
+                                    div[][
+                                        h2[ style "margin" "25px" ][ text "Module metrics"],
+                                        div[ class "card" ][
+                                             table[ style "text-align" "left", style "width" "100%"][
+                                                tr[][
+                                                    th[][ text "Module"],
+                                                    th[][ text "LOC" ],
+                                                    th[][ text "Comments" ],
+                                                    th[][ text "NoD" ],
+                                                    th[][ text "NoF" ],
+                                                    th[][ text "NoT" ],
+                                                    th[][ text "NoA" ]
+                                                ],
+                                            List.map localTableContent files |> tbody[]
+                                            ]
+                                        ]
+                                    ],
+                                    h2[ style "margin" "25px" ][ text "Metrics visualization"],
+                                    div[ class "main-card" ][
+                                        div[ class "card" ][
+                                            div[ style "height" "300px", style "width" "300px" ][
+                                                Chart.viewTemplateGraph
+                                            ]
                                         ],
-                                        List.map localTableContent files |> tbody[]
+                                        div[ class "card" ][
+                                            div[ style "height" "300px", style "width" "300px" ][
+                                                Chart.viewTemplateGraph
+                                            ]
+                                        ]
                                     ]
-                                ],
-                                h2[ style "margin" "25px" ][ text "Metrics visualization"],
-                                section[ style "height" "500px", style "width" "500px", style "margin" "50px"][
-                                    article[][
+                                ]
+                            Global ->
+                                section[ style "height" "500px", style "width" "500px", style "margin-left" "50px"][
+                                    text "Global mode",
+                                    div[ class "card" ][
                                         Chart.viewTemplateGraph
                                     ]
                                 ]
-                               
-                            ]
-                        Global ->
-                            section[ style "height" "500px", style "width" "500px", style "margin-left" "50px"][
-                                text "Global mode",
-                                article[][
-                                    Chart.viewTemplateGraph
-                                ],
-                                article[][
-                                    Chart.viewTemplateGraph
-                                ]
-                            ]
+                    ]
+                    
     ]
 
 localTableContent: MyFile -> Html msg

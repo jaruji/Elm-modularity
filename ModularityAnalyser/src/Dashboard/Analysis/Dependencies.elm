@@ -31,20 +31,28 @@ update msg model =
 
 view: Model -> Html Msg
 view model =
-    section[ class "grid" ][
-        h1[][ text "Project dependencies"],
-        div[ class "subtext" ][ text "All the dependencies of your Elm project in one place."],
+    div[][
+        div[ class "header" ][
+            h1[][ text "Project dependencies"],
+            div[ class "subtext" ][ text "All the dependencies of your Elm project in one place."]
+        ],
         article[][
             case model.json of
                 Nothing ->
-                    text "Elm.json not loaded"
+                    article[ class "main-header"][
+                        text "No Elm json currently loaded. Try loading your entire Elm project, not just the source code directory."
+                    ]
                 Just val ->
-                    case decodeString Dependency.decodeElmJson val of
-                        Ok result ->
-                            Dependency.view result
-                        Err err ->
-                            text ("Error while loading elm.json file")
-                            --Debug.toString err
+                    div[][
+                        div[ class "main-header" ][ text "Header" ],
+                        case decodeString Dependency.decodeElmJson val of
+                            Ok result ->
+                                Dependency.view result
+                            Err err ->
+                                text ("Error while loading elm.json file")
+                                --Debug.toString err
+                    ]
+                    
         ]
     ]
 

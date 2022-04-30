@@ -3,10 +3,10 @@ module Dashboard.Analysis.Modules exposing (..)
 import Browser
 import Browser.Events
 import Color
+import Html.Attributes as Attributes exposing (class)
 import Force exposing (State)
 import Graph exposing (Edge, Graph, Node, NodeContext, NodeId)
 import Html exposing (div, article, Html, section, h1)
-import Html.Attributes exposing (class)
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Time
@@ -131,15 +131,27 @@ nodeElement node =
 
 view: Model -> Html Msg
 view model =
-    section[ Html.Attributes.class "grid" ][
-        h1[][ text "Module diagram"],
-        div[ Html.Attributes.class "subtext" ][ text "Visualization of module relationships."],
+    div[][
+        div[ Attributes.class "header" ][
+            h1[][ text "Module diagram"],
+            div[ Attributes.class "subtext" ][ text "Visualization of relationships between modules."]
+        ],
+        div[ Attributes.class "main-header"][
+            text "Header"
+        ],
         article[][
             case List.length model.files of
                 0 ->
-                    text "No Elm project loaded"
-                _ ->
-                    viewGraph model
+                    article[ Attributes.class "main-header"][
+                        text "No Elm project currently loaded."
+                    ]
+                _ -> 
+                    div[ Attributes.class "main-card"][
+                        div[ Attributes.class "card" ][
+                            viewGraph model
+                        ]
+                    ]
+                    
         ]
     ]
 

@@ -25,10 +25,12 @@ update msg model =
 
 view: Model -> Html Msg
 view model =
-    section[ class "grid" ][
-        h1[][ text "Help"],
-        div[ class "subtext" ][ text "Basic information about used metrics, what they measure and how were the threshold values obtained."],
-        article[][
+    div[][
+        div[ class "header" ][
+            h1[][ text "Help"],
+            div[ class "subtext" ][ text "Basic information about used metrics, what they measure and how were the threshold values obtained."]
+        ],
+        div[ class "main-header" ][
             text "Metrics list..."
         ]
     ]

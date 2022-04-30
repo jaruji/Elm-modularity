@@ -1,10 +1,15 @@
 module Analyser.Chart exposing (..)
-import Html exposing (Html)
+import Html exposing (Html, div)
 import Chart as C
 import Chart.Attributes as CA
 
 --this module contains all the chart logic. It has no state nor any functionality except visualizing data through Html messages.
 --It uses the elm-charts library
+
+
+viewBarPlot: String -> Int -> Html msg
+viewBarPlot x y =
+  div[][]
 
 viewTemplateGraph : Html msg
 viewTemplateGraph =

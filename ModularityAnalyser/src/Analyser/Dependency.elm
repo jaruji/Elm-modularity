@@ -5,7 +5,7 @@ import Json.Encode as Encode exposing (..)
 import Json.Decode.Pipeline as Pipeline exposing (required, optional, hardcoded, custom)
 import Parser exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (class, href, attribute)
+import Html.Attributes exposing (class, style, href, attribute)
 
 type alias Model = 
     {
@@ -64,7 +64,7 @@ view model =
 constructTable: String -> List Dependency -> Html msg
 constructTable title dependencies =
     ul[ class "responsive-table" ][
-        h2[][ text title],
+        h2[ style "text-align" "center", style "margin" "25px" ][ text title ],
         li[class "table-header"][
             div[class "col col-1"][ text "Name"],
             div[class "col col-2"][ text "Version" ],

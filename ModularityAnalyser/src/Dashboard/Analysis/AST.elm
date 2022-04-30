@@ -16,7 +16,22 @@ import Regex exposing (..)
 import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
 import SyntaxHighlight exposing (useTheme, monokai, elm, toBlockHtml)
+import Json.Decode as Decode
+import JsonTree exposing (defaultColors)
 
+exampleJsonInput =
+    """
+{
+    "name": "Arnold",
+    "age": 70,
+    "isStrong": true,
+    "knownWeakness": null,
+    "nicknames": ["Terminator", "The Governator"],
+    "extra": {
+           "foo": "bar"
+    }
+}
+"""
 
 type alias Model = 
     {
@@ -63,24 +78,29 @@ view model =
     let
         len = List.length model.files
     in
-        if len == 0 then
-        section[ class "grid" ][
-            h1[][ text "Abstract syntax tree"],
-            div[ class "subtext" ][ text "Preview of loaded modules and their AST's."],
-            article[][
-                text "No Elm project currently loaded."
-            ]
-        ]
-        else
-            section[ class "grid" ][
-                div[][
-                    h1[][ text "Abstract syntax tree"],
-                    div[ class "subtext" ][ text "Preview of loaded modules and their AST's."],
-                    input [ id "search", value model.search, placeholder "Search", onInput UpdateSearch ] [],
-                    button [ onClick SwapMode, class "button-special" ][ text "Swap" ],
-                    section[ class "codeSnippet" ] (List.map (viewCard model) model.files)
+        div[][
+            div[ class "header" ][
+                h1[][ text "Abstract syntax tree"],
+                div[ class "subtext" ][ text "Preview of loaded modules and their AST's."]
+            ],
+            if len == 0 then
+                section[][
+                    article[ class "main-header"][
+                        text "No Elm project currently loaded."
+                    ]
                 ]
-            ]
+            else
+                section[][
+                    div[][
+                        div[ class "main-header"][
+                            input [ id "search", value model.search, placeholder "Search", onInput UpdateSearch ] [],
+                            button [ onClick SwapMode, class "button-special" ][ text "Swap" ]
+                        ],
+                        section[ class "main-cards" ] (List.map (viewCard model) model.files)
+                    ]
+                ]
+        ]
+        
 
 viewCard: Model -> MyFile -> Html Msg
 viewCard model file =
@@ -89,7 +109,7 @@ viewCard model file =
             text ""
         Just ast ->
             if String.contains (String.toLower model.search) (String.toLower file.name) then
-                article[ style "max-width" "100%" ][
+                article[ class "card" ][
                     h2[ style "padding" "25px" ][ text file.name],
                     hr[ style "width" "100%" ][],
                     -- text (ASTHelper.joinPath ast),
