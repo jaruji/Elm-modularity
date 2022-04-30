@@ -17,22 +17,13 @@ import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
 import SyntaxHighlight exposing (useTheme, monokai, elm, toBlockHtml)
 import Json.Decode as Decode
+import Json.Encode as Encode
 import JsonTree
 import Set exposing (Set)
+import Elm.RawFile exposing (..)
 
-exampleJsonInput =
-    """
-{
-    "name": "Arnold",
-    "age": 70,
-    "isStrong": true,
-    "knownWeakness": null,
-    "nicknames": ["Terminator", "The Governator"],
-    "extra": {
-           "foo": "bar"
-    }
-}
-"""
+exampleJsonInput = """{"ahoj": 15, "trapko": {"ahoj": 15, "trapko":25}}"""
+
 
 type alias Model = 
     {
@@ -40,7 +31,7 @@ type alias Model =
         search: String,
         mode: Mode,
         astTreeState: JsonTree.State,
-        parsedJson: Result Decode.Error JsonTree.Node
+        parsedJson: (Result Decode.Error JsonTree.Node)
     }
 
 type Msg
@@ -49,6 +40,7 @@ type Msg
     | UpdateSearch String
     | SwapMode
     | SetTreeState JsonTree.State
+    | Parse String
 
 type Mode
     = AbstractSyntaxTree
@@ -56,7 +48,12 @@ type Mode
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    ({files = files, search = "", mode = Code, astTreeState = JsonTree.defaultState, parsedJson = JsonTree.parseString exampleJsonInput }, Cmd.none)
+    ({
+        files = files, search = "",
+        mode = Code,
+        astTreeState = JsonTree.defaultState,
+        parsedJson = JsonTree.parseString exampleJsonInput
+    }, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -78,6 +75,8 @@ update msg model =
             }, Cmd.none)
         SetTreeState state ->
             ({ model | astTreeState = state }, Cmd.none)
+        Parse json ->
+            ({ model | parsedJson = JsonTree.parseString json}, Cmd.none)
 
 view: Model -> Html Msg
 view model =
@@ -107,15 +106,15 @@ view model =
                 ]
         ]
 
-viewJsonTree: Model -> Html Msg
-viewJsonTree model = 
+viewJsonTree: Model -> String -> Html Msg
+viewJsonTree model json = 
     let
         config = { onSelect = Nothing, toMsg = SetTreeState, colors = JsonTree.defaultColors }
     in
         div[][
             case model.parsedJson of
                 Ok node ->
-                    div[ style "margin-left" "-350px" ][
+                    div[ style "align-items" "start" ][
                         JsonTree.view node (config) model.astTreeState
                     ]
                 Err _ ->
@@ -145,7 +144,8 @@ viewCard model file =
                             ) (String.lines file.content) |> article[ style "padding" "10px" ]
                         AbstractSyntaxTree ->
                         --here make it so ast view is through an expandable tree
-                            viewJsonTree model
+                            --viewJsonTree model
+                            text (Encode.encode 1 (Elm.RawFile.encode ast))
                             -- List.map (\line -> 
                             --     pre[][ code[] [ text line ] ]
                             -- ) (String.lines (Debug.toString ast)) |> div[]

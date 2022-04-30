@@ -92,6 +92,10 @@ numberOfTypes {moduleDefinition, imports, declarations, comments} =
                     acc
         ) 0 declarations
 
+getJsonString: RawFile -> String
+getJsonString raw =
+    Debug.toString raw
+
 numberOfTypeAliases: File -> Int
 numberOfTypeAliases {moduleDefinition, imports, declarations, comments} =
     List.foldl 
