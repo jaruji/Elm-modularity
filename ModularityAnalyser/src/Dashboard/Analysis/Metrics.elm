@@ -79,8 +79,8 @@ view model =
         h1[][ text "Elm metrics"],
         div[ class "subtext" ][ text "Software metrics used to compute and visualize the complexity of the project, relationships between modules and their modularity."],
         div[ style "text-align" "center"][
-            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project" ],
-            button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"]
+            button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"],
+            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project" ]
         ],
         let
             files = model.files
@@ -91,22 +91,38 @@ view model =
                 _ ->
                     case model.page of
                         Local ->
-                            table[ style "text-align" "left", style "background-color" "white" ][
-                                tr[][
-                                    th[][ text "Module"],
-                                    th[][ text "LOC" ],
-                                    th[][ text "Comments" ],
-                                    th[][ text "NoD" ],
-                                    th[][ text "NoF" ],
-                                    th[][ text "NoT" ],
-                                    th[][ text "NoA" ]
+                            section[][
+                                article[][
+                                    table[ style "text-align" "left", style "background-color" "white", style "width" "100%"][
+                                        tr[][
+                                            th[][ text "Module"],
+                                            th[][ text "LOC" ],
+                                            th[][ text "Comments" ],
+                                            th[][ text "NoD" ],
+                                            th[][ text "NoF" ],
+                                            th[][ text "NoT" ],
+                                            th[][ text "NoA" ]
+                                        ],
+                                        List.map localTableContent files |> tbody[]
+                                    ]
                                 ],
-                                List.map localTableContent files |> tbody[]
+                                h2[ style "margin" "25px" ][ text "Metrics visualization"],
+                                section[ style "height" "500px", style "width" "500px", style "margin" "50px"][
+                                    article[][
+                                        Chart.viewTemplateGraph
+                                    ]
+                                ]
+                               
                             ]
                         Global ->
-                            div[ style "height" "500px", style "width" "500px", style "margin-left" "50px"][
+                            section[ style "height" "500px", style "width" "500px", style "margin-left" "50px"][
                                 text "Global mode",
-                                Chart.viewTemplateGraph
+                                article[][
+                                    Chart.viewTemplateGraph
+                                ],
+                                article[][
+                                    Chart.viewTemplateGraph
+                                ]
                             ]
     ]
 

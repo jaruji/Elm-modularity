@@ -90,17 +90,19 @@ viewCard model file =
         Just ast ->
             if String.contains (String.toLower model.search) (String.toLower file.name) then
                 article[ style "max-width" "100%" ][
-                    h2[][ text file.name],
-                    hr[][],
-                    text (ASTHelper.joinPath ast),
-                    text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
+                    h2[ style "padding" "25px" ][ text file.name],
+                    hr[ style "width" "100%" ][],
+                    -- text (ASTHelper.joinPath ast),
+                    -- text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
                     --List.map text (ASTHelper.getImports ast) |> div[],
                     case model.mode of
                         Code ->
+                        --visualize a code snippet
                             List.map (\line -> 
                                 pre[][ code[] [ text line ] ]
-                            ) (String.lines file.content) |> div[]
+                            ) (String.lines file.content) |> article[ style "padding" "10px" ]
                         AbstractSyntaxTree ->
+                        --here make it so ast view is through an expandable tree
                             List.map (\line -> 
                                 pre[][ code[] [ text line ] ]
                             ) (String.lines (Debug.toString ast)) |> div[]
