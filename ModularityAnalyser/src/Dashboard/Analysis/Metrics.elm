@@ -9,6 +9,7 @@ import Analyser.ASTHelper as ASTHelper exposing (..)
 import Html.Events exposing (onClick)
 import Analyser.Chart as Chart exposing (..)
 import Analyser.Metric as Metric exposing (..)
+import Dict exposing (Dict, toList, fromList, map, values, keys)
 
 {--
     metrics:
@@ -51,7 +52,7 @@ type alias Model =
     {
         files: List MyFile,
         page: Page,
-        metrics: List Metric
+        metrics: Dict String Metric
     }
 
 type Page 
@@ -65,7 +66,17 @@ type Msg
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    ({files = files, page = Local, metrics = []}, Cmd.none)
+    ({files = files, page = Local, 
+    metrics =
+        fromList[
+            ("LOC", Metric.init "LOC" 0 0 ModuleMetric),
+            ("Comments", Metric.init "Comments" 0 0 ModuleMetric),
+            ("NoD", Metric.init "NoD" 0 0 ModuleMetric),
+            ("NoF", Metric.init "NoF" 0 0 ModuleMetric),
+            ("NoT", Metric.init "NoT" 0 0 ModuleMetric),
+            ("NoA", Metric.init "NoA" 0 0 ModuleMetric)
+        ]
+    }, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -104,13 +115,15 @@ view model =
                                         div[ class "card" ][
                                              table[ style "text-align" "left", style "width" "100%"][
                                                 tr[][
-                                                    th[][ text "Module"],
-                                                    th[][ text "LOC" ],
-                                                    th[][ text "Comments" ],
-                                                    th[][ text "NoD" ],
-                                                    th[][ text "NoF" ],
-                                                    th[][ text "NoT" ],
-                                                    th[][ text "NoA" ]
+                                                    th[][ text "Module" ],
+                                                    List.map (\val -> th[][ text val ]) (keys model.metrics) |> th[]
+                                                    -- th[][ text "Module"],
+                                                    -- th[][ text "LOC" ],
+                                                    -- th[][ text "Comments" ],
+                                                    -- th[][ text "NoD" ],
+                                                    -- th[][ text "NoF" ],
+                                                    -- th[][ text "NoT" ],
+                                                    -- th[][ text "NoA" ]
                                                 ],
                                             List.map localTableContent files |> tbody[]
                                             ]
