@@ -89,7 +89,9 @@ view model =
                                     span[ class "bold" ][ text "Upload Folder " ],
                                     text "button.",
                                     -- h4[][ text "The solution for modular Elm code"],
-                                    FileSelector.view (FileSelector.getModel model.fileSelector) |> toUnstyled |> Html.map FileSelectorMsg 
+                                    div[ style "text-align" "center", style "margin" "15px" ][
+                                        FileSelector.view (FileSelector.getModel model.fileSelector) |> toUnstyled |> Html.map FileSelectorMsg
+                                    ]
                                 ]
                             ]
                         ]        
