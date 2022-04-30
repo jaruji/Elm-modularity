@@ -117,13 +117,6 @@ view model =
                                                 tr[][
                                                     th[][ text "Module" ],
                                                     List.map (\val -> th[][ text val ]) (keys model.metrics) |> th[]
-                                                    -- th[][ text "Module"],
-                                                    -- th[][ text "LOC" ],
-                                                    -- th[][ text "Comments" ],
-                                                    -- th[][ text "NoD" ],
-                                                    -- th[][ text "NoF" ],
-                                                    -- th[][ text "NoT" ],
-                                                    -- th[][ text "NoA" ]
                                                 ],
                                             List.map localTableContent files |> tbody[]
                                             ]
