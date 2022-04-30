@@ -21,9 +21,7 @@ import Json.Encode as Encode
 import JsonTree
 import Set exposing (Set)
 import Elm.RawFile exposing (..)
-
-exampleJsonInput = """{"ahoj": 15, "trapko": {"ahoj": 15, "trapko":25}}"""
-
+import List.Extra exposing (getAt)
 
 type alias Model = 
     {
@@ -36,23 +34,23 @@ type alias Model =
 
 type Msg
     = NoOp
-    | ShowCard Int
     | UpdateSearch String
-    | SwapMode
+    | SwapMode String RawFile
     | SetTreeState JsonTree.State
-    | Parse String
+    | Back
 
 type Mode
-    = AbstractSyntaxTree
+    = AbstractSyntaxTree String
     | Code
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
     ({
-        files = files, search = "",
+        files = files, 
+        search = "",
         mode = Code,
         astTreeState = JsonTree.defaultState,
-        parsedJson = JsonTree.parseString exampleJsonInput
+        parsedJson = JsonTree.parseString """{}"""
     }, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
@@ -62,21 +60,25 @@ update msg model =
             (model, Cmd.none)
         UpdateSearch val ->
             ({ model | search = val }, Cmd.none)
-        ShowCard index ->
-            (model, Cmd.none)
-        SwapMode ->
+        SwapMode name ast ->
             ({ model | mode = 
                 case model.mode of
                     Code ->
-                        AbstractSyntaxTree
-                    AbstractSyntaxTree ->
+                        AbstractSyntaxTree name
+                    AbstractSyntaxTree _ ->
                         Code
-
+                , astTreeState = 
+                    case model.parsedJson of
+                        Ok node ->
+                            ((JsonTree.collapseToDepth 1) node model.astTreeState)
+                        _ ->
+                            JsonTree.defaultState
+                , parsedJson =  JsonTree.parseString (Encode.encode 1 (Elm.RawFile.encode ast) )
             }, Cmd.none)
         SetTreeState state ->
             ({ model | astTreeState = state }, Cmd.none)
-        Parse json ->
-            ({ model | parsedJson = JsonTree.parseString json}, Cmd.none)
+        Back ->
+            ({ model | mode = Code}, Cmd.none)
 
 view: Model -> Html Msg
 view model =
@@ -98,16 +100,23 @@ view model =
                 section[][
                     div[][
                         div[ class "main-header"][
-                            input [ id "search", value model.search, placeholder "Search", onInput UpdateSearch ] [],
-                            button [ onClick SwapMode, class "button-special" ][ text "Swap" ]
+                            input [ id "search", value model.search, placeholder "Search", onInput UpdateSearch ] []
                         ],
-                        section[ class "main-cards" ] (List.map (viewCard model) model.files)
+                        div[ class "main-cards"][
+                            case model.mode of
+                                AbstractSyntaxTree name ->    
+                                    div [ class "card", style "width" "100%" ][
+                                        viewJsonTree name model 
+                                    ]
+                                Code ->
+                                    div[](List.map (viewCard model) model.files)
+                        ]
                     ]
                 ]
         ]
 
-viewJsonTree: Model -> String -> Html Msg
-viewJsonTree model json = 
+viewJsonTree: String -> Model -> Html Msg
+viewJsonTree name model = 
     let
         config = { onSelect = Nothing, toMsg = SetTreeState, colors = JsonTree.defaultColors }
     in
@@ -115,11 +124,15 @@ viewJsonTree model json =
             case model.parsedJson of
                 Ok node ->
                     div[ style "align-items" "start" ][
+                        h2[ style "margin" "25px" ][ text name],
+                        button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ],
+                        hr[ style "width" "100%" ][],
                         JsonTree.view node (config) model.astTreeState
                     ]
+                                
                 Err _ ->
                     div[][
-                        text "Failed to parse AST"
+                        text "Failed to this AST"
                     ]
         ]
 
@@ -132,6 +145,7 @@ viewCard model file =
             if String.contains (String.toLower model.search) (String.toLower file.name) then
                 div[ class "card" ][
                     h2[ style "padding" "25px" ][ text file.name ],
+                    button [ onClick (SwapMode file.name ast), class "button-special", style "float" "right", style "margin" "5px" ][ text "Show AST" ],
                     hr[ style "width" "100%" ][],
                     -- text (ASTHelper.joinPath ast),
                     -- text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
@@ -142,13 +156,14 @@ viewCard model file =
                             List.map (\line -> 
                                 pre[][ code[] [ text line ] ]
                             ) (String.lines file.content) |> article[ style "padding" "10px" ]
-                        AbstractSyntaxTree ->
+                        _ ->
+                            text ""
                         --here make it so ast view is through an expandable tree
-                            --viewJsonTree model
-                            text (Encode.encode 1 (Elm.RawFile.encode ast))
-                            -- List.map (\line -> 
-                            --     pre[][ code[] [ text line ] ]
-                            -- ) (String.lines (Debug.toString ast)) |> div[]
+                        --viewJsonTree model
+                        -- text (Encode.encode 1 (Elm.RawFile.encode ast))
+                        -- List.map (\line -> 
+                        --     pre[][ code[] [ text line ] ]
+                        -- ) (String.lines (Debug.toString ast)) |> div[]
                 ]
             else
                 text ""

@@ -96,7 +96,7 @@ view model =
                     ]
                 Just _ ->
                     div[ class "main-cards"][
-                        div[ class "card" ][
+                        div[ class "card", style "text-align" "center" ][
                             h4[ ][ text "A project is currently loaded in the tool." ],
                             button[onClick Remove, class "button-special", style "background-color" "darkred"][ text "Remove project" ]
                         ]
