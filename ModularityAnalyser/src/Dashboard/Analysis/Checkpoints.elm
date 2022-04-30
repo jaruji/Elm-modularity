@@ -31,6 +31,7 @@ view model =
             div[ class "subtext" ][ text "Follow the changes in your project through checkpoints."]
         ],
         div[ class "main-header" ][
+            text "No checkpoints located in Local Storage."
         ]
     ]
 
