@@ -8,6 +8,7 @@ import Analyser.ASTHelper as ASTHelper exposing (..)
 -- import RadarChart exposing (..)
 import Html.Events exposing (onClick)
 import Analyser.Chart as Chart exposing (..)
+import Analyser.Metric as Metric exposing (..)
 
 {--
     metrics:
@@ -49,7 +50,8 @@ import Analyser.Chart as Chart exposing (..)
 type alias Model = 
     {
         files: List MyFile,
-        page: Page
+        page: Page,
+        metrics: List Metric
     }
 
 type Page 
@@ -63,7 +65,7 @@ type Msg
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    ({files = files, page = Local}, Cmd.none)
+    ({files = files, page = Local, metrics = []}, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
