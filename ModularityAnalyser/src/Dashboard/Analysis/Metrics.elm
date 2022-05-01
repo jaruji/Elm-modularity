@@ -9,8 +9,9 @@ import Analyser.ASTHelper as ASTHelper exposing (..)
 import Html.Events exposing (onClick)
 import Analyser.Chart as Chart exposing (..)
 import Analyser.Metric as Metric exposing (..)
-import Dict exposing (Dict, toList, fromList, map, values, keys)
+import Dict exposing (Dict, toList, fromList, map, values, keys, get)
 import Svg.Attributes exposing (in_)
+import List exposing (length)
 import List.Extra exposing (find)
 import Debug exposing (toString)
 
@@ -23,7 +24,7 @@ import Debug exposing (toString)
             Number of types
             Number of functions
             Number of Boilerplate Msgs
-            Locate MVU triplets
+            Locate MVU triplets (can only be done by name?)
             Number of imports used together with number of calls for each import
 
             Number of lambdas (NoL)
@@ -78,19 +79,33 @@ init files =
                 Nothing ->
                     False
         ) files,
-        page = Local, 
+        page = Local,
         metrics =
-            fromList[
-                ("LOC", Metric.initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
-                ("Comments", Metric.initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)),
-                ("NoD", Metric.initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)),
-                ("NoF", Metric.initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)),
-                ("NoT", Metric.initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)),
-                ("NoA", Metric.initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)),
-                ("Kneegan", Metric.init "Kneegan" 0 0 ModuleMetric),
-                ("Allah", Metric.init "allah" 0 0 ModuleMetric)
-            ]
+            Dict.map(\key val -> 
+                Metric.setAverage val (Metric.averageMetric val)
+            ) 
+            (
+                fromList[ 
+                    ("LOC", Metric.initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
+                    ("Comments", Metric.initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
+                    ("NoF", Metric.initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
+                    ("NoD", Metric.initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
+                    ("NoT", Metric.initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
+                    ("NoA", Metric.initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
+                    ("Neegan", Metric.init "Neegan" 0 0 ModuleMetric), 
+                    ("Test", Metric.init "test" 0 0 ModuleMetric) 
+                ]
+            )
     }, Cmd.none)
+
+-- averageHelper: String -> String -> Dict String Metric -> List Metric.Value
+-- averageHelper name query dict =
+--     case Dict.get query dict of
+--         Just val ->
+--             [ initValue name (Metric.averageMetric val) ]
+--         _ ->
+--             []
+
 
 calculateLOC: List MyFile -> List Metric.Value
 calculateLOC files =
@@ -213,36 +228,47 @@ view model =
                                 div[][
                                     div[][
                                         h2[ style "margin" "25px" ][ text "Module metrics"],
+                                        div[ class "explanation"][
+                                            text "Collection of selected metrics to quantify aspects of your Elm ",
+                                            span[ class "bold" ][ text " modules." ]
+                                        ],
                                         div[ class "card" ][
                                              table[ style "text-align" "left", style "width" "100%"][
+                                                -- map that sets metrics table headers
                                                 List.map (\val -> th[][ text val ]) ("Modules" :: (keys model.metrics)) |> tr[],
                                                 ---------
+                                                --map that sets metrics table content
                                                 List.map (localTableContent model.metrics) names |> tbody[]
                                                 ---------
                                             ]
                                         ]
                                     ],
                                     h2[ style "margin" "25px" ][ text "Metrics visualization"],
-                                    div[ class "main-card" ][
-                                        div[ class "card" ][
-                                            div[ style "height" "300px", style "width" "300px" ][
-                                                Chart.viewTemplateGraph
-                                            ]
-                                        ],
-                                        div[ class "card" ][
-                                            div[ style "height" "300px", style "width" "300px" ][
-                                                Chart.viewTemplateGraph
-                                            ]
+                                    div[ class "explanation"][
+                                        text "Collection of visualizations of calculated metrics. The red line visualizes the project average for the selected metric."
+                                    ],
+                                    List.map(\metric -> 
+                                        if length metric.values == 0 then 
+                                            text ""
+                                        else
+                                            div[ class "chartcard" ][
+                                            Chart.viewMetricBarplot metric.name metric.averageValue metric.values
                                         ]
-                                    ]
+                                    ) (values model.metrics) |> div[ class "chart-cards" ]
                                 ]
                             Global ->
-                                section[ style "height" "500px", style "width" "500px", style "margin-left" "50px"][
-                                    text "Global mode",
+                                div[][
+                                    h2[ style "margin" "25px" ][ text "Project metrics"],
+                                    div[ class "explanation"][
+                                        text "Collection of project metrics, consisting of values of metrics averaged from all ",
+                                        span[ class "bold" ][ text "project " ],
+                                        text "modules"
+                                    ],
                                     div[ class "card" ][
-                                        Chart.viewTemplateGraph
+                                        projectTableContent model.metrics
                                     ]
                                 ]
+                            
                     ]
                     
     ]
@@ -257,10 +283,14 @@ localTableContent metrics name  =
                 acc ++ [ td [][ text "--" ] ]
     ) [td[] [ text name ]] (values metrics) |> tr[]
     
-globalTableContent: MyFile -> Html msg
-globalTableContent file =
-    div[][
-        
+projectTableContent: Dict String Metric -> Html msg
+projectTableContent metrics =
+    table[ style "text-align" "center", style "width" "100%"][
+        tr[][
+            th[][ text "Metric" ],
+            th[][ text "Value" ]
+        ],
+        (List.map(\val -> tr[][ td[][ text ("A" ++ val.name)], td[][ text (val.averageValue |> toString) ]]) (values metrics)) |> tbody[]
     ]
 
 removeEmpty: String -> Bool
