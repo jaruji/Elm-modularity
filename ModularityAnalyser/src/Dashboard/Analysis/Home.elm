@@ -11,6 +11,7 @@ import Html.Attributes exposing (..)
 import Html.Styled exposing(toUnstyled)
 import Time exposing (..)
 import File exposing (..)
+import List exposing (length)
 import Html.Events exposing (onClick)
 import Task
 import Dashboard.Components.FileSelector as FileSelector exposing (..)
@@ -18,7 +19,7 @@ import Dashboard.Components.FileSelector as FileSelector exposing (..)
 type alias Model = 
     {
         fileSelector: (FileSelector.Model, Cmd FileSelector.Msg),
-        files: Maybe (List MyFile),
+        files: List MyFile,
         content: String
     }
 
@@ -29,7 +30,7 @@ type Msg
     | Remove
 
 
-init: Maybe (List MyFile) -> ( Model, Cmd Msg)
+init: List MyFile -> ( Model, Cmd Msg)
 init files =
     ({ fileSelector = FileSelector.init [".elm", ".json"], files = files, content = ""}, Cmd.none)
 
@@ -41,7 +42,7 @@ update msg model =
         FileContentLoaded fileContent ->
             ({ model | content = fileContent}, Cmd.none)
         Remove ->
-            ({ model | files = Nothing}, Cmd.none)
+            ({ model | files = []}, Cmd.none)
         _ ->
             (model, Cmd.none)
 
@@ -61,8 +62,8 @@ view model =
         ],
         
         div[][
-            case model.files of
-                Nothing ->
+            case length model.files of
+                0 ->
                     div[][
                         div[class "main-overview"][
                             div[ class "overviewcard" ][
@@ -96,11 +97,15 @@ view model =
                             ]
                         ]        
                     ]
-                Just _ ->
+                _ ->
                     div[ class "main-cards"][
                         div[ class "card", style "text-align" "center" ][
                             h4[ ][ text "A project is currently loaded in the tool." ],
-                            button[onClick Remove, class "button-special", style "background-color" "darkred"][ text "Remove project" ]
+                            hr[ style "margin" "auto", style "margin-bottom" "20px" ][],
+                            div[](List.map(\file -> div[][ text file.name ]) model.files),
+                            button[onClick Remove, class "button-special", style "background-color" "darkred", style "margin" "15px" ][ 
+                                text "Remove project" 
+                            ]
                         ]
                     ]
                     

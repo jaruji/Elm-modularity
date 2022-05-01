@@ -51,7 +51,7 @@ type Dashboard
 
 init : ( Model, Cmd Msg )
 init =
-    ( { dashboard = HomePage (Home.getModel (Home.init Nothing)), files = []}, Cmd.none )
+    ( { dashboard = HomePage (Home.getModel (Home.init [])), files = []}, Cmd.none )
 
 
 ---- UPDATE ----
@@ -184,7 +184,7 @@ viewNav: Model -> Html Msg
 viewNav model =
     header [ class "navHeader"]
     [
-        a[ href "#home", onClick (ChangePage (HomePage (Home.getModel (Home.init (getLoadedFiles model))))) ][ img [ src "/logo.svg", class "logo" ] [] ],
+        a[ href "#home", onClick (ChangePage (HomePage (Home.getModel (Home.init model.files)))) ][ img [ src "/logo.svg", class "logo" ] [] ],
         nav[][
             ul [ class "menu" ][
 
@@ -194,7 +194,7 @@ viewNav model =
                     ]
                 ],
 
-                li[][ button[ onClick (ChangePage (HomePage (Home.getModel (Home.init (getLoadedFiles model))))),
+                li[][ button[ onClick (ChangePage (HomePage (Home.getModel (Home.init model.files)))),
                     case model.dashboard of 
                         HomePage x -> class "selected"
                         _ -> class ""

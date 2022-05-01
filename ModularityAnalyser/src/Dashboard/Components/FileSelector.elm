@@ -169,15 +169,12 @@ view model =
       Success ->
         div[][
             h3[][ text ("Loaded files (" ++ String.fromInt (List.length model.files) ++ ")") ],
-            hr[][],
+            hr[ style "margin" "auto" ][],
             List.map (
               \file -> div [][ 
                 p [][ 
                   text file.name 
                 ]
-                --div[] (List.map text model.paths)
-                --text file.path,
-                --text file.content,
               ]
             ) 
             model.files |> div[]
