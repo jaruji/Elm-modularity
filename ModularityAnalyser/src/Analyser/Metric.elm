@@ -17,7 +17,7 @@ type MetricType
 type alias Value =
     {
         value: Float,
-        parentDeclaration: Maybe String
+        parentDeclaration: String
     }
 
 init: String -> Float -> Float -> MetricType -> Metric
@@ -28,6 +28,10 @@ initWithValues: String -> Float -> Float -> MetricType -> List Value -> Metric
 initWithValues string lower upper mType values =
     ({ name = string, upperThreshold = upper, lowerThreshold = lower, metricType = mType, values = values})
 
+initValue: String -> Float -> Value
+initValue dec val =
+    ({ value = val, parentDeclaration = dec})
+
 setValues: Metric -> List Value -> Metric
 setValues model values =
     ({model | values = values})
@@ -35,3 +39,7 @@ setValues model values =
 appendValues: Metric -> List Value -> Metric
 appendValues model values =
     ({ model | values = values ++ model.values})
+
+getValues: Metric -> List Value
+getValues metric =
+    metric.values

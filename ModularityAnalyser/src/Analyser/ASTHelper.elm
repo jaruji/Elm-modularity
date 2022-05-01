@@ -77,7 +77,7 @@ numberOfFunctions {moduleDefinition, imports, declarations, comments} =
                     acc
         ) 0 declarations
 
-numberOfLambdas: File-> Int
+numberOfLambdas: File -> Int
 numberOfLambdas {moduleDefinition, imports, declarations, comments} =
     0
 
@@ -95,6 +95,24 @@ numberOfTypes {moduleDefinition, imports, declarations, comments} =
 getJsonString: RawFile -> String
 getJsonString raw =
     Debug.toString raw
+
+getExposedDeclarations: File -> List String
+getExposedDeclarations file =
+    []
+
+getCalledDeclarationsByModule: File -> String -> List String
+getCalledDeclarationsByModule file moduleName =
+    --in combination with length number of calls of declarations from a specific module
+    []
+
+couplingBetweenModules: File -> Int
+couplingBetweenModules file =
+    --get sum of called modules and modules in which this module is called (direction doesn't matter)
+    0
+
+boilerplateLineCount: File -> Int
+boilerplateLineCount file =
+    0
 
 numberOfTypeAliases: File -> Int
 numberOfTypeAliases {moduleDefinition, imports, declarations, comments} =

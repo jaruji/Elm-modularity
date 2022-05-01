@@ -49,7 +49,16 @@ init files =
             Graph.mapContexts initializeNode (buildGraph files)
             
     in
-    ( Model graph files, Cmd.none )
+    ( { 
+        graph = graph,
+        files = List.filter (
+            \file -> case file.ast of
+                Just _ ->
+                    True
+                Nothing ->
+                    False
+        ) files
+    }, Cmd.none )
 
 update : Msg -> Model -> Model
 update msg ({ graph } as model) =

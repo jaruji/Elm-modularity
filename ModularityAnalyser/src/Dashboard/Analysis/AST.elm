@@ -46,7 +46,13 @@ type Mode
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
     ({
-        files = files, 
+        files = List.filter (
+            \file -> case file.ast of
+                Just _ ->
+                    True
+                Nothing ->
+                    False
+        ) files, 
         search = "",
         mode = Code,
         astTreeState = JsonTree.defaultState,
