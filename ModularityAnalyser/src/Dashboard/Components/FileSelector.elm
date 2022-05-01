@@ -208,7 +208,7 @@ isValid extensions file =
       else
         False  
     else
-      if Regex.contains (Regex.fromString (String.join "$|" extensions) |> Maybe.withDefault Regex.never) filename then
+      if Regex.contains (Regex.fromString (String.join "|" (List.map (\ext -> ext ++ "$") extensions)) |> Maybe.withDefault Regex.never) filename then
         True
       else
         False

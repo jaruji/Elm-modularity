@@ -3,6 +3,7 @@ module Dashboard.Analysis.Metrics exposing (..)
 import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
 -- import RadarChart exposing (..)
@@ -14,6 +15,7 @@ import Svg.Attributes exposing (in_)
 import List exposing (length)
 import List.Extra exposing (find)
 import Debug exposing (toString)
+import File.Download as Download
 
 
 {--
@@ -67,6 +69,7 @@ type Page
 type Msg
     = NoOp
     | Swap Page
+    | Export
 
 
 init: List MyFile -> ( Model, Cmd Msg)
@@ -98,14 +101,9 @@ init files =
             )
     }, Cmd.none)
 
--- averageHelper: String -> String -> Dict String Metric -> List Metric.Value
--- averageHelper name query dict =
---     case Dict.get query dict of
---         Just val ->
---             [ initValue name (Metric.averageMetric val) ]
---         _ ->
---             []
-
+exportCsv : String -> Cmd msg
+exportCsv csv =
+  Download.string "metrics.csv" "text/csv" csv
 
 calculateLOC: List MyFile -> List Metric.Value
 calculateLOC files =
@@ -199,6 +197,13 @@ update msg model =
             (model, Cmd.none)
         Swap page ->
             ({ model | page = page }, Cmd.none)
+        Export ->
+            (model, exportCsv 
+            """
+            age,sex,name,occupation
+            21,M,joe,Janitor
+            24,F,Test,test
+            """)
 
 view: Model -> Html Msg
 view model =
@@ -242,6 +247,9 @@ view model =
                                                 ---------
                                             ]
                                         ]
+                                    ],
+                                    div[ style "text-align" "center" ][
+                                        button[ class "button-special", onClick Export ][ text "Export CSV" ]
                                     ],
                                     h2[ style "margin" "25px" ][ text "Metrics visualization"],
                                     div[ class "explanation"][
