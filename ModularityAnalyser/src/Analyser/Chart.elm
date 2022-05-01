@@ -1,5 +1,6 @@
 module Analyser.Chart exposing (..)
 import Html exposing (Html, div)
+import Html.Attributes exposing (style)
 import Chart as C exposing (..)
 import Chart.Attributes as CA exposing (..)
 import Chart.Events as CE exposing (..)
@@ -8,6 +9,7 @@ import Svg as S
 import Dict exposing (Dict)
 import Analyser.Metric exposing (Value)
 import List exposing (map)
+import RadarChart
 
 --this module contains all the chart logic. It has no state nor any functionality except visualizing data through Html messages.
 --It uses the elm-charts library
@@ -43,6 +45,15 @@ viewMetricBarplot name avg metrics =
       C.labelAt CA.middle .max [ CA.fontSize 30, CA.moveUp 15 ]
         [ S.text name ]
     ]
+
+viewRadarChart: Html msg
+viewRadarChart =
+  div[ style "height" "500px", style "width" "500px" ][
+    RadarChart.view RadarChart.defaultOptions 
+      [ "Values", "Variables", "Conditionals", "Loops", "Functions", "Programs" ]
+      [ { color = "yellow", data = [ 120, 500, 310, 130, 300, 180 ] } ]
+  ]
+  
 
 
 viewTemplateGraph : Html msg

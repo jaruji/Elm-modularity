@@ -266,6 +266,11 @@ view model =
                                     ],
                                     div[ class "card" ][
                                         projectTableContent model.metrics
+                                    ],
+                                    div[ class "my-cards" ][
+                                        div[class "card"][
+                                            Chart.viewRadarChart
+                                        ]
                                     ]
                                 ]
                             
