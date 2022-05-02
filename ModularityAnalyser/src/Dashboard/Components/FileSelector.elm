@@ -24,7 +24,7 @@ import Elm.Syntax.File exposing (..)
 import Elm.Processing exposing (process, init)
 import Update.Extra exposing (andThen)
 import List.Extra exposing (getAt, setAt)
-import List exposing (length)
+import List exposing (length, reverse)
 
 --load the files
 --take only .elm or .json, otherwise from them out
@@ -183,13 +183,14 @@ view model =
                   text ""
                 Loading ->
                   div[][ 
-                    text "Loading.." ,
-                    Loading.render Loading.Circle {defaultConfig | size = 25} Loading.On |> Html.Styled.fromUnstyled
+                    text ("Loading file " ++ file.name ++ "...")
                   ]
                 Success ->
                   div[][ text file.name ]
-             ) model.files),
-            Loading.render Loading.Circle {defaultConfig | size = 100} Loading.On |> Html.Styled.fromUnstyled
+             ) (List.reverse model.files)),
+            div[ style "margin" "auto" ][
+              Loading.render Loading.Circle {defaultConfig | size = 100} Loading.On |> Html.Styled.fromUnstyled
+            ]   
         ]
       Success ->
         div[][
@@ -202,7 +203,7 @@ view model =
                 ]
               ]
             ) 
-            model.files |> div[]
+            (List.reverse model.files) |> div[]
             -- h3[][ text "Upload another project" ],
             -- hr[][],
             -- div[ style "margin-bottom" "10px" ][ folderInput ]

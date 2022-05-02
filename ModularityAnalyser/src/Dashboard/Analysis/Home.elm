@@ -91,7 +91,7 @@ view model =
                             ]
                         ],
                         div[ class "main-cards" ][
-                            div[ class "card" ][
+                            div[ class "card", style "width" "100%" ][
                                 div[][
                                     h2[] [ text "Getting started" ],
                                     text "Please, select an Elm project directory that you want to analyse by clicking the ",
