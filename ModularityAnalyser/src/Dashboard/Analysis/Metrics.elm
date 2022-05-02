@@ -16,6 +16,7 @@ import List exposing (length)
 import List.Extra exposing (find)
 import Debug exposing (toString)
 import File.Download as Download
+import Json.Encode as Encode exposing (dict)
 
 
 {--
@@ -200,9 +201,7 @@ update msg model =
         Export ->
             (model, exportCsv 
             """
-            age,sex,name,occupation
-            21,M,joe,Janitor
-            24,F,Test,test
+            age,sex,name,occupation\n21,M,joe,Janitor\n24,F,Test,test
             """)
 
 view: Model -> Html Msg

@@ -17,7 +17,6 @@ import List.Extra exposing(iterate, find)
 import List exposing (length)
 import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 
-import Ports exposing (request)
 import Dashboard.Analysis.Home as Home exposing (..)
 import Dashboard.Analysis.AST as AST exposing (Model, update, view)
 import Dashboard.Analysis.Dependencies as Dependencies exposing (Model, update, view)
