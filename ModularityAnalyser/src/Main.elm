@@ -203,7 +203,7 @@ viewNav model =
                     case model.dashboard of 
                         ASTPage x -> class "selected"
                         _ -> class ""
-                    ][ span[][ Outlined.account_tree 20 Inherit ], text "AST" ]],
+                    ][ span[][ Outlined.account_tree 20 Inherit ], text "Modules" ]],
                 
                 li[][ button[ onClick (ChangePage (DependenciesPage (Dependencies.getModel (Dependencies.init (getElmJson model.files))))),
                     case model.dashboard of 

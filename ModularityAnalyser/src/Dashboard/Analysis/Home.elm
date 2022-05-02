@@ -73,23 +73,6 @@ view model =
             case length model.files of
                 0 ->
                     div[][
-                        div[class "main-overview"][
-                            div[ class "overviewcard" ][
-                                text "KUKLE"
-                            ],
-                            div[ class "overviewcard" ][
-                                text "KUKLE"
-                            ],
-                            div[ class "overviewcard" ][
-                                text "KUKLE"
-                            ],
-                            div[ class "overviewcard" ][
-                                text "KUKLE"
-                            ],
-                            div[ class "overviewcard" ][
-                                text "KUKLE"
-                            ]
-                        ],
                         div[ class "main-cards" ][
                             div[ class "card", style "width" "100%" ][
                                 div[][

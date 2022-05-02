@@ -6,6 +6,7 @@ import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Html.Lazy exposing (lazy, lazy2)
 import Time exposing (..)
 import File exposing (..)
 import Task
@@ -93,8 +94,8 @@ view model =
     in
         div[][
             div[ class "header" ][
-                h1[][ text "Abstract syntax tree"],
-                div[ class "subtext" ][ text "Preview of loaded modules and their AST's."]
+                h1[][ text "Modules"],
+                div[ class "subtext" ][ text "All the basic information about loaded Elm modules."]
             ],
             if len == 0 then
                 section[][
@@ -112,15 +113,20 @@ view model =
                         div[ class "explanation" ][
                             input [ id "search", value model.search, placeholder "Search...", onInput UpdateSearch ] []
                         ],
-                        div[ class "main-cards"][
-                            case model.mode of
-                                AbstractSyntaxTree name ->    
-                                    div [ class "card", style "width" "100%" ][
-                                        viewJsonTree name model 
-                                    ]
-                                Code ->
-                                    div[](List.map (viewCard model) model.files)
-                        ]
+                        div[ class "main-overview" ](
+                            List.map (\file ->
+                                if String.contains (String.toLower model.search) (String.toLower file.name) then
+                                    viewModuleCard file
+                                else
+                                    text ""
+                            ) model.files
+                        ),
+                        --div[](List.map (viewCard model) model.files),
+                        case model.mode of
+                            AbstractSyntaxTree name ->    
+                                lazy2 viewModuleDetail name model
+                            _ ->
+                                text ""
                     ]
                 ]
         ]
@@ -134,17 +140,29 @@ viewJsonTree name model =
             case model.parsedJson of
                 Ok node ->
                     div[ style "align-items" "start" ][
-                        h2[ style "margin" "25px" ][ text name],
-                        button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ],
+                        div[ class "header" ][
+                            h1[ style "margin" "25px" ][ text name],
+                            button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ]
+                        ],
                         hr[ style "width" "100%" ][],
                         JsonTree.view node (config) model.astTreeState
                     ]
                                 
                 Err _ ->
                     div[][
-                        text "Failed to this AST"
+                        text "Failed to display this AST"
                     ]
         ]
+
+viewModuleCard: MyFile -> Html Msg
+viewModuleCard file =
+    case file.ast of
+        Nothing ->
+            text ""
+        Just ast ->
+            div[ onClick (SwapMode file.name ast), class "overviewcard" ][
+                text file.name
+            ]
 
 viewCard: Model -> MyFile -> Html Msg
 viewCard model file =
@@ -157,26 +175,31 @@ viewCard model file =
                     h2[ style "padding" "25px" ][ text file.name ],
                     button [ onClick (SwapMode file.name ast), class "button-special", style "float" "right", style "margin" "5px" ][ text "Show AST" ],
                     hr[ style "width" "100%" ][],
-                    -- text (ASTHelper.joinPath ast),
-                    -- text (Debug.toString (ASTHelper.getDeclarationLines (ASTHelper.processRawFile ast))),
-                    --List.map text (ASTHelper.getImports ast) |> div[],
-                    case model.mode of
-                        Code ->
-                        --visualize a code snippet
-                            List.map (\line -> 
-                                pre[][ code[] [ text line ] ]
-                            ) (String.lines file.content) |> article[ style "padding" "10px" ]
-                        _ ->
-                            text ""
-                        --here make it so ast view is through an expandable tree
-                        --viewJsonTree model
-                        -- text (Encode.encode 1 (Elm.RawFile.encode ast))
-                        -- List.map (\line -> 
-                        --     pre[][ code[] [ text line ] ]
-                        -- ) (String.lines (Debug.toString ast)) |> div[]
+                    List.map (\line -> 
+                        pre[][ code[] [ text line ] ]
+                    ) (String.lines file.content) |> article[ style "padding" "10px" ]
                 ]
             else
                 text ""
+
+viewModuleDetail: String -> Model -> Html Msg
+viewModuleDetail name model =
+    div[][
+        div[
+        style "position" "absolute",
+        style "min-width" "100%",
+        style "min-height" "100%",
+        style "top" "0px",
+        style "left" "0px",
+        style "background-color" "grey",
+        style "opacity" "0.8",
+        style "z-index" "100"
+        ][],
+        div[ class "modal"] [
+            viewJsonTree name model
+        ]
+    ]
+    
 
 displayModulePath: String -> Html msg
 displayModulePath string =

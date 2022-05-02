@@ -88,6 +88,14 @@
   padding: 20px;
   background-color: #4266af;
   color: white;
+  border-radius: 5px;
+}
+
+.overviewcard:hover {
+  background: var(--page-header-bgColor-hover);
+  color: var(--blue);
+  outline: none;
+  cursor: pointer;
 }
 
 .card h2 {
@@ -103,6 +111,37 @@
   min-height: 400px;
   box-shadow: 0px 0px 9px 0px rgba(0,0,0,0.1);
   border-radius: 15px;
+}
+  
+.modal {
+  background-color: white;
+  box-shadow: 0 10px 20px rgba(black, 0.2);
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 101;
+  top: 0;
+  left: 0;
+  margin-left: 10%;
+  margin-top: 5%;
+  width: 80%;
+  height: 80%;
+  border-radius: 20px;
+  overflow: auto;
+}
+
+.modal .header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  width: 100%;
+  color:black;
+  margin-bottom: 50px;
+}
+
+.modal .button-special{
+  
 }
 
 .card:first-child {
