@@ -100,8 +100,8 @@ view model =
                 _ ->
                     div[ class "main-cards"][
                         div[ class "card", style "text-align" "center" ][
-                            h4[ ][ text "A project is currently loaded in the tool." ],
-                            hr[ style "margin" "auto", style "margin-bottom" "20px" ][],
+                            h3[ ][ text "A project is currently loaded in the tool." ],
+                            hr[ style "margin" "auto", style "margin-bottomgt" "20px" ][],
                             div[](List.map(\file -> div[][ text file.name ]) model.files),
                             button[onClick Remove, class "button-special", style "background-color" "darkred", style "margin" "15px" ][ 
                                 text "Remove project" 

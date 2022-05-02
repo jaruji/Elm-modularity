@@ -25,12 +25,19 @@ update msg model =
 
 view: Model -> Html Msg
 view model =
-    section[ class "grid" ][
-        article[][
-            h2[] [ text "About" ]
+    div[][
+        div[ class "header" ][
+            h2[] [ text "About" ],
+            div[ class "subtext" ][ text "Basic information about the project." ]
+        ],
+        div[ class "main-header" ][
+            text "Header"
+        ],
+        div[ class "explanation" ][
+            text "This project was created during solving my Master's thesis on FIIT STU 2022."
         ]
     ]
-
+    
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
   model

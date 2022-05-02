@@ -106,7 +106,11 @@ view model =
                 section[][
                     div[][
                         div[ class "main-header"][
-                            input [ id "search", value model.search, placeholder "Search", onInput UpdateSearch ] []
+                            text "Header"
+                        ],
+                        h2[ style "margin" "25px" ][ text "Module list" ],
+                        div[ class "explanation" ][
+                            input [ id "search", value model.search, placeholder "Search...", onInput UpdateSearch ] []
                         ],
                         div[ class "main-cards"][
                             case model.mode of

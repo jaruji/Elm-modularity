@@ -6,6 +6,7 @@ import Json.Decode.Pipeline as Pipeline exposing (required, optional, hardcoded,
 import Parser exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (class, style, href, attribute)
+import String exposing (toLower)
 
 type alias Model = 
     {
@@ -64,7 +65,13 @@ view model =
 constructTable: String -> List Dependency -> Html msg
 constructTable title dependencies =
     ul[ class "responsive-table" ][
-        h2[ style "text-align" "center", style "margin" "25px" ][ text title ],
+        h2[ style "margin" "25px" ][ text title ],
+        div[ class "explanation"][
+            text "All ",
+            text (title |> toLower),
+            text """ of the project, 
+            along with their respective version and links. """
+        ],
         li[class "table-header"][
             div[class "col col-1"][ text "Name"],
             div[class "col col-2"][ text "Version" ],

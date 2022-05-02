@@ -32,7 +32,7 @@
 .explanation {
   margin: 20px;
   padding: 20px;
-  height: 100px;
+  min-height: 100px;
   background-color: rgb(135, 206, 250);
   border-radius: 10px;
   color: slategray;
@@ -133,20 +133,15 @@ input:focus {
 }
 
 .responsive-table li {
-  border-radius: 3px;
+  border-radius: 5px;
   padding: 25px 30px;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 25px;
-}
-
-.responsive-table h2{
-margin-bottom: 10px;
-margin-top: 10px;
+  margin: 25px;
 }
 
 .responsive-table a{
-color:var(--blue)
+  color:rgb(135, 206, 250)
 }
 
 .responsive-table  .table-header {
@@ -154,11 +149,11 @@ color:var(--blue)
   font-size: 14px;
   color: white;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
 .responsive-table  .table-row {
-  background-color: #ffffff;
+  background-color: white;
   box-shadow: 0px 0px 9px 0px rgba(0,0,0,0.1);
 }
 .responsive-table  .col-1 {
