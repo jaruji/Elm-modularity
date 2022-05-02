@@ -15,6 +15,7 @@ import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id
 import TypedSvg.Attributes.InPx exposing (cx, cy, r, strokeWidth, x1, x2, y1, y2)
 import TypedSvg.Core exposing (Attribute, Svg, text)
 import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..))
+import TypedSvg.Events exposing (onMouseOver, onClick)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
 import Elm.RawFile exposing (..)
@@ -76,16 +77,15 @@ linkElement graph edge =
         target =
             Maybe.withDefault (Force.entity 0 "") <| Maybe.map (.node >> .label) <| Graph.get edge.to graph
     in
-    line
-        [ strokeWidth 0.25
-        , stroke <| Paint <| Color.grey
-        , x1 source.x
-        , y1 source.y
-        , x2 target.x
-        , y2 target.y
-        , markerEnd "url(#arrowhead)"
-        ]
-        []
+        line [ 
+            strokeWidth 0.25,
+            stroke <| Paint <| Color.grey,
+            x1 source.x,
+            y1 source.y,
+            x2 target.x,
+            y2 target.y,
+            markerEnd "url(#arrowhead)"
+        ][]
 
 edgeColor : Paint
 edgeColor =
@@ -93,48 +93,45 @@ edgeColor =
 
 arrowhead : Svg msg
 arrowhead =
-    marker
-        [ id "arrowhead"
-        , orient "auto"
-        , markerWidth <| Px 8.0
-        , markerHeight <| Px 6.0
-        , refX "29"
-        , refY "3"
-        ]
-        [ polygon
-            [ points [ ( 0, 0 ), ( 8, 3 ), ( 0, 6 ) ]
-            , fill edgeColor
-            ]
-            []
-        ]
+    marker [ 
+        id "arrowhead",
+        orient "auto",
+        markerWidth <| Px 8.0,
+        markerHeight <| Px 6.0,
+        refX "29",
+        refY "3"
+    ][ polygon [
+        points [ ( 0, 0 ), ( 8, 3 ), ( 0, 6 ) ],
+        fill edgeColor
+    ][]
+    ]
 
 
 nodeElement : Node Entity -> Svg Msg
 nodeElement node =
-    g [ TypedSvg.Attributes.class [ "node" ] ]
-        [ circle
-            [ r 5.5
-            , strokeWidth 0.25
-            , fill (Paint Color.lightBlue)
-            , stroke (Paint Color.darkBlue)
-            --, cursor CursorPointer
-            , cx node.label.x
-            , cy node.label.y
-
+    g [ TypedSvg.Attributes.class [ "node" ] ][ 
+        circle[ 
+            r 5.5,
+            strokeWidth 0.25,
+            fill (Paint Color.lightBlue),
+            stroke (Paint Color.darkBlue),
+            cx node.label.x,
+            cy node.label.y
+        ][ 
+            title[][ 
+                text node.label.value 
             ]
-            [ title [] [ text node.label.value ] ]
-        , text_
-            [ dx <| Px node.label.x
-            , dy <| Px node.label.y
-            , TypedSvg.Attributes.alignmentBaseline AlignmentMiddle
-            , TypedSvg.Attributes.textAnchor AnchorMiddle
-
-            , fontSize <| Px 1.25
-            , fill (Paint Color.black)
-
-            --, pointerEvents "none"
+        ],
+        text_[ 
+            dx <| Px node.label.x,
+            dy <| Px node.label.y,
+            TypedSvg.Attributes.alignmentBaseline AlignmentMiddle,
+            TypedSvg.Attributes.textAnchor AnchorMiddle,
+            fontSize <| Px 1.25,
+            fill (Paint Color.black)
+            ][ 
+                text node.label.value 
             ]
-            [ text node.label.value ]
         ]
 
 
