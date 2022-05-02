@@ -23,6 +23,7 @@ import Elm.RawFile exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Processing exposing (process, init)
 import Update.Extra exposing (andThen)
+import List.Extra exposing (getAt)
 
 --load the files
 --take only .elm or .json, otherwise from them out
@@ -109,6 +110,7 @@ update msg model =
               }
         
         ParseFiles ->
+        --am I braindead?
           ({ model | files = 
             List.map(
               \file ->
@@ -124,9 +126,6 @@ update msg model =
         
         Succeed ->
           ({ model | status = Success }, Cmd.none)
-
-        -- RemoveFiles ->
-        --   ({ model | files = List.map (\file -> )})
 
 view : Model -> Html Msg
 view model =
