@@ -89,6 +89,7 @@
   background-color: #4266af;
   color: white;
   border-radius: 5px;
+  box-shadow: 0 10px 20px rgba(black, 0.2);
 }
 
 .overviewcard:hover {
@@ -122,12 +123,13 @@
   z-index: 101;
   top: 0;
   left: 0;
-  margin-left: 10%;
-  margin-top: 5%;
-  width: 80%;
-  height: 80%;
-  border-radius: 20px;
+  margin-left: 5%;
+  margin-top: 3%;
+  width: 90%;
+  height: 90%;
+  border-radius: 10px;
   overflow: auto;
+  border:rgba(0, 0, 0, .07);
 }
 
 .modal .header{
@@ -140,8 +142,18 @@
   margin-bottom: 50px;
 }
 
-.modal .button-special{
-  
+.modal h1{
+  margin-left: 25px;
+  margin-top: 25px;
+}
+
+.modal h2,h3,h4{
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+.modal .body {
+  margin: 25px;
 }
 
 .card:first-child {

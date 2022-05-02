@@ -199,10 +199,13 @@ update msg model =
         Swap page ->
             ({ model | page = page }, Cmd.none)
         Export ->
-            (model, exportCsv 
-            """
-            age,sex,name,occupation\n21,M,joe,Janitor\n24,F,Test,test
-            """)
+            ( model, exportCsv (constructCsv model.metrics))
+
+constructCsv: Dict String Metric -> String
+constructCsv metrics =
+    Dict.foldl(\key _ acc -> acc ++ key ++ ",") "" metrics
+    ++ 
+    "\n"
 
 view: Model -> Html Msg
 view model =

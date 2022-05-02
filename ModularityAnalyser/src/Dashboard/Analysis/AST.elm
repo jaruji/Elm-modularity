@@ -16,8 +16,8 @@ import List.Extra exposing (..)
 import Regex exposing (..)
 import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
-import SyntaxHighlight exposing (useTheme, monokai, elm, toBlockHtml)
-import Json.Decode as Decode
+import SyntaxHighlight exposing (useTheme, monokai, gitHub, elm, toBlockHtml)
+import Json.Decode as Decode exposing(Error)
 import Json.Encode as Encode
 import JsonTree
 import Set exposing (Set)
@@ -36,13 +36,13 @@ type alias Model =
 type Msg
     = NoOp
     | UpdateSearch String
-    | SwapMode String RawFile
+    | SwapMode MyFile
     | SetTreeState JsonTree.State
     | Back
 
 type Mode
-    = AbstractSyntaxTree String
-    | Code
+    = Detail MyFile
+    | Overview
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
@@ -55,7 +55,7 @@ init files =
                     False
         ) files, 
         search = "",
-        mode = Code,
+        mode = Overview,
         astTreeState = JsonTree.defaultState,
         parsedJson = JsonTree.parseString """{}"""
     }, Cmd.none)
@@ -67,25 +67,29 @@ update msg model =
             (model, Cmd.none)
         UpdateSearch val ->
             ({ model | search = val }, Cmd.none)
-        SwapMode name ast ->
+        SwapMode file ->
             ({ model | mode = 
                 case model.mode of
-                    Code ->
-                        AbstractSyntaxTree name
-                    AbstractSyntaxTree _ ->
-                        Code
+                    Overview ->
+                        Detail file
+                    Detail _ ->
+                        Overview
                 , astTreeState = 
                     case model.parsedJson of
                         Ok node ->
                             ((JsonTree.collapseToDepth 1) node model.astTreeState)
                         _ ->
                             JsonTree.defaultState
-                , parsedJson =  JsonTree.parseString (Encode.encode 1 (Elm.RawFile.encode ast) )
+                , parsedJson =  case file.ast of
+                    Just ast ->
+                        JsonTree.parseString (Encode.encode 0 (Elm.RawFile.encode ast) )
+                    _ ->
+                        JsonTree.parseString """{}"""
             }, Cmd.none)
         SetTreeState state ->
             ({ model | astTreeState = state }, Cmd.none)
         Back ->
-            ({ model | mode = Code}, Cmd.none)
+            ({ model | mode = Overview}, Cmd.none)
 
 view: Model -> Html Msg
 view model =
@@ -123,8 +127,8 @@ view model =
                         ),
                         --div[](List.map (viewCard model) model.files),
                         case model.mode of
-                            AbstractSyntaxTree name ->    
-                                lazy2 viewModuleDetail name model
+                            Detail file ->    
+                                lazy2 viewModuleDetail file model
                             _ ->
                                 text ""
                     ]
@@ -140,11 +144,6 @@ viewJsonTree name model =
             case model.parsedJson of
                 Ok node ->
                     div[ style "align-items" "start" ][
-                        div[ class "header" ][
-                            h1[ style "margin" "25px" ][ text name],
-                            button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ]
-                        ],
-                        hr[ style "width" "100%" ][],
                         JsonTree.view node (config) model.astTreeState
                     ]
                                 
@@ -160,30 +159,35 @@ viewModuleCard file =
         Nothing ->
             text ""
         Just ast ->
-            div[ onClick (SwapMode file.name ast), class "overviewcard" ][
+            div[ onClick (SwapMode file), class "overviewcard" ][
                 text file.name
             ]
 
-viewCard: Model -> MyFile -> Html Msg
-viewCard model file =
-    case file.ast of
-        Nothing ->
-            text ""
-        Just ast ->
-            if String.contains (String.toLower model.search) (String.toLower file.name) then
-                div[ class "card" ][
-                    h2[ style "padding" "25px" ][ text file.name ],
-                    button [ onClick (SwapMode file.name ast), class "button-special", style "float" "right", style "margin" "5px" ][ text "Show AST" ],
-                    hr[ style "width" "100%" ][],
-                    List.map (\line -> 
-                        pre[][ code[] [ text line ] ]
-                    ) (String.lines file.content) |> article[ style "padding" "10px" ]
-                ]
-            else
-                text ""
+viewModuleDetailContent: MyFile -> Model -> Html Msg
+viewModuleDetailContent file model =
+    div[][
+        div[ class "header" ][
+            h1[][ text file.name ],
+            button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ]
+        ],
+        hr[ style "width" "100%" ][],
+        div[ class "body" ][
+            h2[][ text "Source code" ],
+            div[][ 
+                useTheme gitHub,
+                elm file.content
+                    |> Result.map (toBlockHtml (Just 1))
+                    |> Result.withDefault
+                        (pre [] [ code [] [ text file.content ]])
+            ],
+            h2[][ text "Abstract Syntax Tree" ],
+            viewJsonTree file.name model
+        ]
+    ]
+    
 
-viewModuleDetail: String -> Model -> Html Msg
-viewModuleDetail name model =
+viewModuleDetail: MyFile -> Model -> Html Msg
+viewModuleDetail file model =
     div[][
         div[
         style "position" "absolute",
@@ -193,10 +197,12 @@ viewModuleDetail name model =
         style "left" "0px",
         style "background-color" "grey",
         style "opacity" "0.8",
-        style "z-index" "100"
+        style "z-index" "100",
+        style "cursor" "pointer",
+        onClick Back
         ][],
         div[ class "modal"] [
-            viewJsonTree name model
+            viewModuleDetailContent file model
         ]
     ]
     
