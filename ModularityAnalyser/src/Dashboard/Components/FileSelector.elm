@@ -23,7 +23,8 @@ import Elm.RawFile exposing (..)
 import Elm.Syntax.File exposing (..)
 import Elm.Processing exposing (process, init)
 import Update.Extra exposing (andThen)
-import List.Extra exposing (getAt)
+import List.Extra exposing (getAt, setAt)
+import List exposing (length)
 
 --load the files
 --take only .elm or .json, otherwise from them out
@@ -36,7 +37,8 @@ type alias MyFile =
     path: String, 
     name: String, 
     content : String,
-    ast : Maybe Elm.RawFile.RawFile
+    ast : Maybe Elm.RawFile.RawFile,
+    status: Status
   }
 
 type alias Model =
@@ -54,9 +56,8 @@ init  extensions =
 type Msg
   = ChooseDirectory (List File.File)
   | ReadFiles
-  | FileReadSuccess String String
-  | ParseFiles
-  | Succeed
+  | FileReadSuccess Int String String
+  | ParseFile Int
 
 type Status
   --use this to load the files
@@ -79,54 +80,57 @@ update msg model =
                     File.name buff
                   Nothing ->
                     ""
-              }) model.files }
-            , List.map
-                (\file ->
-                    case file.buff of
-                      Just buff -> 
-                        File.toString buff |> Task.perform (FileReadSuccess (File.name buff))
-                      Nothing ->
-                        Debug.todo "can't happen"
-                )
-                model.files |> Cmd.batch
+              }) model.files },
+            List.indexedMap (\index file ->
+                case file.buff of
+                  Just buff -> 
+                    File.toString buff |> Task.perform (FileReadSuccess index (File.name buff))
+                  Nothing ->
+                    Debug.todo "can't happen"
+              ) model.files |> Cmd.batch
             )
 
-        FileReadSuccess name content ->
-          update ParseFiles 
-              { model | files =
-                    List.map
-                        (\file ->
-                          case file.buff of
-                            Just buff ->
-                              if File.name buff == name then
-                                  --somehow extract the path here
-                                { file | content = content }
-                              else
-                                file
-                            Nothing ->
-                              file
-                        )
-                        model.files
-              }
+        FileReadSuccess index name content ->
+          update (ParseFile index) 
+            { model | files =
+              List.map
+                  (\file ->
+                    case file.buff of
+                      Just buff ->
+                        if File.name buff == name then
+                            --somehow extract the path here
+                          { file | content = content }
+                        else
+                          file
+                      Nothing ->
+                        file
+                  )
+                  model.files
+            }
         
-        ParseFiles ->
+        ParseFile index ->
         --am I braindead?
           ({ model | files = 
-            List.map(
-              \file ->
+            case getAt index model.files of
+              Just file ->
                 let
                   res = parse file.content
                 in
                   case res of
                     Ok rawFile ->
-                      { file | ast = Just rawFile, buff = Nothing }
+                      setAt index { file | ast = Just rawFile, buff = Nothing, status = Success } model.files
                     Err _ ->
-                      file 
-           ) model.files}, Cmd.none) |> andThen update Succeed
+                      model.files
+              Nothing ->
+                model.files,
+              status = 
+                if index == 0 then
+                  Success
+                else
+                  Loading
+          }, Cmd.none) 
+          -- |> andThen update Succeed
         
-        Succeed ->
-          ({ model | status = Success }, Cmd.none)
-
 view : Model -> Html Msg
 view model =
   let folderInput =
@@ -163,7 +167,29 @@ view model =
         div[][
             h3[][text "Loading"],
             div[ class "subtext" ][text "Processing your files..."],
-            Loading.render Loading.Circle {defaultConfig | size = 60} Loading.On |> Html.Styled.fromUnstyled
+            div[ 
+                style "position" "fixed",
+                style "left" "0px",
+                style "top" "0px",
+                style "height" "100%",
+                style "width" "100%",
+                style "background-color" "gray",
+                style "z-index" "1",
+                style "opacity" "0.2"
+            ][],
+            div[] ( List.map(\file -> 
+              case file.status of
+                Idle ->
+                  text ""
+                Loading ->
+                  div[][ 
+                    text "Loading.." ,
+                    Loading.render Loading.Circle {defaultConfig | size = 25} Loading.On |> Html.Styled.fromUnstyled
+                  ]
+                Success ->
+                  div[][ text file.name ]
+             ) model.files),
+            Loading.render Loading.Circle {defaultConfig | size = 100} Loading.On |> Html.Styled.fromUnstyled
         ]
       Success ->
         div[][
@@ -211,11 +237,11 @@ isValid extensions file =
 
 convertFiles: List File.File -> List MyFile
 convertFiles files =
-  List.map(\file -> MyFile (Just file) "" "" "" Nothing) files
+  List.map(\file -> MyFile (Just file) "" "" "" Nothing Idle) files
 
 initMyFile: File.File -> MyFile
 initMyFile file =
-  MyFile (Just file) "" "" "" Nothing
+  MyFile (Just file) "" "" "" Nothing Idle
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =

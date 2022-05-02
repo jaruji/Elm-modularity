@@ -20,27 +20,27 @@ type alias Model =
     {
         fileSelector: (FileSelector.Model, Cmd FileSelector.Msg),
         files: List MyFile,
-        content: String
+        status: Status
     }
 
 type Msg
     = NoOp
     | FileSelectorMsg FileSelector.Msg
-    | FileContentLoaded String
     | Remove
 
+type Status 
+    = Idle
+    | Loading
 
 init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    ({ fileSelector = FileSelector.init [".elm", ".json"], files = files, content = ""}, Cmd.none)
+    ({ fileSelector = FileSelector.init [".elm", ".json"], files = files, status = Idle}, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         FileSelectorMsg mesg ->
             fileSelectorHelper model (FileSelector.update mesg (FileSelector.getModel model.fileSelector))
-        FileContentLoaded fileContent ->
-            ({ model | content = fileContent}, Cmd.none)
         Remove ->
             ({ model | files = []}, Cmd.none)
         _ ->
@@ -48,11 +48,19 @@ update msg model =
 
 fileSelectorHelper: Model -> (FileSelector.Model, Cmd FileSelector.Msg) -> (Model, Cmd Msg)
 fileSelectorHelper model (fileSelector, cmd) =
-  ({ model | fileSelector = (fileSelector, cmd) }, Cmd.map FileSelectorMsg cmd)
+  ({ 
+      model | fileSelector = (fileSelector, cmd), 
+      status = 
+        case fileSelector.status of
+            FileSelector.Loading ->
+                Loading
+            _ ->
+                Idle
+    }, Cmd.map FileSelectorMsg cmd)
 
 view: Model -> Html Msg
 view model =
-    section[ class "grid" ][
+    div[][
         div[ class "header" ][
             h1[][ text "Welcome to Elm Metrics"],
             div[ class "subtext" ][ text "Analytical tool to measure the quality of your Elm codebase through the usage of software metrics and numerous visualizations."]
@@ -111,11 +119,6 @@ view model =
                     
         ]
     ]
-
-readFiles : File -> Cmd Msg
-readFiles file =
-  Task.perform FileContentLoaded (File.toString file)
-
 
 getFiles: Model -> List FileSelector.MyFile
 getFiles model =
