@@ -124,7 +124,7 @@ update msg model =
               Nothing ->
                 model.files,
               status = 
-                if index == 0 then
+                if index < 1 then
                   Success
                 else
                   Loading
