@@ -25,6 +25,7 @@ import Elm.RawFile exposing (..)
 import List.Extra exposing (getAt)
 import Analyser.AST.Parser exposing (parseRawFile, parseFile)
 import Analyser.AST.Declaration exposing (viewDeclarations)
+import Dict exposing (Dict, map, toList, values)
 
 
 type alias Model = 
@@ -179,9 +180,51 @@ viewModuleDetailContent file model =
                 div[ class "body" ][
                     h2[][ text "Imports" ],
                     let
-                        imports = Helper.getImports ast
+                        imports = Helper.getImportList ast
                     in
-                        List.map(\val -> div[][ text val ]) imports |> div[],
+                        Dict.map(\key val -> div[][ text (key ++ " : " ++ Debug.toString val) ]) imports |> values |> div[],
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    h2[][ text "EXPOSING MATCHING" ],
+                    div[][
+                        let
+                            raws = List.foldl
+                                (\f acc->
+                                    case f.ast of
+                                        Nothing ->
+                                            acc
+                                        Just val ->
+                                            val :: acc
+                                ) [] model.files
+                        in
+                            List.foldl(\raw acc -> 
+                                acc ++ List.map(\imp -> 
+                                    let
+                                        exp = getExposing imp
+                                        mod = "viewModuleDetail"
+                                        impName =  String.join "." (Helper.getNodeValue imp.moduleName)
+                                    in
+                                        case Helper.exposes mod exp of
+                                            True ->
+                                                div[][
+                                                    text ( impName ++ " exposes " ++ mod)
+                                                ]
+                                            _ ->
+                                                div[][
+                                                    text ( impName ++ " doesn't expose " ++ mod)
+                                                ]
+                                )(imports raw) 
+                            ) [] raws |> div[]
+                        
+                    ],
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
+                    ---------------------------------------------------------------------------------------------------------------------------------
                     h2[][ text "Debug" ],
                     List.map(\dec -> viewDeclarations dec) (parseRawFile ast) |> div[],
                     h2[][ text "Source code" ],

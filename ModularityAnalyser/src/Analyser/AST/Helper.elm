@@ -17,17 +17,43 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
+import Dict exposing (Dict, fromList)
+import Html exposing (a)
 
 getImports: RawFile -> List String
 getImports ast =
     List.map getModuleName (imports ast)
 
-getImportList: RawFile -> List String
+getImportList: RawFile -> Dict String Exposing
 getImportList raw =
+--return dictionary containing a key:moduleName and Maybe List String, representing exposes
     let
         list = imports raw
     in
-        []
+        Dict.fromList(
+            List.foldl(\node acc -> 
+                let
+                    modName = node.moduleName
+                in 
+                    (String.join "." (value modName), getExposing node) :: acc
+            ) [] list 
+        )
+
+exposes: String -> Exposing -> Bool
+exposes func exp =
+    Elm.Syntax.Exposing.exposesFunction func exp
+
+getExposing: Import -> Exposing
+getExposing imp =
+    case imp.exposingList of
+        Nothing ->
+            Explicit []
+        Just exp ->
+            value exp
+
+getNodeValue: Node a -> a
+getNodeValue a =
+    value a
 
 isImportedFromModule: List String -> String -> Bool
 isImportedFromModule imports dec =
@@ -36,6 +62,10 @@ isImportedFromModule imports dec =
 getModuleName: Import -> String
 getModuleName {moduleName, moduleAlias, exposingList} =
     String.join "." (moduleNameToList (value moduleName))
+
+moduleNameToString: RawFile -> String
+moduleNameToString raw =
+    String.join "." (moduleName raw)
 
 moduleNameToList: ModuleName -> List String
 moduleNameToList modules =

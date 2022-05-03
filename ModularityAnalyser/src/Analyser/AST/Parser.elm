@@ -239,9 +239,13 @@ parseLetFunction: Declaration_ -> Function -> Declaration_
 parseLetFunction dec {documentation, signature, declaration} =
     case signature of
         Nothing ->
-            parseFunctionImplementation dec (value declaration)
+            parseLetFunctionImplementation dec (value declaration)
         Just sig ->
-            parseFunctionImplementation (parseLetSignature dec (value sig)) (value declaration)
+            parseLetFunctionImplementation (parseLetSignature dec (value sig)) (value declaration)
+
+parseLetFunctionImplementation: Declaration_ -> FunctionImplementation -> Declaration_
+parseLetFunctionImplementation dec {name, arguments, expression} =
+    parseExpression (value expression) dec
 
 parseLetSignature: Declaration_ -> Signature -> Declaration_
 parseLetSignature dec {name, typeAnnotation} =
@@ -261,7 +265,7 @@ parsePattern dec patt =
             dec
         else
             --THIS IS QUESTIONABLE, VERIFY THIS
-            { dec | calledModules = dec.calledModules ++ flattenModuleNameList moduleNameList }
+            { dec | calledModules = dec.calledModules ++ List.filter(\val -> if val == "" then False else True ) (flattenModuleNameList moduleNameList) }
 
 flattenModuleNameList: List ModuleName -> List String
 flattenModuleNameList list =
