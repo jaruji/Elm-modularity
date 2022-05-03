@@ -17,10 +17,17 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
+import Svg.Attributes exposing (r)
 
 getImports: RawFile -> List String
 getImports ast =
     List.map getModuleName (imports ast)
+
+getImportList: RawFile -> List Import
+getImportList raw =
+    imports raw
+
+
 
 getModuleName: Import -> String
 getModuleName {moduleName, moduleAlias, exposingList} =
@@ -42,12 +49,20 @@ joinPath: RawFile -> String
 joinPath ast =
     String.join "." (moduleNameToList (moduleName ast))
 
+
+getRangeLOC: Range -> Int
+getRangeLOC r =
+    let
+        interval = getStartEnd r
+    in
+        Tuple.second interval - Tuple.first interval + 1
+
 getNodeLOC: Node a -> Int
 getNodeLOC node =
     let
         interval = getNodeRange node
     in
-        Tuple.second interval - Tuple.first interval
+        Tuple.second interval - Tuple.first interval + 1
 
 getNodeRange: Node a -> (Int, Int)
 getNodeRange node =
@@ -213,6 +228,8 @@ numberOfTypeAliases {moduleDefinition, imports, declarations, comments} =
                 _ ->
                     acc
         ) 0 declarations
+
+
 
 --declaration parser defined here
 

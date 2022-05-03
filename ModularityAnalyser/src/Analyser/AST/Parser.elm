@@ -1,5 +1,6 @@
 module Analyser.AST.Parser exposing (..)
 
+import Analyser.AST.Helper exposing (getFunctionLOC, getNodeLOC)
 import Elm.RawFile exposing (..)
 import Elm.Interface exposing (..)
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -41,7 +42,7 @@ parseDeclaration dec val =
     case val of
         FunctionDeclaration func ->
             --{declaration, documentation, signature}
-            parseFunction { dec | decType = Custom.Function } func
+            parseFunction { dec | decType = Custom.Function, lineCount = getFunctionLOC func } func
         AliasDeclaration alias_ ->
             --{documentation, name, generics, typeAnnotation}
             parseAlias { dec | decType = Custom.Alias } alias_
@@ -56,7 +57,11 @@ parseDeclaration dec val =
 
 parseFunction: Declaration_ -> Function -> Declaration_
 parseFunction dec {documentation, signature, declaration} =
-    parseFunctionImplementation dec (value declaration)
+    case signature of
+        Nothing ->
+            parseFunctionImplementation dec (value declaration)
+        Just sig ->
+            parseFunctionImplementation (parseSignature dec (value sig)) (value declaration)
 
 parseFunctionImplementation: Declaration_ -> FunctionImplementation -> Declaration_
 parseFunctionImplementation dec {name, arguments, expression} =
@@ -154,7 +159,10 @@ parseRecordSetter dec (val, expr) =
 
 parseType: Declaration_ -> Type -> Declaration_
 parseType dec { documentation, name, generics, constructors } =
-    List.foldl(\val acc -> parseValueConstructor acc (value val)) { dec | name = value name } constructors
+    let
+        loc = List.foldl(\node acc -> acc + getNodeLOC node) 0 constructors
+    in
+        List.foldl(\val acc -> parseValueConstructor acc (value val)) { dec | name = value name, lineCount = loc } constructors
 
 parseValueConstructor: Declaration_ -> ValueConstructor -> Declaration_
 parseValueConstructor dec { name, arguments } =
@@ -201,33 +209,44 @@ parseRecordField dec (string, typeA) =
 
 parseAlias: Declaration_ -> TypeAlias -> Declaration_
 parseAlias dec {documentation, name, generics, typeAnnotation} =
-    parseTypeAnnotation { dec | name = value name} (value typeAnnotation)
+    parseTypeAnnotation { dec | name = value name, lineCount = getNodeLOC typeAnnotation } (value typeAnnotation)
 
 parseSignature: Declaration_ -> Signature -> Declaration_
 parseSignature dec {name, typeAnnotation} =
     parseTypeAnnotation {dec | name = value name} (value typeAnnotation)
 
 parsePattern: Declaration_ -> Pattern -> Declaration_ 
-parsePattern dec pat =
+parsePattern dec patt =
     --moduleNames: Pattern -> List ModuleName --this is useful for me
-    case pat of
-        TuplePattern list ->
+    let
+        moduleNameList = moduleNames patt
+    in
+        if List.length moduleNameList == 0 then
             dec
-        RecordPattern list ->
-            dec
-        UnConsPattern pat1 pat2 ->
-            dec
-        ListPattern list ->
-            dec
-        NamedPattern qNameRef list ->
-            dec
-        AsPattern pat1 node ->
-            dec
-        ParenthesizedPattern pat1 ->
-            dec
-        _ ->
-            dec
+        else
+            ({ dec | debugString = dec.debugString ++ " *PATTERN: " ++ "  " ++ Debug.toString(flattenModuleNameList moduleNameList) ++ "  ENDPATTERN||"})
+
+flattenModuleNameList: List ModuleName -> List String
+flattenModuleNameList list =
+    List.foldl (\val acc -> (String.join "." val) :: acc) [] list
+    -- case pat of
+    --     TuplePattern list ->
+    --         dec
+    --     RecordPattern list ->
+    --         dec
+    --     UnConsPattern pat1 pat2 ->
+    --         dec
+    --     ListPattern list ->
+    --         dec
+    --     NamedPattern qNameRef list ->
+    --         dec
+    --     AsPattern pat1 node ->
+    --         dec
+    --     ParenthesizedPattern pat1 ->
+    --         dec
+    --     _ ->
+    --         dec
     
-parseQNameRef: Declaration_ -> QualifiedNameRef -> Declaration_
-parseQNameRef dec qNameRef =
-    dec
+-- parseQNameRef: Declaration_ -> QualifiedNameRef -> Declaration_
+-- parseQNameRef dec qNameRef =
+--     dec
