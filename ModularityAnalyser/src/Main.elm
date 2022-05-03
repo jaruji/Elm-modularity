@@ -18,10 +18,10 @@ import List exposing (length)
 import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 
 import Dashboard.Analysis.Home as Home exposing (..)
-import Dashboard.Analysis.AST as AST exposing (Model, update, view)
+import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)
 import Dashboard.Analysis.Dependencies as Dependencies exposing (Model, update, view)
 import Dashboard.Analysis.Metrics as Metrics exposing (Model, update, view)
-import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)
+import Dashboard.Analysis.ModuleDiagram as ModuleDiagram exposing (Model, update, view)
 import Dashboard.Analysis.Help as Help exposing (Model, update, view)
 import Dashboard.Settings.Settings as Settings exposing (Model, update, view)
 import Dashboard.Analysis.Checkpoints as Checkpoints exposing (Model, update, view)
@@ -37,10 +37,10 @@ type alias Model =
 
 type Dashboard
     = HomePage Home.Model
-    | ASTPage AST.Model
+    | ModulesPage Modules.Model
     | DependenciesPage Dependencies.Model
     | MetricsPage Metrics.Model
-    | ModulePage Modules.Model
+    | ModuleDiagramPage ModuleDiagram.Model
     | HelpPage Help.Model
     | SettingsPage Settings.Model
     | CheckpointsPage Checkpoints.Model
@@ -59,10 +59,10 @@ type Msg
     = NoOp
     | ChangePage Dashboard
     | HomeMsg Home.Msg
-    | ASTMsg AST.Msg
+    | ModulesMsg Modules.Msg
     | DependenciesMsg Dependencies.Msg
     | MetricsMsg Metrics.Msg
-    | ModuleMsg Modules.Msg
+    | ModuleDiagramMsg ModuleDiagram.Msg
     | HelpMsg Help.Msg
     | SettingsMsg Settings.Msg
     | CheckpointsMsg Checkpoints.Msg
@@ -78,10 +78,10 @@ update msg model =
                     homeHelper model (Home.update mesg home)
                 _ ->
                     (model, Cmd.none)
-        ASTMsg mesg ->
+        ModulesMsg mesg ->
             case model.dashboard of
-                ASTPage ast ->
-                    astHelper model (AST.update mesg ast)
+                ModulesPage mod ->
+                    modulesHelper model (Modules.update mesg mod)
                 _ ->
                     (model, Cmd.none)
         DependenciesMsg mesg ->
@@ -96,10 +96,10 @@ update msg model =
                     metricsHelper model (Metrics.update mesg met)
                 _ ->
                     (model, Cmd.none)
-        ModuleMsg mesg ->
+        ModuleDiagramMsg mesg ->
             case model.dashboard of
-                ModulePage mod ->
-                     ({ model | dashboard = ModulePage mod }, Cmd.none)
+                ModuleDiagramPage mod ->
+                     ({ model | dashboard = ModuleDiagramPage mod }, Cmd.none)
                 _ ->
                     (model, Cmd.none)
         HelpMsg mesg ->
@@ -135,9 +135,9 @@ homeHelper: Model -> (Home.Model, Cmd Home.Msg) -> (Model, Cmd Msg)
 homeHelper model (home, cmd) =
   ({ model | dashboard = HomePage home, files = Home.getFiles home }, Cmd.map HomeMsg cmd)
 
-astHelper: Model -> (AST.Model, Cmd AST.Msg) -> (Model, Cmd Msg)
-astHelper model (ast, cmd) =
-  ({ model | dashboard = ASTPage ast }, Cmd.map ASTMsg cmd)
+modulesHelper: Model -> (Modules.Model, Cmd Modules.Msg) -> (Model, Cmd Msg)
+modulesHelper model (mod, cmd) =
+  ({ model | dashboard = ModulesPage mod }, Cmd.map ModulesMsg cmd)
 
 metricsHelper: Model -> (Metrics.Model, Cmd Metrics.Msg) -> (Model, Cmd Msg)
 metricsHelper model (metrics, cmd) =
@@ -156,14 +156,14 @@ view model =
                 case model.dashboard of
                     HomePage home ->
                         Home.view home |> Html.map HomeMsg
-                    ASTPage ast ->
-                        AST.view ast |> Html.map ASTMsg
+                    ModulesPage mod ->
+                        Modules.view mod |> Html.map ModulesMsg
                     DependenciesPage dep ->
                         Dependencies.view dep |> Html.map DependenciesMsg
                     MetricsPage met ->
                         Metrics.view met |> Html.map MetricsMsg
-                    ModulePage mod ->
-                        Modules.view mod |> Html.map ModuleMsg
+                    ModuleDiagramPage mod ->
+                        ModuleDiagram.view mod |> Html.map ModuleDiagramMsg
                     HelpPage hint ->
                         Help.view hint |> Html.map HelpMsg
                     SettingsPage set ->
@@ -199,9 +199,9 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.home 20 Inherit ], text "Home" ]],
 
-                li[][ button[ onClick (ChangePage (ASTPage (AST.getModel (AST.init model.files)))),
+                li[][ button[ onClick (ChangePage (ModulesPage (Modules.getModel (Modules.init model.files)))),
                     case model.dashboard of 
-                        ASTPage x -> class "selected"
+                        ModulesPage x -> class "selected"
                         _ -> class ""
                     ][ span[][ Outlined.account_tree 20 Inherit ], text "Modules" ]],
                 
@@ -217,9 +217,9 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Filled.analytics 20 Inherit ], text "Metrics" ]],
 
-                li[][ button[ onClick (ChangePage (ModulePage (Modules.getModel (Modules.init model.files)))),
+                li[][ button[ onClick (ChangePage (ModuleDiagramPage (ModuleDiagram.getModel (ModuleDiagram.init model.files)))),
                     case model.dashboard of 
-                        ModulePage x -> class "selected"
+                        ModuleDiagramPage x -> class "selected"
                         _ -> class ""
                     ][ span[][ Outlined.view_module 20 Inherit ], text "Module Diagram" ]],
 

@@ -1,235 +1,228 @@
 module Dashboard.Analysis.Modules exposing (..)
 
-import Browser
-import Browser.Events
-import Color
-import Html.Attributes as Attributes exposing (class)
-import Force exposing (State)
-import Graph exposing (Edge, Graph, Node, NodeContext, NodeId)
-import Html exposing (div, article, Html, section, h1)
-import Html.Events exposing (on)
-import Json.Decode as Decode
-import Time
-import TypedSvg exposing (circle, g, line, svg, title, marker, polygon, defs, text_)
-import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id, orient, markerWidth, markerHeight, refX, refY, points, dx, dy, fontSize)
-import TypedSvg.Attributes.InPx exposing (cx, cy, r, strokeWidth, x1, x2, y1, y2)
-import TypedSvg.Core exposing (Attribute, Svg, text)
-import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..))
-import TypedSvg.Events exposing (onMouseOver, onClick)
-import Dashboard.Components.FileSelector exposing (MyFile)
+import Color exposing (Color)
+import Elm.Parser
+import Svg exposing (svg)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onInput)
+import Html.Lazy exposing (lazy, lazy2)
+import Time exposing (..)
+import File exposing (..)
+import Task
+import Tuple exposing (..)
+import List exposing (..)
+import List.Extra exposing (..)
+import Regex exposing (..)
+import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
 import Analyser.ASTHelper as ASTHelper exposing (..)
+import SyntaxHighlight exposing (useTheme, monokai, gitHub, elm, toBlockHtml)
+import Json.Decode as Decode exposing(Error)
+import Json.Encode as Encode
+import JsonTree
+import Set exposing (Set)
 import Elm.RawFile exposing (..)
-import List.Extra exposing (zip, andThen, indexedFoldl)
+import List.Extra exposing (getAt)
+
+type alias Model = 
+    {
+        files: List MyFile,
+        search: String,
+        mode: Mode,
+        astTreeState: JsonTree.State,
+        parsedJson: (Result Decode.Error JsonTree.Node)
+    }
 
 type Msg
     = NoOp
+    | UpdateSearch String
+    | SwapMode MyFile
+    | SetTreeState JsonTree.State
+    | Back
 
+type Mode
+    = Detail MyFile
+    | Overview
 
-type alias Model =
-    { 
-        graph : Graph Entity(),
-        files: List MyFile
-    }
-
-type alias Entity =
-    Force.Entity NodeId { value : String }
-
-
-initializeNode : NodeContext String () -> NodeContext Entity ()
-initializeNode ctx =
-    { node = { label = Force.entity ctx.node.id ctx.node.label, id = ctx.node.id }
-    , incoming = ctx.incoming
-    , outgoing = ctx.outgoing
-    }
-
-
-init : List MyFile -> ( Model, Cmd Msg )
+init: List MyFile -> ( Model, Cmd Msg)
 init files =
-    let
-        graph =
-            Graph.mapContexts initializeNode (buildGraph files)
-            
-    in
-    ( { 
-        graph = graph,
+    ({
         files = List.filter (
             \file -> case file.ast of
                 Just _ ->
                     True
                 Nothing ->
                     False
-        ) files
-    }, Cmd.none )
+        ) files, 
+        search = "",
+        mode = Overview,
+        astTreeState = JsonTree.defaultState,
+        parsedJson = JsonTree.parseString """{}"""
+    }, Cmd.none)
 
-update : Msg -> Model -> Model
-update msg ({ graph } as model) =
+update: Msg -> Model -> (Model, Cmd Msg)
+update msg model =
     case msg of
         NoOp ->
-            model
-
-
-linkElement : Graph Entity () -> Edge () -> Svg msg
-linkElement graph edge =
-    let
-        source =
-            Maybe.withDefault (Force.entity 0 "") <| Maybe.map (.node >> .label) <| Graph.get edge.from graph
-
-        target =
-            Maybe.withDefault (Force.entity 0 "") <| Maybe.map (.node >> .label) <| Graph.get edge.to graph
-    in
-        line [ 
-            strokeWidth 0.25,
-            stroke <| Paint <| Color.grey,
-            x1 source.x,
-            y1 source.y,
-            x2 target.x,
-            y2 target.y,
-            markerEnd "url(#arrowhead)"
-        ][]
-
-edgeColor : Paint
-edgeColor =
-    Paint <| Color.grey
-
-arrowhead : Svg msg
-arrowhead =
-    marker [ 
-        id "arrowhead",
-        orient "auto",
-        markerWidth <| Px 8.0,
-        markerHeight <| Px 6.0,
-        refX "29",
-        refY "3"
-    ][ polygon [
-        points [ ( 0, 0 ), ( 8, 3 ), ( 0, 6 ) ],
-        fill edgeColor
-    ][]
-    ]
-
-
-nodeElement : Node Entity -> Svg Msg
-nodeElement node =
-    g [ TypedSvg.Attributes.class [ "node" ] ][ 
-        circle[ 
-            r 5.5,
-            strokeWidth 0.25,
-            fill (Paint Color.lightBlue),
-            stroke (Paint Color.darkBlue),
-            cx node.label.x,
-            cy node.label.y
-        ][ 
-            title[][ 
-                text node.label.value 
-            ]
-        ],
-        text_[ 
-            dx <| Px node.label.x,
-            dy <| Px node.label.y,
-            TypedSvg.Attributes.alignmentBaseline AlignmentMiddle,
-            TypedSvg.Attributes.textAnchor AnchorMiddle,
-            fontSize <| Px 1.25,
-            fill (Paint Color.black)
-            ][ 
-                text node.label.value 
-            ]
-        ]
-
+            (model, Cmd.none)
+        UpdateSearch val ->
+            ({ model | search = val }, Cmd.none)
+        SwapMode file ->
+            ({ model | mode = 
+                case model.mode of
+                    Overview ->
+                        Detail file
+                    Detail _ ->
+                        Overview
+                , astTreeState = 
+                    case model.parsedJson of
+                        Ok node ->
+                            ((JsonTree.collapseToDepth 1) node model.astTreeState)
+                        _ ->
+                            JsonTree.defaultState
+                , parsedJson =  case file.ast of
+                    Just ast ->
+                        JsonTree.parseString (Encode.encode 0 (Elm.RawFile.encode ast) )
+                    _ ->
+                        JsonTree.parseString """{}"""
+            }, Cmd.none)
+        SetTreeState state ->
+            ({ model | astTreeState = state }, Cmd.none)
+        Back ->
+            ({ model | mode = Overview}, Cmd.none)
 
 view: Model -> Html Msg
 view model =
-    div[][
-        div[ Attributes.class "header" ][
-            h1[][ text "Module diagram"],
-            div[ Attributes.class "subtext" ][ text "Visualization of relationships between modules."]
-        ],
-        article[][
-            case List.length model.files of
-                0 ->
-                    article[ Attributes.class "main-header"][
+    let
+        len = List.length model.files
+    in
+        div[][
+            div[ class "header" ][
+                h1[][ text "Modules"],
+                div[ class "subtext" ][ text "All the basic information about loaded Elm modules."]
+            ],
+            if len == 0 then
+                section[][
+                    article[ class "main-header"][
                         text "No Elm project currently loaded."
                     ]
-                _ -> 
+                ]
+            else
+                section[][
                     div[][
-                        div[ Attributes.class "main-header"][
+                        div[ class "main-header"][
                             text "Header"
                         ],
-                        div[ Attributes.class "main-card"][
-                            div[ Attributes.class "card" ][
-                                viewGraph model
-                            ]
-                        ]
+                        h2[ style "margin" "25px" ][ text "Module list" ],
+                        div[ class "explanation" ][
+                            input [ id "search", value model.search, placeholder "Search...", onInput UpdateSearch ] []
+                        ],
+                        div[ class "main-overview" ](
+                            List.map (\file ->
+                                if String.contains (String.toLower model.search) (String.toLower file.name) then
+                                    viewModuleCard file
+                                else
+                                    text ""
+                            ) model.files
+                        ),
+                        --div[](List.map (viewCard model) model.files),
+                        case model.mode of
+                            Detail file ->    
+                                lazy2 viewModuleDetail file model
+                            _ ->
+                                text ""
+                    ]
+                ]
+        ]
+
+viewJsonTree: String -> Model -> Html Msg
+viewJsonTree name model = 
+    let
+        config = { onSelect = Nothing, toMsg = SetTreeState, colors = JsonTree.defaultColors }
+    in
+        div[][
+            case model.parsedJson of
+                Ok node ->
+                    div[ style "align-items" "start" ][
+                        JsonTree.view node (config) model.astTreeState
+                    ]
+                                
+                Err _ ->
+                    div[][
+                        text "Failed to display this AST"
                     ]
         ]
-    ]
 
+viewModuleCard: MyFile -> Html Msg
+viewModuleCard file =
+    case file.ast of
+        Nothing ->
+            text ""
+        Just ast ->
+            div[ onClick (SwapMode file), class "overviewcard" ][
+                text file.name
+            ]
+
+viewModuleDetailContent: MyFile -> Model -> Html Msg
+viewModuleDetailContent file model =
+    case file.ast of
+        Just ast ->
+            div[][
+                div[ class "header" ][
+                    h1[][ text (getModuleNameFromAst ast) ],
+                    button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ]
+                ],
+                hr[ style "width" "100%" ][],
+                div[ class "body" ][
+                    h2[][ text "Source code" ],
+                    div[][ 
+                        useTheme gitHub,
+                        elm file.content
+                            |> Result.map (toBlockHtml (Just 1))
+                            |> Result.withDefault
+                                (pre [] [ code [] [ text file.content ]])
+                    ],
+                    h2[][ text "Abstract Syntax Tree" ],
+                    viewJsonTree file.name model,
+                    h2[][ text "Exposed declarations" ],
+                    text (Debug.toString(ASTHelper.getAllDeclarations ast)),
+                    h2[][ text "Exposed functions" ]
+                    -- let
+                    --     functions = List.filter(\val -> ASTHelper.filterFunction val) (ASTHelper.getAllDeclarations ast)
+                    -- in
+                    --     div[](
+                    --         List.map (\val -> text ((ASTHelper.getFunctionLOC val) |> Debug.toString)) functions
+                    --     )
+                ]
+            ]
+        Nothing ->
+            text "Something went wrong"
     
 
-viewGraph : Model -> Svg Msg
-viewGraph model =
-    svg [ viewBox -80 -60 150 150 ][ 
-        defs [] [ arrowhead ],
-        Graph.edges model.graph
-            |> List.map (linkElement model.graph)
-            |> g [ TypedSvg.Attributes.class [ "links" ] ]
-        , Graph.nodes model.graph
-            |> List.map nodeElement
-            |> g [ TypedSvg.Attributes.class [ "nodes" ] ]
+viewModuleDetail: MyFile -> Model -> Html Msg
+viewModuleDetail file model =
+    div[][
+        div[
+        style "position" "absolute",
+        style "min-width" "100%",
+        style "min-height" "100%",
+        style "top" "0px",
+        style "left" "0px",
+        style "background-color" "grey",
+        style "opacity" "0.8",
+        style "z-index" "100",
+        style "cursor" "pointer",
+        onClick Back
+        ][],
+        div[ class "modal"] [
+            viewModuleDetailContent file model
+        ]
     ]
+    
 
-
-
-getGraphEdges: List RawFile -> List (Int, Int)
-getGraphEdges files =
-    let
-        imports = 
-            List.indexedMap 
-                (\index file -> 
-                    ASTHelper.getImports file
-                ) files
-    in
-        indexedFoldl
-            (\index file res -> 
-                indexedFoldl
-                    (\index2 importList acc ->
-                        List.foldl
-                            (\arg acc2 ->
-                                if arg == ASTHelper.joinPath file then
-                                    (index, index2) :: acc2
-                                else
-                                    acc2
-                            ) acc importList
-                    ) res imports
-            ) [] files
-
-buildGraph : List MyFile -> Graph String ()
-buildGraph files =
-    Graph.fromNodeLabelsAndEdgePairs 
-    (getGraphNodes (List.filter hasAst files))
-    --(List.map(\leaf -> leaf.content ++ "lel") files)
-    --[]
-    (getGraphEdges 
-        (List.map 
-            (\leaf ->
-                case leaf.ast of
-                    Just ast ->
-                        ast
-                    Nothing ->
-                        Debug.todo "This error is impossible to get"
-            )
-        ( List.filter hasAst files )
-    ))
-
-getGraphNodes: List MyFile -> List String
-getGraphNodes files =
-    List.map(\file -> file.name) files
-
-hasAst: MyFile -> Bool
-hasAst file =
-    case file.ast of
-        Just _ ->
-            True
-        _ ->
-            False
+displayModulePath: String -> Html msg
+displayModulePath string =
+    text(string ++ "/")
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
