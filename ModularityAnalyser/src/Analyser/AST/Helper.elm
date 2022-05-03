@@ -17,50 +17,7 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
-
--- type alias Declaration =
---     {
---         decType: CustomType
---     }
-
--- type CustomType
---     = Function Function
---     Alias TypeAlias
---     Type String (List String)
---     Other 
-
--- type alias Declaration_ =
---     {
---         t: DeclarationType
---     }
-
--- type DeclarationType
---     = FunctionT Function_
---     | TypeT Type_
---     | AliasT Alias_
---     | OtherT
-
--- type alias Function_ =
---     {
---         maxNest: Int,
---         lines: Int,
---         range: (Int, Int),
---         arguments: List String,
---         return: String,
---         isLambda: Bool
---     }
-
--- type alias Type_ =
---     {
---         maxNest: Int,
---         range: (Int, Int)
---         lines: Int,
---         name: String,
---         arguments: List String
---     }
-
--- type alias Alias_ =
---     {}
+import Analyser.AST.Declaration as Dec exposing (Declaration)
 
 getImports: RawFile -> List String
 getImports ast =
