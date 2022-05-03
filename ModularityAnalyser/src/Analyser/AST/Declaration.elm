@@ -7,14 +7,14 @@ type alias Declaration_ =
         name: String,
         decType: Type,
         depth: Int,
-        calledModules: List (List String),
+        calledModules: List String,
         uniqueCalledModulesCount: Int,
         lambdaCount: Int,
         debugString: String,
         lineCount: Int
     }
 
-init: String -> Type -> Int -> List (List String) -> Int -> Int -> Declaration_
+init: String -> Type -> Int -> List String -> Int -> Int -> Declaration_
 init name decType d cm ucmc lc =
     (Declaration_ name decType d cm ucmc lc "" 0)
 

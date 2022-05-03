@@ -48,11 +48,3 @@ view model =
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
   model
-
-lightMode: Attribute Msg
-lightMode =
-    style "background-color" "white"
-
-darkMode: Attribute Msg
-darkMode =
-    style "background-color" "dark"

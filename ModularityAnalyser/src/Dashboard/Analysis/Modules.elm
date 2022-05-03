@@ -177,6 +177,11 @@ viewModuleDetailContent file model =
                 ],
                 hr[ style "width" "100%" ][],
                 div[ class "body" ][
+                    h2[][ text "Imports" ],
+                    let
+                        imports = Helper.getImports ast
+                    in
+                        List.map(\val -> div[][ text val ]) imports |> div[],
                     h2[][ text "Debug" ],
                     List.map(\dec -> viewDeclarations dec) (parseRawFile ast) |> div[],
                     h2[][ text "Source code" ],

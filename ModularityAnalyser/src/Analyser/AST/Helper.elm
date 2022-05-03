@@ -17,17 +17,21 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
-import Svg.Attributes exposing (r)
 
 getImports: RawFile -> List String
 getImports ast =
     List.map getModuleName (imports ast)
 
-getImportList: RawFile -> List Import
+getImportList: RawFile -> List String
 getImportList raw =
-    imports raw
+    let
+        list = imports raw
+    in
+        []
 
-
+isImportedFromModule: List String -> String -> Bool
+isImportedFromModule imports dec =
+    True
 
 getModuleName: Import -> String
 getModuleName {moduleName, moduleAlias, exposingList} =

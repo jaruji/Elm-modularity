@@ -127,7 +127,7 @@ update msg model =
                 if index < 1 then
                   Success
                 else
-                  Loading
+                  model.status
           }, Cmd.none) 
           -- |> andThen update Succeed
         

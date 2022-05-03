@@ -22,6 +22,7 @@ import Elm.Syntax.TypeAnnotation exposing (..)
 import Analyser.AST.Declaration as Custom exposing (Declaration_)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
+import List exposing (length)
 
 --best way to store used imports?
 --Dict ModuleName (List Import_)
@@ -33,7 +34,7 @@ parseRawFile raw =
 parseFile: File -> List Declaration_
 parseFile {moduleDefinition, imports, declarations, comments} =
     let
-        dec = Custom.init "" Custom.Default 0 [[]] 0 0
+        dec = Custom.init "" Custom.Default 0 [] 0 0
     in
         List.foldl(\node acc -> parseDeclaration dec (value node) :: acc) [] declarations
 
@@ -82,7 +83,14 @@ parseExpression exp dec =
             --(ModuleName String)
             --this is important for me!
             {
-                dec | uniqueCalledModulesCount = dec.uniqueCalledModulesCount + 1, calledModules = dec.calledModules ++ [[val ++ "- Something should be here: "] ++ modName]
+                dec | 
+                    uniqueCalledModulesCount = 
+                        dec.uniqueCalledModulesCount + 1, 
+                    calledModules = 
+                        if List.length modName == 0 then
+                            val :: dec.calledModules
+                        else
+                            ((String.join "." modName) ++ "." ++ val) :: dec.calledModules
                 --, debugString = "KUKLE"
             }
         IfBlock exp1 exp2 exp3 ->
@@ -136,9 +144,17 @@ parseLetDeclaration: Declaration_ -> LetDeclaration -> Declaration_
 parseLetDeclaration dec ld =
     case ld of
         LetFunction f ->
-            parseFunction dec f
+            parseLetFunction dec f
         LetDestructuring pattr expr ->
             parsePattern dec (value pattr) |> parseExpression (value expr)
+
+-- parseLetFunction: Declaration_ -> Function -> Declaration_
+-- parseLetFunction dec {documentation, signature, declaration} =
+--     case signature of
+--         Nothing ->
+--             parseFunctionImplementation dec (value declaration)
+--         Just sig ->
+--             parseFunctionImplementation (parseSignature dec (value sig)) (value declaration)
 
 
 parseCaseBlock: Declaration_ -> CaseBlock -> Declaration_
@@ -174,18 +190,26 @@ parseTypeAnnotation  dec typeA =
     case typeA of
         Typed node list ->
             List.foldl(\val acc -> parseTypeAnnotation acc (value val)) {
-                dec | debugString = 
-                    dec.debugString 
-                    ++ 
-                    "ModuleName: "
-                    ++
-                    Debug.toString (Tuple.first (value(node))) 
-                    ++
-                    "String: "
-                    ++
-                    Debug.toString (Tuple.second (value(node))) 
-                    ++ 
-                    "||"
+                dec | calledModules = 
+                    let
+                        modName = (Tuple.first (value(node)))
+                        val = (Tuple.second (value(node))) 
+                    in
+                        if List.length modName == 0 then
+                            val :: dec.calledModules
+                        else
+                            ((String.join "." modName) ++ "." ++ val) :: dec.calledModules
+                    -- dec.debugString 
+                    -- ++ 
+                    -- "ModuleName: "
+                    -- ++
+                    -- Debug.toString (Tuple.first (value(node))) 
+                    -- ++
+                    -- "String: "
+                    -- ++
+                    -- Debug.toString (Tuple.second (value(node))) 
+                    -- ++ 
+                    -- "||"
             } list
         Tupled list ->
             List.foldl(\val acc -> parseTypeAnnotation acc (value val)) dec list
@@ -211,6 +235,18 @@ parseAlias: Declaration_ -> TypeAlias -> Declaration_
 parseAlias dec {documentation, name, generics, typeAnnotation} =
     parseTypeAnnotation { dec | name = value name, lineCount = getNodeLOC typeAnnotation } (value typeAnnotation)
 
+parseLetFunction: Declaration_ -> Function -> Declaration_
+parseLetFunction dec {documentation, signature, declaration} =
+    case signature of
+        Nothing ->
+            parseFunctionImplementation dec (value declaration)
+        Just sig ->
+            parseFunctionImplementation (parseLetSignature dec (value sig)) (value declaration)
+
+parseLetSignature: Declaration_ -> Signature -> Declaration_
+parseLetSignature dec {name, typeAnnotation} =
+    parseTypeAnnotation dec (value typeAnnotation)
+
 parseSignature: Declaration_ -> Signature -> Declaration_
 parseSignature dec {name, typeAnnotation} =
     parseTypeAnnotation {dec | name = value name} (value typeAnnotation)
@@ -224,7 +260,8 @@ parsePattern dec patt =
         if List.length moduleNameList == 0 then
             dec
         else
-            ({ dec | debugString = dec.debugString ++ " *PATTERN: " ++ "  " ++ Debug.toString(flattenModuleNameList moduleNameList) ++ "  ENDPATTERN||"})
+            --THIS IS QUESTIONABLE, VERIFY THIS
+            { dec | calledModules = dec.calledModules ++ flattenModuleNameList moduleNameList }
 
 flattenModuleNameList: List ModuleName -> List String
 flattenModuleNameList list =
