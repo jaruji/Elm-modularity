@@ -19,6 +19,13 @@ import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
 
 
+--best way to store used imports?
+--Dict ModuleName (List Import_)
+
+parseFile: File -> List String
+parseFile {moduleDefinition, imports, declarations, comments} =
+    List.foldl(\node acc -> acc ++ (parseDeclaration (value node))) [] declarations
+
 parseDeclaration: Declaration -> List String
 parseDeclaration dec =
     case dec of
@@ -47,7 +54,70 @@ parseFunctionImplementation {name, arguments, expression} =
 
 parseExpression: Expression -> List String
 parseExpression exp =
-    --giga case here
+    case exp of
+        UnitExpr ->
+            []
+        Application val ->
+            []
+        OperatorApplication val infixDir exp1 exp2 ->
+            []
+        FunctionOrValue modName val ->
+            []
+        IfBlock exp1 exp2 exp3 ->
+            []
+        PrefixOperator val ->
+            []
+        Operator val ->
+            []
+        Integer int ->
+            []
+        Hex int ->
+            []
+        Floatable Float ->
+            []
+        Negation exp1 ->
+            []
+        Literal val ->
+            []
+        CharLiteral char ->
+            []
+        TupledExpression list ->
+            []
+        ParenthesizedExpression exp1 ->
+            []
+        LetExpression letBlock ->
+            []
+        CaseExpression caseBlock ->
+            []
+        LambdaExpression lambda ->
+            []
+        RecordExpr list ->
+            []
+        ListExpr list ->
+            []
+        RecordAccess exp1 val ->
+            []
+        RecordAccessFunction val ->
+            []
+        RecordUpdateExpression val list ->
+            []
+        GLSLExpression val ->
+            []
+
+parseLetBlock: LetBlock -> List String
+parseLetBlock { declarations, expression } =
+    []
+
+parseCaseBlock: CaseBlock -> List String
+parseCaseBlock { expression, cases } =
+    []
+
+parseLambda: Lambda -> List String
+parseLambda { args, expression } =
+    []
+
+parseRecordSetter: RecordSetter -> List String
+parseRecordSetter (val, expr) =
     []
 
 parseType: Type -> List String

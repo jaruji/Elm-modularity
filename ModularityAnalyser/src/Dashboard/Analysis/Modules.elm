@@ -182,8 +182,8 @@ viewModuleDetailContent file model =
                             |> Result.withDefault
                                 (pre [] [ code [] [ text file.content ]])
                     ],
-                    h2[][ text "Abstract Syntax Tree" ],
-                    viewJsonTree file.name model,
+                    -- h2[][ text "Abstract Syntax Tree" ],
+                    -- viewJsonTree file.name model,
                     h2[][ text "Exposed declarations" ],
                     text (Debug.toString(Helper.getAllDeclarations ast)),
                     h2[][ text "Exposed functions" ]

@@ -31,12 +31,12 @@ import Json.Encode as Encode exposing (dict)
             Number of imports used together with number of calls for each import
 
             Number of lambdas (NoL)
-            Lambda score    (LS)
-            CPM (coupling)
-            MAD
-            MTD
-            MFD
-            Boilerplate
+            -- Lambda score (LS)
+            -- CPM (coupling)
+            -- MAD
+            -- MTD
+            -- MFD
+            -- Boilerplate
         global:
             ALOC
             ANOT
