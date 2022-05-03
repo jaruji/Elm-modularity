@@ -17,7 +17,6 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
-import Analyser.AST.Declaration as Dec exposing (Declaration)
 
 getImports: RawFile -> List String
 getImports ast =

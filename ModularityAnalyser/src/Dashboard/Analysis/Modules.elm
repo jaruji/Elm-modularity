@@ -23,6 +23,9 @@ import JsonTree
 import Set exposing (Set)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (getAt)
+import Analyser.AST.Parser exposing (parseRawFile, parseFile)
+import Analyser.AST.Declaration exposing (viewDeclarations)
+
 
 type alias Model = 
     {
@@ -174,6 +177,8 @@ viewModuleDetailContent file model =
                 ],
                 hr[ style "width" "100%" ][],
                 div[ class "body" ][
+                    h2[][ text "Debug" ],
+                    List.map(\dec -> viewDeclarations dec) (parseRawFile ast) |> div[],
                     h2[][ text "Source code" ],
                     div[][ 
                         useTheme gitHub,
@@ -185,8 +190,7 @@ viewModuleDetailContent file model =
                     -- h2[][ text "Abstract Syntax Tree" ],
                     -- viewJsonTree file.name model,
                     h2[][ text "Exposed declarations" ],
-                    text (Debug.toString(Helper.getAllDeclarations ast)),
-                    h2[][ text "Exposed functions" ]
+                    text (Debug.toString(Helper.getAllDeclarations ast))
                     -- let
                     --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
                     -- in
