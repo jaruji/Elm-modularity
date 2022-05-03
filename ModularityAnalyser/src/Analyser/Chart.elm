@@ -7,7 +7,7 @@ import Chart.Events as CE exposing (..)
 import Chart.Svg as CS
 import Svg as S
 import Dict exposing (Dict)
-import Analyser.Metric exposing (Value)
+import Analyser.Metrics.Metric exposing (Value)
 import List exposing (map)
 import RadarChart
 

@@ -2,7 +2,7 @@ port module Ports exposing (..)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing(..)
-import Analyser.Metric exposing (Metric)
+import Analyser.Metrics.Metric exposing (Metric)
 import Dict exposing (Dict)
 
 port request: () -> Cmd msg

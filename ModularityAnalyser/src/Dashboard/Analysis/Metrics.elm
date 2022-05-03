@@ -5,11 +5,11 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Dashboard.Components.FileSelector exposing (MyFile)
-import Analyser.ASTHelper as ASTHelper exposing (..)
+import Analyser.AST.Helper as Helper exposing (..)
 -- import RadarChart exposing (..)
 import Html.Events exposing (onClick)
 import Analyser.Chart as Chart exposing (..)
-import Analyser.Metric as Metric exposing (..)
+import Analyser.Metrics.Metric as Metric exposing (..)
 import Dict exposing (Dict, toList, fromList, map, values, keys, get)
 import Svg.Attributes exposing (in_)
 import List exposing (length)
@@ -126,8 +126,8 @@ calculateComments files =
         case file.ast of
             Just ast ->
                 let
-                    processedFile = ASTHelper.processRawFile ast
-                    comments = List.foldl numberOfCommentedLines 0 (ASTHelper.getCommentLines processedFile) |> toFloat
+                    processedFile = Helper.processRawFile ast
+                    comments = List.foldl numberOfCommentedLines 0 (Helper.getCommentLines processedFile) |> toFloat
                 in
                      initValue file.name comments :: acc
             Nothing ->
@@ -140,8 +140,8 @@ calculateNoD files =
         case file.ast of
             Just ast ->
                 let
-                    processedFile = ASTHelper.processRawFile ast
-                    nod = ASTHelper.numberOfDeclarations processedFile |> toFloat
+                    processedFile = Helper.processRawFile ast
+                    nod = Helper.numberOfDeclarations processedFile |> toFloat
                 in
                      initValue file.name nod :: acc
             Nothing ->
@@ -154,8 +154,8 @@ calculateNoF files =
         case file.ast of
             Just ast ->
                 let
-                    processedFile = ASTHelper.processRawFile ast
-                    nof = ASTHelper.numberOfFunctions processedFile |> toFloat
+                    processedFile = Helper.processRawFile ast
+                    nof = Helper.numberOfFunctions processedFile |> toFloat
                 in
                      initValue file.name nof :: acc
             Nothing ->
@@ -168,8 +168,8 @@ calculateNoA files =
         case file.ast of
             Just ast ->
                 let
-                    processedFile = ASTHelper.processRawFile ast
-                    noa = ASTHelper.numberOfTypeAliases processedFile |> toFloat
+                    processedFile = Helper.processRawFile ast
+                    noa = Helper.numberOfTypeAliases processedFile |> toFloat
                 in
                      initValue file.name noa :: acc
             Nothing ->
@@ -182,8 +182,8 @@ calculateNoT files =
         case file.ast of
             Just ast ->
                 let
-                    processedFile = ASTHelper.processRawFile ast
-                    not = ASTHelper.numberOfTypes processedFile |> toFloat
+                    processedFile = Helper.processRawFile ast
+                    not = Helper.numberOfTypes processedFile |> toFloat
                 in
                      initValue file.name not :: acc
             Nothing ->

@@ -17,7 +17,7 @@ import TypedSvg.Core exposing (Attribute, Svg, text)
 import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..))
 import TypedSvg.Events exposing (onMouseOver, onClick)
 import Dashboard.Components.FileSelector exposing (MyFile)
-import Analyser.ASTHelper as ASTHelper exposing (..)
+import Analyser.AST.Helper as Helper exposing (..)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (zip, andThen, indexedFoldl)
 
@@ -184,7 +184,7 @@ getGraphEdges files =
         imports = 
             List.indexedMap 
                 (\index file -> 
-                    ASTHelper.getImports file
+                    Helper.getImports file
                 ) files
     in
         indexedFoldl
@@ -193,7 +193,7 @@ getGraphEdges files =
                     (\index2 importList acc ->
                         List.foldl
                             (\arg acc2 ->
-                                if arg == ASTHelper.joinPath file then
+                                if arg == Helper.joinPath file then
                                     (index, index2) :: acc2
                                 else
                                     acc2

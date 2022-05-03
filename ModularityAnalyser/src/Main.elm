@@ -15,7 +15,7 @@ import Html.Events exposing (onClick)
 import Time exposing (..)
 import List.Extra exposing(iterate, find)
 import List exposing (length)
-import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
+import Dashboard.Components.FileSelector exposing (MyFile)
 
 import Dashboard.Analysis.Home as Home exposing (..)
 import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)

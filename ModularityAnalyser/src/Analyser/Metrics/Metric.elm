@@ -1,4 +1,4 @@
-module Analyser.Metric exposing (..)
+module Analyser.Metrics.Metric exposing (..)
 import List exposing (length)
 import Dict exposing (Dict, get)
 

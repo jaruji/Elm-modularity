@@ -3,7 +3,7 @@ module Dashboard.Analysis.Checkpoints exposing (..)
 import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Analyser.Metric exposing (Metric)
+import Analyser.Metrics.Metric exposing (Metric)
 import Dict exposing (Dict)
 
 type alias Model = 

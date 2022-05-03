@@ -15,7 +15,7 @@ import List exposing (..)
 import List.Extra exposing (..)
 import Regex exposing (..)
 import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
-import Analyser.ASTHelper as ASTHelper exposing (..)
+import Analyser.AST.Helper as Helper exposing (..)
 import SyntaxHighlight exposing (useTheme, monokai, gitHub, elm, toBlockHtml)
 import Json.Decode as Decode exposing(Error)
 import Json.Encode as Encode
@@ -185,13 +185,13 @@ viewModuleDetailContent file model =
                     h2[][ text "Abstract Syntax Tree" ],
                     viewJsonTree file.name model,
                     h2[][ text "Exposed declarations" ],
-                    text (Debug.toString(ASTHelper.getAllDeclarations ast)),
+                    text (Debug.toString(Helper.getAllDeclarations ast)),
                     h2[][ text "Exposed functions" ]
                     -- let
-                    --     functions = List.filter(\val -> ASTHelper.filterFunction val) (ASTHelper.getAllDeclarations ast)
+                    --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
                     -- in
                     --     div[](
-                    --         List.map (\val -> text ((ASTHelper.getFunctionLOC val) |> Debug.toString)) functions
+                    --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
                     --     )
                 ]
             ]

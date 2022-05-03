@@ -1,4 +1,4 @@
-module Analyser.ASTHelper exposing (..)
+module Analyser.AST.Helper exposing (..)
 
 import Elm.RawFile exposing (..)
 import Elm.Interface exposing (..)
@@ -260,55 +260,4 @@ numberOfTypeAliases {moduleDefinition, imports, declarations, comments} =
 
 --declaration parser defined here
 
-parseDeclaration: Declaration -> List String
-parseDeclaration dec =
-    case dec of
-        FunctionDeclaration func ->
-            --{declaration, documentation, signature}
-            parseFunction func
-        AliasDeclaration alias_ ->
-            --{documentation, name, generics, typeAnnotation}
-            parseAlias alias_
-        CustomTypeDeclaration type_ ->
-            --{documentation, name, generics, constructors}
-            parseType type_
-        PortDeclaration sig ->
-            --{name, typeAnnotation}
-            parseSignature sig
-        _ ->
-            []
-
-parseFunction: Function -> List String
-parseFunction {documentation, signature, declaration} =
-    parseFunctionImplementation (value declaration)
-
-parseFunctionImplementation: FunctionImplementation -> List String
-parseFunctionImplementation {name, arguments, expression} =
-    parseExpression (value expression)
-
-parseExpression: Expression -> List String
-parseExpression exp =
-    --giga case here
-    []
-
-parseType: Type -> List String
-parseType { documentation, name, generics, constructors } =
-    --flatten array here?
-    -- List.foldl(\val acc ->
-    --     val :: acc
-    -- ) [] (List.map(\cons -> parseValueConstructor (value cons)) constructors)
-    []
-
-parseValueConstructor: ValueConstructor -> List String
-parseValueConstructor { name, arguments } =
-    -- List.foldl (\cons acc -> (value cons :: acc)) [] arguments
-    []
-
-parseAlias: TypeAlias -> List String
-parseAlias alias_ =
-    []
-
-parseSignature: Signature -> List String
-parseSignature sig =
-    []
 
