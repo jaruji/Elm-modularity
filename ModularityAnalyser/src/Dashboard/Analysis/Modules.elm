@@ -166,15 +166,15 @@ view model =
 
 viewGraph : Model -> Svg Msg
 viewGraph model =
-    svg [ viewBox -80 -60 150 150 ]
-        [ defs [] [ arrowhead ],
+    svg [ viewBox -80 -60 150 150 ][ 
+        defs [] [ arrowhead ],
         Graph.edges model.graph
             |> List.map (linkElement model.graph)
             |> g [ TypedSvg.Attributes.class [ "links" ] ]
         , Graph.nodes model.graph
             |> List.map nodeElement
             |> g [ TypedSvg.Attributes.class [ "nodes" ] ]
-        ]
+    ]
 
 
 

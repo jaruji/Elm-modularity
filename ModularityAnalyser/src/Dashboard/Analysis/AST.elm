@@ -165,25 +165,38 @@ viewModuleCard file =
 
 viewModuleDetailContent: MyFile -> Model -> Html Msg
 viewModuleDetailContent file model =
-    div[][
-        div[ class "header" ][
-            h1[][ text file.name ],
-            button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ]
-        ],
-        hr[ style "width" "100%" ][],
-        div[ class "body" ][
-            h2[][ text "Source code" ],
-            div[][ 
-                useTheme gitHub,
-                elm file.content
-                    |> Result.map (toBlockHtml (Just 1))
-                    |> Result.withDefault
-                        (pre [] [ code [] [ text file.content ]])
-            ],
-            h2[][ text "Abstract Syntax Tree" ],
-            viewJsonTree file.name model
-        ]
-    ]
+    case file.ast of
+        Just ast ->
+            div[][
+                div[ class "header" ][
+                    h1[][ text (getModuleNameFromAst ast) ],
+                    button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ]
+                ],
+                hr[ style "width" "100%" ][],
+                div[ class "body" ][
+                    h2[][ text "Source code" ],
+                    div[][ 
+                        useTheme gitHub,
+                        elm file.content
+                            |> Result.map (toBlockHtml (Just 1))
+                            |> Result.withDefault
+                                (pre [] [ code [] [ text file.content ]])
+                    ],
+                    h2[][ text "Abstract Syntax Tree" ],
+                    viewJsonTree file.name model,
+                    h2[][ text "Exposed declarations" ],
+                    text (Debug.toString(ASTHelper.getAllDeclarations ast)),
+                    h2[][ text "Exposed functions" ]
+                    -- let
+                    --     functions = List.filter(\val -> ASTHelper.filterFunction val) (ASTHelper.getAllDeclarations ast)
+                    -- in
+                    --     div[](
+                    --         List.map (\val -> text ((ASTHelper.getFunctionLOC val) |> Debug.toString)) functions
+                    --     )
+                ]
+            ]
+        Nothing ->
+            text "Something went wrong"
     
 
 viewModuleDetail: MyFile -> Model -> Html Msg

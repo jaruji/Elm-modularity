@@ -1,6 +1,7 @@
 module Analyser.ASTHelper exposing (..)
 
 import Elm.RawFile exposing (..)
+import Elm.Interface exposing (..)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Import exposing (..)
 import Elm.Syntax.Node exposing (..)
@@ -10,9 +11,56 @@ import Elm.Writer exposing (..)
 import Elm.Syntax.Range exposing (..)
 import Elm.Syntax.Declaration exposing (..)
 import Elm.Syntax.Expression exposing (..)
+import Elm.Syntax.Module exposing (exposingList)
+import Elm.Syntax.Exposing exposing (..)
 import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
+import Elm.Syntax.Type exposing (..)
+
+-- type alias Declaration =
+--     {
+--         decType: CustomType
+--     }
+
+-- type CustomType
+--     = Function Function
+--     Alias TypeAlias
+--     Type String (List String)
+--     Other 
+
+-- type alias Declaration_ =
+--     {
+--         t: DeclarationType
+--     }
+
+-- type DeclarationType
+--     = FunctionT Function_
+--     | TypeT Type_
+--     | AliasT Alias_
+--     | OtherT
+
+-- type alias Function_ =
+--     {
+--         maxNest: Int,
+--         lines: Int,
+--         range: (Int, Int),
+--         arguments: List String,
+--         return: String,
+--         isLambda: Bool
+--     }
+
+-- type alias Type_ =
+--     {
+--         maxNest: Int,
+--         range: (Int, Int)
+--         lines: Int,
+--         name: String,
+--         arguments: List String
+--     }
+
+-- type alias Alias_ =
+--     {}
 
 getImports: RawFile -> List String
 getImports ast =
@@ -37,6 +85,13 @@ processRawFile ast =
 joinPath: RawFile -> String
 joinPath ast =
     String.join "." (moduleNameToList (moduleName ast))
+
+getNodeLOC: Node a -> Int
+getNodeLOC node =
+    let
+        interval = getNodeRange node
+    in
+        Tuple.second interval - Tuple.first interval
 
 getNodeRange: Node a -> (Int, Int)
 getNodeRange node =
@@ -96,9 +151,87 @@ getJsonString: RawFile -> String
 getJsonString raw =
     Debug.toString raw
 
-getExposedDeclarations: File -> List String
-getExposedDeclarations file =
-    []
+-- getExposedDeclarations: File -> List String
+-- getExposedDeclarations {moduleDefinition, imports, declarations, comments} =
+--     let
+--         moduleDef = value moduleDefinition
+--     in 
+--         case exposingList moduleDef of
+--             All _ ->
+--                 ["all"]
+--             Explicit list ->
+--                 List.foldl (\topLevelExpose acc -> 
+--                     case value topLevelExpose of
+--                         InfixExpose val ->
+--                             val :: acc
+--                         FunctionExpose val ->
+--                             val :: acc
+--                         TypeOrAliasExpose val ->
+--                             val :: acc
+--                         TypeExpose val ->
+--                             val.name :: acc
+--                 ) [] list
+    
+-- getAllDeclarations: File -> List String
+-- getAllDeclarations {moduleDefinition, imports, declarations, comments} =
+--     List.foldl(\dec acc ->
+--         case value dec of
+--             FunctionDeclaration {declaration, documentation, signature} ->
+--                 case signature of
+--                     Just val ->
+--                         acc
+--                     Nothing ->
+--                         acc
+--             AliasDeclaration {documentation, name, generics, typeAnnotation} ->
+--                 (value name) :: acc
+--             CustomTypeDeclaration {documentation, name, generics, constructors} ->
+--                 (value name) :: acc
+--             PortDeclaration {name, typeAnnotation} ->
+--                 (value name) :: acc
+--             InfixDeclaration val ->
+--                 acc
+--             Destructuring _ _ ->
+--                 acc
+--     ) [] declarations
+
+getAllDeclarations: RawFile -> List Exposed
+getAllDeclarations file =
+    build file
+
+filterFunction: Exposed -> Bool
+filterFunction exposed =
+    case exposed of
+        Elm.Interface.Function _ ->
+            True
+        _ ->
+            False
+
+filterType: Exposed -> Bool
+filterType exposed =
+    case exposed of
+        CustomType _ ->
+            True
+        _ ->
+            False
+
+filterAlias: Exposed -> Bool
+filterAlias exposed =
+    case exposed of
+        Alias _ ->
+            True
+        _ ->
+            False
+
+
+
+getFunctionLOC: Function -> Int
+getFunctionLOC {documentation, signature, declaration} =
+    getNodeLOC declaration
+
+                            
+getModuleNameFromAst: RawFile -> String
+getModuleNameFromAst ast =
+    String.join "." (moduleName ast)
 
 getCalledDeclarationsByModule: File -> String -> List String
 getCalledDeclarationsByModule file moduleName =
@@ -124,3 +257,58 @@ numberOfTypeAliases {moduleDefinition, imports, declarations, comments} =
                 _ ->
                     acc
         ) 0 declarations
+
+--declaration parser defined here
+
+parseDeclaration: Declaration -> List String
+parseDeclaration dec =
+    case dec of
+        FunctionDeclaration func ->
+            --{declaration, documentation, signature}
+            parseFunction func
+        AliasDeclaration alias_ ->
+            --{documentation, name, generics, typeAnnotation}
+            parseAlias alias_
+        CustomTypeDeclaration type_ ->
+            --{documentation, name, generics, constructors}
+            parseType type_
+        PortDeclaration sig ->
+            --{name, typeAnnotation}
+            parseSignature sig
+        _ ->
+            []
+
+parseFunction: Function -> List String
+parseFunction {documentation, signature, declaration} =
+    parseFunctionImplementation (value declaration)
+
+parseFunctionImplementation: FunctionImplementation -> List String
+parseFunctionImplementation {name, arguments, expression} =
+    parseExpression (value expression)
+
+parseExpression: Expression -> List String
+parseExpression exp =
+    --giga case here
+    []
+
+parseType: Type -> List String
+parseType { documentation, name, generics, constructors } =
+    --flatten array here?
+    -- List.foldl(\val acc ->
+    --     val :: acc
+    -- ) [] (List.map(\cons -> parseValueConstructor (value cons)) constructors)
+    []
+
+parseValueConstructor: ValueConstructor -> List String
+parseValueConstructor { name, arguments } =
+    -- List.foldl (\cons acc -> (value cons :: acc)) [] arguments
+    []
+
+parseAlias: TypeAlias -> List String
+parseAlias alias_ =
+    []
+
+parseSignature: Signature -> List String
+parseSignature sig =
+    []
+
