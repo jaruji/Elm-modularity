@@ -48,15 +48,19 @@ update msg model =
 
 fileSelectorHelper: Model -> (FileSelector.Model, Cmd FileSelector.Msg) -> (Model, Cmd Msg)
 fileSelectorHelper model (fileSelector, cmd) =
-  ({ 
-      model | fileSelector = (fileSelector, cmd), 
-      status = 
-        case fileSelector.status of
-            FileSelector.Loading ->
-                Loading
-            _ ->
-                Idle
-    }, Cmd.map FileSelectorMsg cmd)
+    let 
+        newModel =
+            case fileSelector.status of
+                FileSelector.Loading ->
+                    { model | status = Loading } 
+                FileSelector.Success ->
+                    { model | status = Idle, files = fileSelector.files}
+                _ ->
+                    { model | status = Idle }
+    in
+        ({ 
+            newModel | fileSelector = (fileSelector, cmd)
+        }, Cmd.map FileSelectorMsg cmd)
 
 view: Model -> Html Msg
 view model =

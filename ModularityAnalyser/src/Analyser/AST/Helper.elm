@@ -181,48 +181,6 @@ getJsonString: RawFile -> String
 getJsonString raw =
     Debug.toString raw
 
--- getExposedDeclarations: File -> List String
--- getExposedDeclarations {moduleDefinition, imports, declarations, comments} =
---     let
---         moduleDef = value moduleDefinition
---     in 
---         case exposingList moduleDef of
---             All _ ->
---                 ["all"]
---             Explicit list ->
---                 List.foldl (\topLevelExpose acc -> 
---                     case value topLevelExpose of
---                         InfixExpose val ->
---                             val :: acc
---                         FunctionExpose val ->
---                             val :: acc
---                         TypeOrAliasExpose val ->
---                             val :: acc
---                         TypeExpose val ->
---                             val.name :: acc
---                 ) [] list
-    
--- getAllDeclarations: File -> List String
--- getAllDeclarations {moduleDefinition, imports, declarations, comments} =
---     List.foldl(\dec acc ->
---         case value dec of
---             FunctionDeclaration {declaration, documentation, signature} ->
---                 case signature of
---                     Just val ->
---                         acc
---                     Nothing ->
---                         acc
---             AliasDeclaration {documentation, name, generics, typeAnnotation} ->
---                 (value name) :: acc
---             CustomTypeDeclaration {documentation, name, generics, constructors} ->
---                 (value name) :: acc
---             PortDeclaration {name, typeAnnotation} ->
---                 (value name) :: acc
---             InfixDeclaration val ->
---                 acc
---             Destructuring _ _ ->
---                 acc
---     ) [] declarations
 
 getAllDeclarations: RawFile -> List String
 getAllDeclarations file =
