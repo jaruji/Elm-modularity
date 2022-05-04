@@ -99,7 +99,7 @@ update msg model =
         ModuleDiagramMsg mesg ->
             case model.dashboard of
                 ModuleDiagramPage mod ->
-                     ({ model | dashboard = ModuleDiagramPage mod }, Cmd.none)
+                    moduleDiagramHelper model (ModuleDiagram.update mesg mod)
                 _ ->
                     (model, Cmd.none)
         HelpMsg mesg ->
@@ -138,6 +138,10 @@ homeHelper model (home, cmd) =
 modulesHelper: Model -> (Modules.Model, Cmd Modules.Msg) -> (Model, Cmd Msg)
 modulesHelper model (mod, cmd) =
   ({ model | dashboard = ModulesPage mod }, Cmd.map ModulesMsg cmd)
+
+moduleDiagramHelper: Model -> (ModuleDiagram.Model, Cmd ModuleDiagram.Msg) -> (Model, Cmd Msg)
+moduleDiagramHelper model (mod, cmd) =
+  ({ model | dashboard = ModuleDiagramPage mod }, Cmd.map ModuleDiagramMsg cmd)
 
 metricsHelper: Model -> (Metrics.Model, Cmd Metrics.Msg) -> (Model, Cmd Msg)
 metricsHelper model (metrics, cmd) =

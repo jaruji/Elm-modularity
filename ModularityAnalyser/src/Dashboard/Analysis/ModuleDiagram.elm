@@ -5,35 +5,51 @@ import Browser.Events
 import Color
 import Html.Attributes as Attributes exposing (class)
 import Force exposing (State)
-import Graph exposing (Edge, Graph, Node, NodeContext, NodeId)
+import Graph exposing (Edge, Graph, Node, NodeContext, NodeId, Adjacency, get)
 import Html exposing (div, article, Html, section, h1)
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Time
+import IntDict exposing (IntDict)
 import TypedSvg exposing (circle, g, line, svg, title, marker, polygon, defs, text_)
-import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id, orient, markerWidth, markerHeight, refX, refY, points, dx, dy, fontSize)
+import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id, orient, markerWidth, markerHeight, refX, refY, points, dx, dy, fontSize, cursor)
 import TypedSvg.Attributes.InPx exposing (cx, cy, r, strokeWidth, x1, x2, y1, y2)
 import TypedSvg.Core exposing (Attribute, Svg, text)
 import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..))
-import TypedSvg.Events exposing (onMouseOver, onClick)
+import TypedSvg.Events exposing (onMouseOver, onClick, onMouseLeave)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.AST.Helper as Helper exposing (..)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (zip, andThen, indexedFoldl)
-
-type Msg
-    = NoOp
-    | MouseHover NodeId
+import Material.Icons exposing (ten_k)
 
 
 type alias Model =
     { 
-        graph : Graph Entity(),
+        graph : Graph Node_(),
         files: List MyFile
     }
 
-type alias Entity =
-    Force.Entity NodeId { value : String }
+type alias Node_ =
+    {
+        id: NodeId,
+        x: Float,
+        y: Float,
+        value: String,
+        hovered: Bool
+    }
+
+type Msg
+    = NoOp
+    | MouseHover NodeId
+    | MouseLeave NodeId
+
+defaultNode_: Node_
+defaultNode_ =
+    { id = 0, x = 0.0, y = 0.0, value = "", hovered = False }
+
+-- type alias Entity =
+--     Force.Entity NodeId { value : String }
 
 init : List MyFile -> ( Model, Cmd Msg )
 init files =
@@ -53,30 +69,79 @@ init files =
         ) files
     }, Cmd.none )
 
-update : Msg -> Model -> Model
-update msg ({ graph } as model) =
+update : Msg -> Model -> ( Model, Cmd Msg)
+update msg model =
     case msg of
         NoOp ->
-            model
+            (model, Cmd.none)
         MouseHover id ->
-            model
+            let
+                var = get id model.graph
+                graph = model.graph
+            in
+                case var of 
+                    Nothing ->
+                        (model, Cmd.none)
+                    Just ctx ->
+                        let
+                            node = ctx.node.label
+                            hoveredNode = {node | hovered = True}
+                        in
+                            ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) graph }, Cmd.none)
+        MouseLeave id ->
+            let
+                var = get id model.graph
+                graph = model.graph
+            in
+                case var of 
+                    Nothing ->
+                        (model, Cmd.none)
+                    Just ctx ->
+                        let
+                            node = ctx.node.label
+                            hoveredNode = {node | hovered = False}
+                        in
+                            ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) graph }, Cmd.none)
+                
 
+hoverNode: NodeContext Node_ () -> Node_ -> NodeContext Node_ ()
+hoverNode ctx val =
+    let
+        node = ctx.node
+    in
+        {ctx | node = { node | label = val } }
 
-initializeNode : NodeContext String () -> NodeContext Entity ()
+initializeNode : NodeContext String () -> NodeContext Node_ ()
 initializeNode ctx =
-    { node = { label = Force.entity ctx.node.id ctx.node.label, id = ctx.node.id }
-    , incoming = ctx.incoming
-    , outgoing = ctx.outgoing
+    let
+        -- this calculates the node position so it doesn't intercept any other nodes (property x and y)
+        ref = Force.entity ctx.node.id ctx.node.label
+    in
+    { 
+        node = { id = ctx.node.id, label = { id  = ctx.node.id, x = ref.x, y = ref.y, value = ctx.node.label, hovered = False } },
+        incoming = ctx.incoming,
+        outgoing = ctx.outgoing
     }
 
-linkElement : Graph Entity () -> Edge () -> Svg msg
+-- hoverNode : NodeContext Node_ () -> Graph Node_ () -> Graph Node_ ()
+-- hoverNode ctx graph =
+--     let
+--         updateFunction = 
+--             let
+--                 node = ctx.node
+--             in
+--                 {ctx | node = { node | label = "LOL"}}
+--     in
+--         List.map(\node grph -> Graph.update node.id updateFunction graph) graph
+
+linkElement : Graph Node_ () -> Edge () -> Svg msg
 linkElement graph edge =
     let
         source =
-            Maybe.withDefault (Force.entity 0 "") <| Maybe.map (.node >> .label) <| Graph.get edge.from graph
+            Maybe.withDefault (defaultNode_) <| Maybe.map (.node >> .label) <| Graph.get edge.from graph
 
         target =
-            Maybe.withDefault (Force.entity 0 "") <| Maybe.map (.node >> .label) <| Graph.get edge.to graph
+            Maybe.withDefault (defaultNode_) <| Maybe.map (.node >> .label) <| Graph.get edge.to graph
     in
         line [ 
             strokeWidth 0.25,
@@ -108,22 +173,23 @@ arrowhead =
     ]
 
 
-nodeElement : Node Entity -> Svg Msg
+nodeElement : Node Node_ -> Svg Msg
 nodeElement node =
-    g [ TypedSvg.Attributes.class [ "node" ] ][ 
+    g [ TypedSvg.Attributes.class [ "node" ], onMouseOver (MouseHover node.id), onMouseLeave (MouseLeave node.id), cursor CursorPointer ][ 
         circle[ 
             r 5.5,
             strokeWidth 0.25,
-            fill (Paint Color.lightBlue),
+            fill (Paint (Color.rgb255 135 206 250)),
             stroke (Paint Color.darkBlue),
             cx node.label.x,
             cy node.label.y,
-            onMouseOver (MouseHover node.id)
-        ][ 
-            title[][ 
-                text node.label.value 
-            ]
-        ],
+            case node.label.hovered of
+                True ->
+                    fill (Paint Color.red)
+                _ ->
+                    r 5.5
+            
+        ][ title[][ text node.label.value ]],
         text_[ 
             dx <| Px node.label.x,
             dy <| Px node.label.y,
@@ -132,7 +198,7 @@ nodeElement node =
             fontSize <| Px 1.25,
             fill (Paint Color.black)
             ][ 
-                text node.label.value 
+                text ( trim node.label.value )
             ]
         ]
 
@@ -155,6 +221,9 @@ view model =
                         div[ Attributes.class "main-header"][
                             text "Header"
                         ],
+                        div[ Attributes.class "explanation" ][
+                            text "This graph visualizes the relationships between project modules."
+                        ],
                         div[ Attributes.class "main-card"][
                             div[ Attributes.class "card" ][
                                 viewGraph model
@@ -164,7 +233,18 @@ view model =
         ]
     ]
 
-    
+trim: String -> String
+trim name =
+    if String.length name > 12 then
+        let
+            newName = String.dropRight 4 name
+        in
+            if String.length newName > 12 then
+                String.append  (String.slice 0 12 name) ".."
+            else
+                String.append newName "..."
+    else
+        name
 
 viewGraph : Model -> Svg Msg
 viewGraph model =
