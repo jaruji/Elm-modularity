@@ -12,11 +12,11 @@ import Json.Decode as Decode
 import Time
 import IntDict exposing (IntDict)
 import TypedSvg exposing (circle, g, line, svg, title, marker, polygon, defs, text_)
-import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id, orient, markerWidth, markerHeight, refX, refY, points, dx, dy, fontSize, cursor)
+import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id, orient, markerWidth, markerHeight, refX, refY, points, dx, dy, fontSize, cursor, style, opacity)
 import TypedSvg.Attributes.InPx exposing (cx, cy, r, strokeWidth, x1, x2, y1, y2)
-import TypedSvg.Core exposing (Attribute, Svg, text)
+import TypedSvg.Core exposing (Attribute, Svg, text, attribute)
 import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..))
-import TypedSvg.Events exposing (onMouseOver, onClick, onMouseLeave, onMouseDown, onMouseUp)
+import TypedSvg.Events exposing (onMouseOver, onClick, onMouseLeave, onMouseDown, onMouseUp, onMouseEnter)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.AST.Helper as Helper exposing (..)
 import Elm.RawFile exposing (..)
@@ -144,18 +144,21 @@ linkElement graph edge =
             Maybe.withDefault (defaultNode_) <| Maybe.map (.node >> .label) <| Graph.get edge.to graph
     in
         line [ 
-            strokeWidth 0.25,
-            stroke <| Paint <| Color.grey,
+            strokeWidth 0.15,
             x1 source.x,
             y1 source.y,
             x2 target.x,
             y2 target.y,
-            markerEnd "url(#arrowhead)"
+            markerEnd "url(#arrowhead)",
+            if source.hovered == True then
+                stroke <| Paint <| Color.red
+            else if target.hovered == True then
+                stroke <| Paint <| Color.green
+                -- attribute "z-index" "5000"
+            else
+                stroke <| Paint <| Color.grey
+                -- attribute "z-index" "5000"
         ][]
-
-edgeColor : Paint
-edgeColor =
-    Paint <| Color.grey
 
 arrowhead : Svg msg
 arrowhead =
@@ -164,18 +167,18 @@ arrowhead =
         orient "auto",
         markerWidth <| Px 8.0,
         markerHeight <| Px 6.0,
-        refX "29",
+        refX "45",
         refY "3"
     ][ polygon [
         points [ ( 0, 0 ), ( 8, 3 ), ( 0, 6 ) ],
-        fill edgeColor
+        fill (Paint <| Color.grey)
     ][]
     ]
 
 
 nodeElement : Node Node_ -> Svg Msg
 nodeElement node =
-    g [ TypedSvg.Attributes.class [ "node" ], onMouseOver (MouseHover node.id), onMouseLeave (MouseLeave node.id), cursor CursorPointer ][ 
+    g [ TypedSvg.Attributes.class [ "node" ], onMouseEnter (MouseHover node.id), onMouseLeave (MouseLeave node.id), cursor CursorPointer ][ 
         circle[ 
             r 5.5,
             strokeWidth 0.25,
@@ -183,11 +186,11 @@ nodeElement node =
             stroke (Paint Color.darkBlue),
             cx node.label.x,
             cy node.label.y,
-            case node.label.hovered of
-                True ->
-                    fill (Paint Color.red)
-                _ ->
-                    r 5.5
+            if node.label.hovered then
+                -- fill (Paint (Color.rgb255 66 102 175))
+                r 6
+            else
+                attribute "opacity" "1.0"
             
         ][ title[][ text node.label.value ]],
         text_[ 
