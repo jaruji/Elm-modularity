@@ -11,11 +11,11 @@ import Html.Events exposing (on)
 import Json.Decode as Decode
 import Time
 import IntDict exposing (IntDict)
-import TypedSvg exposing (circle, g, line, svg, title, marker, polygon, defs, text_)
-import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id, orient, markerWidth, markerHeight, refX, refY, points, dx, dy, fontSize, cursor, style, opacity)
+import TypedSvg exposing (circle, g, line, svg, title, marker, polygon, defs, text_, animateTransform)
+import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id, orient, markerWidth, markerHeight, refX, refY, points, dx, dy, fontSize, cursor, style, opacity, animateTransformType, animationValues)
 import TypedSvg.Attributes.InPx exposing (cx, cy, r, strokeWidth, x1, x2, y1, y2)
 import TypedSvg.Core exposing (Attribute, Svg, text, attribute)
-import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..))
+import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..), AnimateTransformType(..))
 import TypedSvg.Events exposing (onMouseOver, onClick, onMouseLeave, onMouseDown, onMouseUp, onMouseEnter)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.AST.Helper as Helper exposing (..)
@@ -23,6 +23,7 @@ import Elm.RawFile exposing (..)
 import List.Extra exposing (zip, andThen, indexedFoldl)
 import Material.Icons exposing (ten_k)
 import Html.Lazy exposing (lazy, lazy2)
+import Html.Events.Extra.Mouse exposing (eventDecoder, Event)
 
 type alias Model =
     { 
@@ -36,17 +37,21 @@ type alias Node_ =
         x: Float,
         y: Float,
         value: String,
-        hovered: Bool
+        hovered: Bool,
+        dragged: Bool
     }
 
 type Msg
     = NoOp
+    | MouseMove Event 
     | MouseHover NodeId
     | MouseLeave NodeId
+    | MouseDown NodeId
+    | MouseUp NodeId
 
 defaultNode_: Node_
 defaultNode_ =
-    { id = 0, x = 0.0, y = 0.0, value = "", hovered = False }
+    { id = 0, x = 0.0, y = 0.0, value = "", hovered = False, dragged = False}
 
 -- type alias Entity =
 --     Force.Entity NodeId { value : String }
@@ -75,35 +80,48 @@ update msg model =
         NoOp ->
             (model, Cmd.none)
         MouseHover id ->
-            let
-                var = get id model.graph
-                graph = model.graph
-            in
-                case var of 
-                    Nothing ->
-                        (model, Cmd.none)
-                    Just ctx ->
-                        let
-                            node = ctx.node.label
-                            hoveredNode = {node | hovered = True}
-                        in
-                            ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) graph }, Cmd.none)
+            case get id model.graph of 
+                Nothing ->
+                    (model, Cmd.none)
+                Just ctx ->
+                    let
+                        node = ctx.node.label
+                        hoveredNode = {node | hovered = True}
+                    in
+                        ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) model.graph }, Cmd.none)
         MouseLeave id ->
-            let
-                var = get id model.graph
-                graph = model.graph
-            in
-                case var of 
-                    Nothing ->
-                        (model, Cmd.none)
-                    Just ctx ->
-                        let
-                            node = ctx.node.label
-                            hoveredNode = {node | hovered = False}
-                        in
-                            ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) graph }, Cmd.none)
-                
-
+            case get id model.graph of 
+                Nothing ->
+                    (model, Cmd.none)
+                Just ctx ->
+                    let
+                        node = ctx.node.label
+                        hoveredNode = {node | hovered = False, dragged = False}
+                    in
+                        ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) model.graph }, Cmd.none)
+        MouseUp id ->
+            case get id model.graph of 
+                Nothing ->
+                    (model, Cmd.none)
+                Just ctx ->
+                    let
+                        node = ctx.node.label
+                        hoveredNode = {node | dragged = False}
+                    in
+                        ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) model.graph }, Cmd.none)
+        MouseDown id ->
+            case get id model.graph of 
+                Nothing ->
+                    (model, Cmd.none)
+                Just ctx ->
+                    let
+                        node = ctx.node.label
+                        hoveredNode = {node | dragged = True}
+                    in
+                        ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) model.graph }, Cmd.none)
+        MouseMove data ->
+            (model, Cmd.none)
+        
 hoverNode: NodeContext Node_ () -> Node_ -> NodeContext Node_ ()
 hoverNode ctx val =
     let
@@ -118,21 +136,10 @@ initializeNode ctx =
         ref = Force.entity ctx.node.id ctx.node.label
     in
     { 
-        node = { id = ctx.node.id, label = { id  = ctx.node.id, x = ref.x, y = ref.y, value = ctx.node.label, hovered = False } },
+        node = { id = ctx.node.id, label = { id  = ctx.node.id, x = ref.x, y = ref.y, value = ctx.node.label, hovered = False, dragged = False } },
         incoming = ctx.incoming,
         outgoing = ctx.outgoing
     }
-
--- hoverNode : NodeContext Node_ () -> Graph Node_ () -> Graph Node_ ()
--- hoverNode ctx graph =
---     let
---         updateFunction = 
---             let
---                 node = ctx.node
---             in
---                 {ctx | node = { node | label = "LOL"}}
---     in
---         List.map(\node grph -> Graph.update node.id updateFunction graph) graph
 
 linkElement : Graph Node_ () -> Edge () -> Svg msg
 linkElement graph edge =
@@ -149,7 +156,7 @@ linkElement graph edge =
             y1 source.y,
             x2 target.x,
             y2 target.y,
-            markerEnd "url(#arrowhead)",
+            markerEnd "url(#arrow)",
             if source.hovered == True then
                 stroke <| Paint <| Color.red
             else if target.hovered == True then
@@ -160,10 +167,10 @@ linkElement graph edge =
                 -- attribute "z-index" "5000"
         ][]
 
-arrowhead : Svg msg
-arrowhead =
+arrow : Svg msg
+arrow =
     marker [ 
-        id "arrowhead",
+        id "arrow",
         orient "auto",
         markerWidth <| Px 8.0,
         markerHeight <| Px 6.0,
@@ -176,33 +183,42 @@ arrowhead =
     ]
 
 
+
+
 nodeElement : Node Node_ -> Svg Msg
 nodeElement node =
-    g [ TypedSvg.Attributes.class [ "node" ], onMouseEnter (MouseHover node.id), onMouseLeave (MouseLeave node.id), cursor CursorPointer ][ 
-        circle[ 
-            r 5.5,
-            strokeWidth 0.25,
-            fill (Paint (Color.rgb255 135 206 250)),
-            stroke (Paint Color.darkBlue),
-            cx node.label.x,
-            cy node.label.y,
-            if node.label.hovered then
-                -- fill (Paint (Color.rgb255 66 102 175))
-                r 6
-            else
-                attribute "opacity" "1.0"
-            
-        ][ title[][ text node.label.value ]],
+    g [ TypedSvg.Attributes.class [ "node" ], onMouseEnter (MouseHover node.id), onMouseLeave (MouseLeave node.id), cursor CursorPointer, TypedSvg.Attributes.class ["graph-node"],
+        onMouseDown (MouseDown node.id), onMouseUp (MouseUp node.id)
+    ][ 
+            circle[ 
+                r 5.5,
+                strokeWidth 0.25,
+                fill (Paint (Color.rgb255 135 206 250)),
+                stroke (Paint Color.darkBlue),
+                cx node.label.x,
+                cy node.label.y,
+                if node.label.hovered then
+                    -- fill (Paint (Color.rgb255 66 102 175))
+                    --r 6
+                    attribute "opacity" "1.0"
+                else
+                    attribute "opacity" "1.0"
+                , if node.label.dragged then
+                    fill (Paint (Color.rgb255 66 102 175))
+                else
+                    attribute "opacity" "1.0"
+            ]
+            [ title[][ text node.label.value ]],
         text_[ 
             dx <| Px node.label.x,
             dy <| Px node.label.y,
             TypedSvg.Attributes.alignmentBaseline AlignmentMiddle,
             TypedSvg.Attributes.textAnchor AnchorMiddle,
             fontSize <| Px 1.25,
+            attribute "unselectable" "on",
             fill (Paint Color.black)
-            ][ 
-                text ( trim node.label.value )
             ]
+            [ text ( trim node.label.value ) ]
         ]
 
 
@@ -252,7 +268,7 @@ trim name =
 viewGraph : Model -> Svg Msg
 viewGraph model =
     svg [ viewBox -80 -60 150 150 ][ 
-        defs [] [ arrowhead ],
+        defs [] [ arrow ],
         Graph.edges model.graph
             |> List.map (linkElement model.graph)
             |> g [ TypedSvg.Attributes.class [ "links" ] ]

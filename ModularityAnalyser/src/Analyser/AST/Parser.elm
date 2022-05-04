@@ -163,7 +163,7 @@ parseCaseBlock dec { expression, cases } =
 
 parseCase: Declaration_ -> Case -> Declaration_
 parseCase dec (pattr, expr) =
-    parsePattern dec (value pattr) |> parseExpression (value expr)
+    parsePattern {dec | caseCount = dec.caseCount + 1} (value pattr) |> parseExpression (value expr)
 
 parseLambda: Declaration_ -> Lambda -> Declaration_
 parseLambda dec { args, expression } =

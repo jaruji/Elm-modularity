@@ -27,6 +27,7 @@
             "gampleman/elm-visualization": "2.3.0",
             "icidasset/elm-material-icons": "9.0.0",
             "klazuka/elm-json-tree-view": "2.1.0",
+            "mpizenberg/elm-pointer-events": "4.0.2",
             "pablohirafuji/elm-syntax-highlight": "3.4.1",
             "perzanko/elm-loading": "2.0.4",
             "rtfeldman/elm-css": "16.1.1",

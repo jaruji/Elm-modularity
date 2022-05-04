@@ -166,7 +166,11 @@ view model =
       Loading ->
         div[][
             h3[][text "Loading"],
+            div[ style "margin" "auto" ][
+              Loading.render Loading.Circle {defaultConfig | size = 50} Loading.On |> Html.Styled.fromUnstyled
+            ],   
             div[ class "subtext" ][text "Processing your files..."],
+            hr[  style "margin" "auto" ][],
             div[ 
                 style "position" "fixed",
                 style "left" "0px",
@@ -187,10 +191,7 @@ view model =
                   ]
                 Success ->
                   div[][ text file.name ]
-             ) (List.reverse model.files)),
-            div[ style "margin" "auto" ][
-              Loading.render Loading.Circle {defaultConfig | size = 100} Loading.On |> Html.Styled.fromUnstyled
-            ]   
+             ) (List.reverse model.files))
         ]
       Success ->
         div[][

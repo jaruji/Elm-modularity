@@ -105,7 +105,7 @@ init files =
 
 exportCsv : String -> Cmd msg
 exportCsv csv =
-  Download.string "metrics.csv" "text/csv" csv
+  Download.string "module-metrics.csv" "text/csv" csv
 
 calculateLOC: List MyFile -> List Metric.Value
 calculateLOC files =

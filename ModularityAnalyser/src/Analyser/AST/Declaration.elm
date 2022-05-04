@@ -11,16 +11,17 @@ type alias Declaration_ =
         uniqueCalledModulesCount: Int,
         lambdaCount: Int,
         debugString: String,
-        lineCount: Int
+        lineCount: Int,
+        caseCount: Int
     }
 
 init: String -> Type -> Int -> List String -> Int -> Int -> Declaration_
 init name decType d cm ucmc lc =
-    (Declaration_ name decType d cm ucmc lc "" 0)
+    (Declaration_ name decType d cm ucmc lc "" 0 0)
 
 default: Declaration_
 default =
-    (Declaration_ "" Default 0 [] 0 0 "" 0)
+    (Declaration_ "" Default 0 [] 0 0 "" 0 0)
 
 viewDeclarations: Declaration_ -> Html msg
 viewDeclarations decl =
@@ -43,6 +44,9 @@ viewDeclarations decl =
         ],
         div[][
             text ("LOC: " ++ (decl.lineCount |> toString))
+        ],
+        div[][
+            text ("Case count: " ++ (decl.caseCount |> toString))
         ],
         div[][
             text ("Debug: " ++ (decl.debugString |> toString))
