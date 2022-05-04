@@ -18,7 +18,8 @@ import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
 import Dict exposing (Dict, fromList)
-import Html exposing (a)
+import Html exposing (a, Html, div, text)
+import Dict exposing (Dict, map, values)
 
 getImports: RawFile -> List String
 getImports ast =
@@ -38,6 +39,30 @@ getImportList raw =
                     (String.join "." (value modName), getExposing node) :: acc
             ) [] list 
         )
+
+importsToHtml: List RawFile -> Dict String Exposing -> Html msg
+importsToHtml rawFiles dict = 
+    Dict.map(\key val -> 
+        div[][ 
+            text (key ++ " : "),
+            case val of
+                All range ->
+                    text " All"
+                Explicit list ->
+                    text (
+                    List.foldl(\node acc -> 
+                        case value node of
+                            InfixExpose s ->
+                                acc ++ (" " ++ s)
+                            FunctionExpose s ->
+                                acc ++ (" " ++ s)
+                            TypeOrAliasExpose s ->
+                                acc ++ (" " ++ s)
+                            TypeExpose {name, open} ->
+                                acc ++ (" " ++ name)
+                    ) " " list )
+        ]
+    ) dict |> values |> div[]
 
 exposes: String -> Exposing -> Bool
 exposes func exp =
@@ -199,9 +224,22 @@ getJsonString raw =
 --                 acc
 --     ) [] declarations
 
-getAllDeclarations: RawFile -> List Exposed
+getAllDeclarations: RawFile -> List String
 getAllDeclarations file =
-    build file
+    let
+        interface = build file
+    in
+        List.map(\val -> 
+            case val of
+                Elm.Interface.Function s ->
+                    s
+                CustomType (s, list) ->
+                    s ++ List.foldl(\x acc ->  acc ++ " " ++ x) "" list
+                Alias s ->
+                    s
+                Elm.Interface.Operator i ->
+                    ""
+        ) interface
 
 filterFunction: Exposed -> Bool
 filterFunction exposed =

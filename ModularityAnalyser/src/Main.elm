@@ -16,7 +16,7 @@ import Time exposing (..)
 import List.Extra exposing(iterate, find)
 import List exposing (length)
 import Dashboard.Components.FileSelector exposing (MyFile)
-
+import Analyser.AST.Helper exposing (getAllDeclarations)
 import Dashboard.Analysis.Home as Home exposing (..)
 import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)
 import Dashboard.Analysis.Dependencies as Dependencies exposing (Model, update, view)
