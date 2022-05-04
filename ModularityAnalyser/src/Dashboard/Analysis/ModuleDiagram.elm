@@ -23,6 +23,7 @@ import List.Extra exposing (zip, andThen, indexedFoldl)
 
 type Msg
     = NoOp
+    | MouseHover NodeId
 
 
 type alias Model =
@@ -33,15 +34,6 @@ type alias Model =
 
 type alias Entity =
     Force.Entity NodeId { value : String }
-
-
-initializeNode : NodeContext String () -> NodeContext Entity ()
-initializeNode ctx =
-    { node = { label = Force.entity ctx.node.id ctx.node.label, id = ctx.node.id }
-    , incoming = ctx.incoming
-    , outgoing = ctx.outgoing
-    }
-
 
 init : List MyFile -> ( Model, Cmd Msg )
 init files =
@@ -66,7 +58,16 @@ update msg ({ graph } as model) =
     case msg of
         NoOp ->
             model
+        MouseHover id ->
+            model
 
+
+initializeNode : NodeContext String () -> NodeContext Entity ()
+initializeNode ctx =
+    { node = { label = Force.entity ctx.node.id ctx.node.label, id = ctx.node.id }
+    , incoming = ctx.incoming
+    , outgoing = ctx.outgoing
+    }
 
 linkElement : Graph Entity () -> Edge () -> Svg msg
 linkElement graph edge =
@@ -116,7 +117,8 @@ nodeElement node =
             fill (Paint Color.lightBlue),
             stroke (Paint Color.darkBlue),
             cx node.label.x,
-            cy node.label.y
+            cy node.label.y,
+            onMouseOver (MouseHover node.id)
         ][ 
             title[][ 
                 text node.label.value 

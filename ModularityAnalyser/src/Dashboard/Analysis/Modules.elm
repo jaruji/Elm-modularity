@@ -124,7 +124,7 @@ view model =
                         div[ class "main-overview" ](
                             List.map (\file ->
                                 if String.contains (String.toLower model.search) (String.toLower file.name) then
-                                    viewModuleCard file
+                                    lazy viewModuleCard file
                                 else
                                     text ""
                             ) model.files
