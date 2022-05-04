@@ -188,38 +188,38 @@ viewModuleDetailContent file model =
                     ---------------------------------------------------------------------------------------------------------------------------------
                     ---------------------------------------------------------------------------------------------------------------------------------
                     ---------------------------------------------------------------------------------------------------------------------------------
-                    h2[][ text "EXPOSING MATCHING" ],
-                    div[][
-                        let
-                            raws = List.foldl
-                                (\f acc->
-                                    case f.ast of
-                                        Nothing ->
-                                            acc
-                                        Just val ->
-                                            val :: acc
-                                ) [] model.files
-                        in
-                            List.foldl(\raw acc -> 
-                                acc ++ List.map(\imp -> 
-                                    let
-                                        exp = getExposing imp
-                                        mod = "viewModuleDetail"
-                                        impName =  String.join "." (Helper.getNodeValue imp.moduleName)
-                                    in
-                                        case Helper.exposes mod exp of
-                                            True ->
-                                                div[][
-                                                    text ( impName ++ " exposes " ++ mod)
-                                                ]
-                                            _ ->
-                                                div[][
-                                                    text ( impName ++ " doesn't expose " ++ mod)
-                                                ]
-                                )(imports raw) 
-                            ) [] raws |> div[]
+                    -- h2[][ text "EXPOSING MATCHING" ],
+                    -- div[][
+                    --     let
+                    --         raws = List.foldl
+                    --             (\f acc->
+                    --                 case f.ast of
+                    --                     Nothing ->
+                    --                         acc
+                    --                     Just val ->
+                    --                         val :: acc
+                    --             ) [] model.files
+                    --     in
+                    --         List.foldl(\raw acc -> 
+                    --             acc ++ List.map(\imp -> 
+                    --                 let
+                    --                     exp = getExposing imp
+                    --                     mod = "viewModuleDetail"
+                    --                     impName =  String.join "." (Helper.getNodeValue imp.moduleName)
+                    --                 in
+                    --                     case Helper.exposes mod exp of
+                    --                         True ->
+                    --                             div[][
+                    --                                 text ( impName ++ " exposes " ++ mod)
+                    --                             ]
+                    --                         _ ->
+                    --                             div[][
+                    --                                 text ( impName ++ " doesn't expose " ++ mod)
+                    --                             ]
+                    --             )(imports raw) 
+                    --         ) [] raws |> div[]
                         
-                    ],
+                    -- ],
                     ---------------------------------------------------------------------------------------------------------------------------------
                     ---------------------------------------------------------------------------------------------------------------------------------
                     ---------------------------------------------------------------------------------------------------------------------------------

@@ -16,13 +16,13 @@ import TypedSvg.Attributes exposing (class, fill, stroke, viewBox, markerEnd, id
 import TypedSvg.Attributes.InPx exposing (cx, cy, r, strokeWidth, x1, x2, y1, y2)
 import TypedSvg.Core exposing (Attribute, Svg, text)
 import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..))
-import TypedSvg.Events exposing (onMouseOver, onClick, onMouseLeave)
+import TypedSvg.Events exposing (onMouseOver, onClick, onMouseLeave, onMouseDown, onMouseUp)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.AST.Helper as Helper exposing (..)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (zip, andThen, indexedFoldl)
 import Material.Icons exposing (ten_k)
-
+import Html.Lazy exposing (lazy, lazy2)
 
 type alias Model =
     { 
@@ -226,7 +226,7 @@ view model =
                         ],
                         div[ Attributes.class "main-card"][
                             div[ Attributes.class "card" ][
-                                viewGraph model
+                                lazy viewGraph model
                             ]
                         ]
                     ]
