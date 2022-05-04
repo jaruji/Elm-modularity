@@ -454,6 +454,13 @@ hr {
   margin-bottom: 10px;
 }
 
+.customhr{
+  width: 80%;
+  margin: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 a,
 button {
   color: inherit;
