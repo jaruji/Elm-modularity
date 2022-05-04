@@ -234,6 +234,13 @@ input:focus {
   filter: drop-shadow(0.5px 0.5px 1px rgba(50, 50, 93, .5));
 }
 
+.noselect{
+  -webkit-user-select: none;       
+  -moz-user-select: none;
+  -ms-user-select: none; 
+  user-select: none;
+}
+
 .button-special {
   appearance: button;
   backface-visibility: hidden;

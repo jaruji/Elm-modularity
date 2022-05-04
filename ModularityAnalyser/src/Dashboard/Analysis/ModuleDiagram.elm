@@ -216,7 +216,8 @@ nodeElement node =
             TypedSvg.Attributes.textAnchor AnchorMiddle,
             fontSize <| Px 1.25,
             attribute "unselectable" "on",
-            fill (Paint Color.black)
+            fill (Paint Color.black),
+            TypedSvg.Attributes.class [ "noselect" ]
             ]
             [ text ( trim node.label.value ) ]
         ]
