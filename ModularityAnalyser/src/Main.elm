@@ -15,6 +15,8 @@ import Html.Events exposing (onClick)
 import Time exposing (..)
 import List.Extra exposing(iterate, find)
 import List exposing (length)
+import Dict exposing (Dict, fromList)
+import Analyser.Metrics.Metric exposing (Metric)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.AST.Helper exposing (getAllDeclarations)
 import Dashboard.Analysis.Home as Home exposing (..)
@@ -32,7 +34,8 @@ import Dashboard.Settings.About as About exposing (Model, update, view)
 type alias Model =
     {
         dashboard: Dashboard,
-        files: List MyFile
+        files: List MyFile,
+        metrics: Dict String Metric
     }
 
 type Dashboard
@@ -50,7 +53,7 @@ type Dashboard
 
 init : ( Model, Cmd Msg )
 init =
-    ( { dashboard = HomePage (Home.getModel (Home.init [])), files = []}, Cmd.none )
+    ( { dashboard = HomePage (Home.getModel (Home.init [])), files = [], metrics = fromList []}, Cmd.none )
 
 
 ---- UPDATE ----
@@ -133,7 +136,7 @@ update msg model =
 
 homeHelper: Model -> (Home.Model, Cmd Home.Msg) -> (Model, Cmd Msg)
 homeHelper model (home, cmd) =
-  ({ model | dashboard = HomePage home, files = Home.getFiles home }, Cmd.map HomeMsg cmd)
+  ({ model | dashboard = HomePage home, files = Home.getFiles home, metrics = Home.getMetrics home }, Cmd.map HomeMsg cmd)
 
 modulesHelper: Model -> (Modules.Model, Cmd Modules.Msg) -> (Model, Cmd Msg)
 modulesHelper model (mod, cmd) =
@@ -215,7 +218,7 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.inventory_2 20 Inherit ], text "Dependencies" ]],
 
-                li[][ button[ onClick (ChangePage (MetricsPage (Metrics.getModel (Metrics.init model.files)))),
+                li[][ button[ onClick (ChangePage (MetricsPage (Metrics.getModel (Metrics.init model.files model.metrics)))),
                     case model.dashboard of 
                         MetricsPage x -> class "selected"
                         _ -> class ""

@@ -74,8 +74,8 @@ type Msg
     | Export
 
 
-init: List MyFile -> ( Model, Cmd Msg)
-init files =
+init: List MyFile -> Dict String Metric -> ( Model, Cmd Msg)
+init files metrics =
     ({
         files = List.filter (
             \file -> case file.ast of
@@ -85,112 +85,12 @@ init files =
                     False
         ) files,
         page = Local,
-        metrics =
-            Dict.map(\key val -> 
-                Metric.setAverage val (Metric.averageMetric val)
-            ) 
-            (
-                fromList[ 
-                    ("LOC", Metric.initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
-                    ("Comments", Metric.initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
-                    ("NoF", Metric.initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
-                    ("NoD", Metric.initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
-                    ("NoT", Metric.initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
-                    ("NoA", Metric.initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
-                    ("Neegan", Metric.init "Neegan" 0 0 ModuleMetric), 
-                    ("Test", Metric.init "test" 0 0 ModuleMetric) 
-                ]
-            )
+        metrics = metrics
     }, Cmd.none)
 
 exportCsv : String -> Cmd msg
 exportCsv csv =
   Download.string "module-metrics.csv" "text/csv" csv
-
-calculateLOC: List MyFile -> List Metric.Value
-calculateLOC files =
-    List.foldl(\file acc -> 
-        case file.ast of
-            Just _ ->
-                let
-                    parsedString = String.lines file.content
-                    loc = (List.length parsedString) |> toFloat
-                in
-                     initValue file.name loc :: acc
-            Nothing ->
-                acc
-    ) [] files
-
-calculateComments: List MyFile -> List Metric.Value
-calculateComments files =
-    List.foldl(\file acc -> 
-        case file.ast of
-            Just ast ->
-                let
-                    processedFile = Helper.processRawFile ast
-                    comments = List.foldl numberOfCommentedLines 0 (Helper.getCommentLines processedFile) |> toFloat
-                in
-                     initValue file.name comments :: acc
-            Nothing ->
-                acc
-    ) [] files
-
-calculateNoD: List MyFile -> List Metric.Value
-calculateNoD files =
-    List.foldl(\file acc -> 
-        case file.ast of
-            Just ast ->
-                let
-                    processedFile = Helper.processRawFile ast
-                    nod = Helper.numberOfDeclarations processedFile |> toFloat
-                in
-                     initValue file.name nod :: acc
-            Nothing ->
-                acc
-    ) [] files
-
-calculateNoF: List MyFile -> List Metric.Value
-calculateNoF files =
-    List.foldl(\file acc -> 
-        case file.ast of
-            Just ast ->
-                let
-                    processedFile = Helper.processRawFile ast
-                    nof = Helper.numberOfFunctions processedFile |> toFloat
-                in
-                     initValue file.name nof :: acc
-            Nothing ->
-                acc
-    ) [] files
-
-calculateNoA: List MyFile -> List Metric.Value
-calculateNoA files =
-    List.foldl(\file acc -> 
-        case file.ast of
-            Just ast ->
-                let
-                    processedFile = Helper.processRawFile ast
-                    noa = Helper.numberOfTypeAliases processedFile |> toFloat
-                in
-                     initValue file.name noa :: acc
-            Nothing ->
-                acc
-    ) [] files
-
-calculateNoT: List MyFile -> List Metric.Value
-calculateNoT files =
-    List.foldl(\file acc -> 
-        case file.ast of
-            Just ast ->
-                let
-                    processedFile = Helper.processRawFile ast
-                    not = Helper.numberOfTypes processedFile |> toFloat
-                in
-                     initValue file.name not :: acc
-            Nothing ->
-                acc
-    ) [] files
-
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -315,10 +215,6 @@ removeEmpty string =
         False
     else
         True
-
-numberOfCommentedLines: (Int, Int) -> Int -> Int
-numberOfCommentedLines (start, end) acc =
-    acc + end - start + 1
 
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
