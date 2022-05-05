@@ -36,10 +36,10 @@ viewDeclarations decl =
             text ("Depth: " ++ (decl.depth |> toString))
         ],
         div[][
-            text ("Called declarations: " ++ (decl.calledModules |> toString))
+            text ("Called declarations: " ++ (decl.calledDecl |> toString))
         ],
         div[][
-            text ("Called modules: " ++ (decl.calledDecl |> toString))
+            text ("Called modules: " ++ (decl.calledModules |> toString))
         ],
         div[][
             text ("Unique modules count: " ++ (decl.uniqueCalledModulesCount |> toString))

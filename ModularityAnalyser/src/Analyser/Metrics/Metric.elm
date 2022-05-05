@@ -188,9 +188,11 @@ calculateMetrics files =
             ("CE", init "CE" 0 0 ModuleMetric), 
             ("Instability", init "Instability" 0 0 ModuleMetric),
             ("NOL", init "NOL" 0 0 ModuleMetric),
-            ("LS", init "LS" 0 0 ModuleMetric)  
+            ("LS", init "LS" 0 0 ModuleMetric)
         ]
     )
+
+--SCCS - interesting concept
 
 numberOfCommentedLines: (Int, Int) -> Int -> Int
 numberOfCommentedLines (start, end) acc =

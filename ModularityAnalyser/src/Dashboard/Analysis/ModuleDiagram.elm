@@ -206,7 +206,7 @@ nodeElement node =
                 , if node.label.dragged then
                     fill (Paint (Color.rgb255 66 102 175))
                 else
-                    attribute "opacity" "1.0"
+                    attribute "opacity" "1.0" 
             ]
             [ title[][ text node.label.value ]],
         text_[ 

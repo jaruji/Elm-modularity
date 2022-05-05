@@ -69,7 +69,7 @@ mainPipeline declarations ast rawfiles =
         --Debug.log (moduleNameList |> Debug.toString)
         --Debug.log (importList |> Debug.toString)
         List.map(\dec ->
-            { dec | calledDecl =
+            { dec | calledModules =
                 List.map(\val ->
                     case Set.member val set of
                         True ->
@@ -106,7 +106,7 @@ mainPipeline declarations ast rawfiles =
                                                 Just s ->
                                                     s
                             --"Different module" 
-                ) dec.calledModules
+                ) dec.calledDecl
             }
         ) declarations
 

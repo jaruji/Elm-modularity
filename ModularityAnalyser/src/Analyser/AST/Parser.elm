@@ -83,14 +83,12 @@ parseExpression exp dec =
             --(ModuleName String)
             --this is important for me!
             {
-                dec | 
-                    uniqueCalledModulesCount = 
-                        dec.uniqueCalledModulesCount + 1, 
-                    calledModules = 
+                dec |  
+                    calledDecl = 
                         if List.length modName == 0 then
-                            val :: dec.calledModules
+                            val :: dec.calledDecl
                         else
-                            ((String.join "." modName) ++ "." ++ val) :: dec.calledModules
+                            ((String.join "." modName) ++ "." ++ val) :: dec.calledDecl
                 --, debugString = "KUKLE"
             }
         IfBlock exp1 exp2 exp3 ->
@@ -193,15 +191,15 @@ parseTypeAnnotation  dec typeA =
     case typeA of
         Typed node list ->
             List.foldl(\val acc -> parseTypeAnnotation acc (value val)) {
-                dec | calledModules = 
+                dec | calledDecl = 
                     let
                         modName = (Tuple.first (value(node)))
                         val = (Tuple.second (value(node))) 
                     in
                         if List.length modName == 0 then
-                            val :: dec.calledModules
+                            val :: dec.calledDecl
                         else
-                            ((String.join "." modName) ++ "." ++ val) :: dec.calledModules
+                            ((String.join "." modName) ++ "." ++ val) :: dec.calledDecl
                     -- dec.debugString 
                     -- ++ 
                     -- "ModuleName: "
@@ -268,7 +266,7 @@ parsePattern dec patt =
             dec
         else
             --THIS IS QUESTIONABLE, VERIFY THIS
-            { dec | calledModules = dec.calledModules ++ List.filter(\val -> if val == "" then False else True ) (flattenModuleNameList moduleNameList) }
+            { dec | calledDecl = dec.calledDecl ++ List.filter(\val -> if val == "" then False else True ) (flattenModuleNameList moduleNameList) }
 
 flattenModuleNameList: List ModuleName -> List String
 flattenModuleNameList list =

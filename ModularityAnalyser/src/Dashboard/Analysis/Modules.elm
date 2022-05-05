@@ -180,6 +180,7 @@ viewModuleDetailContent file model =
                 ],
                 hr[ style "width" "100%" ][],
                 div[ class "body" ][
+                    h2[][ text "Debug" ],
                     let
                         rawFiles = List.foldl (\val acc ->
                                         case val.ast of 
@@ -190,8 +191,6 @@ viewModuleDetailContent file model =
                                     ) [] model.files
                     in
                         List.map(\dec -> viewDeclarations dec) (Helper.mainPipeline (parseRawFile ast) ast rawFiles) |> div[],
-
-                        h2[][ text "Debug" ],
                         h2[][ text "Source code" ],
                         div[][ 
                             useTheme gitHub,
