@@ -72,7 +72,7 @@ mainPipeline declarations ast rawfiles =
                 List.map(\val ->
                     case Set.member val set of
                         True ->
-                            "This module"
+                            "-"
                         False ->
                             --here we need to determine which module this 'declaration' belongs to
                             --filter out All exposes -> get their names -> getModuleByName -> build interface of module -> use interfaceExposes to check the origin of decl...
@@ -105,7 +105,7 @@ mainPipeline declarations ast rawfiles =
                                         in
                                             case interfaceCheck of
                                                 Nothing ->
-                                                    "NOPE"
+                                                    "-"
                                                 Just s ->
                                                     s
                             --"Different module" 
