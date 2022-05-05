@@ -69,12 +69,31 @@ calculateLOC files =
             Just _ ->
                 let
                     parsedString = String.lines file.content
+                    --TODO remove empty lines here
                     loc = (List.length parsedString) |> toFloat
                 in
                      initValue file.name loc :: acc
             Nothing ->
                 acc
     ) [] files
+
+calculateCE: Int
+calculateCE =
+    0
+
+calculateCA: Int
+calculateCA =
+    0
+
+calculateLS: Int
+calculateLS =
+    0
+
+calculateNOLF: Int
+calculateNOLF =
+    0
+
+--need to figure out how to match boilerplate pattern
 
 calculateComments: List MyFile -> List Value
 calculateComments files =

@@ -22,10 +22,98 @@ import Html exposing (a, Html, div, text)
 import Dict exposing (Dict, map, values)
 import List.Extra exposing (find)
 import Analyser.AST.Declaration exposing (Declaration_)
+import Set exposing (Set, member, fromList)
 
 
-mainPipeline: List Declaration_ -> RawFile -> List Import -> List RawFile -> List Declaration_
-mainPipeline declarations ast imports rawfiles =
+mainPipeline: List Declaration_ -> RawFile -> List RawFile -> List Declaration_
+mainPipeline declarations ast rawfiles =
+    --omg
+    let
+        --set of all declarations belonging to currently processed module so they can be disregarded
+        set = getModuleDeclarationsList(declarations)
+        --list of all imports of currently processed modules
+        moduleSet = Set.fromList (List.map(\val -> (String.join "." (moduleName val))) rawfiles)
+        moduleNameList = 
+            List.filterMap(\imp ->
+                case imp.exposingList of
+                    Just node ->
+                        case value node of
+                            All range ->
+                                Just (String.join "." (value imp.moduleName))
+                            _ ->
+                                Nothing
+                    Nothing ->
+                        Nothing
+            ) (imports ast)
+        importList = 
+            List.filterMap(\imp ->
+                case imp.exposingList of
+                    Just node ->
+                        case value node of
+                            All range ->
+                                Nothing
+                            Explicit _ ->
+                                case Set.member (String.join "." (value imp.moduleName)) moduleSet of
+                                    True ->
+                                        Just imp
+                                    False ->
+                                        Nothing
+                    Nothing ->
+                        Nothing
+            ) (imports ast)
+        --all relevant modules (project modules in this case, but only those that are exposing All!!! pointless to check others)
+        -- moduleNameList = List.map(\val -> String.join "." (moduleName val)) rawfiles
+    in
+        --debug log modulenames and check if everything works as intended
+        --Debug.log (moduleNameList |> Debug.toString)
+        --Debug.log (importList |> Debug.toString)
+        List.map(\dec ->
+            { dec | calledDecl =
+                List.map(\val ->
+                    case Set.member val set of
+                        True ->
+                            "This module"
+                        False ->
+                            --here we need to determine which module this 'declaration' belongs to
+                            --filter out All exposes -> get their names -> getModuleByName -> build interface of module -> use interfaceExposes to check the origin of decl...
+                            --filter out the rest of exposes -> use exposingExposes to check the origin...
+                            --looking for first match! -> use find -> return declaration containing list of all "external' modules that the declaration calls
+                            let
+                                exposingCheck = 
+                                    find(\mod ->
+                                        case mod.exposingList of
+                                            Just expList ->
+                                                exposingExposes val (value expList)
+                                            Nothing ->
+                                                False
+                                    ) (importList)
+                            in
+                                case exposingCheck of
+                                    Just mod ->
+                                        String.join "." (value mod.moduleName)
+                                    Nothing ->
+                                        let
+                                            interfaceCheck =
+                                                find(\mod ->
+                                                    case getModuleByName mod rawfiles of
+                                                        Just modName ->
+                                                            interfaceExposes val (build modName)
+                                                        Nothing ->
+                                                            False
+                                                    
+                                                ) moduleNameList
+                                        in
+                                            case interfaceCheck of
+                                                Nothing ->
+                                                    "NOPE"
+                                                Just s ->
+                                                    s
+                            --"Different module" 
+                ) dec.calledModules
+            }
+        ) declarations
+        
+
     --TODO:
     {--
         - first filter out all declarations that belong to own file
@@ -44,7 +132,28 @@ mainPipeline declarations ast imports rawfiles =
         Better way:
         ??
     --}
-    []
+
+getModuleDeclarationsList: List Declaration_ -> Set String
+getModuleDeclarationsList declarations =
+    Set.fromList (List.map(\val -> val.name) declarations)
+
+getModuleByName: String -> List RawFile -> Maybe RawFile
+getModuleByName name list =
+    --set full module name, with the entire path and so on..
+    let
+        find =
+            List.Extra.find(\file ->
+                if (String.join "." (moduleName file)) == name then
+                    True
+                else
+                    False
+            ) list
+    in
+        case find of
+            Nothing ->
+                Nothing
+            Just raw ->
+                Just raw
 
 exposesTypeI: String -> Interface -> Bool
 exposesTypeI name int =
@@ -182,6 +291,10 @@ exposingExposes nm exp =
 getImports: RawFile -> List String
 getImports ast =
     List.map getModuleName (imports ast)
+
+importsList: RawFile -> List Import
+importsList raw =
+    imports raw
 
 getImportList: RawFile -> Dict String Exposing
 getImportList raw =

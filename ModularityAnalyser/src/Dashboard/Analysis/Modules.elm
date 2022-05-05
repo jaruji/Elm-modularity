@@ -180,39 +180,36 @@ viewModuleDetailContent file model =
                 ],
                 hr[ style "width" "100%" ][],
                 div[ class "body" ][
-                    h2[][ text "Imports" ],
                     let
-                        imports = Helper.getImportList ast
-                        rawFiles = 
-                            List.foldl (\val acc ->
-                                case val.ast of 
-                                    Just raw ->
-                                        raw :: acc
-                                    _ ->
-                                        acc
-                            ) [] model.files
+                        rawFiles = List.foldl (\val acc ->
+                                        case val.ast of 
+                                            Just raw ->
+                                                raw :: acc
+                                            _ ->
+                                                acc
+                                    ) [] model.files
                     in
-                        Helper.importsToHtml rawFiles imports,
+                        List.map(\dec -> viewDeclarations dec) (Helper.mainPipeline (parseRawFile ast) ast rawFiles) |> div[],
+
                         h2[][ text "Debug" ],
-                        List.map(\dec -> viewDeclarations dec) (parseRawFile ast) |> div[],
-                    h2[][ text "Source code" ],
-                    div[][ 
-                        useTheme gitHub,
-                        elm file.content
-                            |> Result.map (toBlockHtml (Just 1))
-                            |> Result.withDefault
-                                (pre [] [ code [] [ text file.content ]])
-                    ],
-                    -- h2[][ text "Abstract Syntax Tree" ],
-                    -- viewJsonTree file.name model,
-                    h2[][ text "Exposed declarations" ],
-                    text (Debug.toString(Helper.getAllDeclarations ast))
-                    -- let
-                    --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
-                    -- in
-                    --     div[](
-                    --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
-                    --     )
+                        h2[][ text "Source code" ],
+                        div[][ 
+                            useTheme gitHub,
+                            elm file.content
+                                |> Result.map (toBlockHtml (Just 1))
+                                |> Result.withDefault
+                                    (pre [] [ code [] [ text file.content ]])
+                        ],
+                        -- h2[][ text "Abstract Syntax Tree" ],
+                        -- viewJsonTree file.name model,
+                        h2[][ text "Exposed declarations" ],
+                        text (Debug.toString(Helper.getAllDeclarations ast))
+                        -- let
+                        --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
+                        -- in
+                        --     div[](
+                        --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
+                        --     )
                 ]
             ]
         Nothing ->
