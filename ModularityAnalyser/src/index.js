@@ -6,6 +6,12 @@ var app = Elm.Main.init({
   node: document.getElementById('root')
 });
 
+// app.ports.storeCheckpoint.subscribe(function(value){
+//   if(value === null){
+//     localStorage.setItem("Checkpoint", value)
+//   }
+// })
+
 //need to get to the files here, that means parsing the folder and creating document tree + File list
 // document.getElementById("filepicker").addEventListener("change", function (event) {
 //   // let output = document.getElementById("listing");

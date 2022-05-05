@@ -230,7 +230,7 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.view_module 20 Inherit ], text "Module Diagram" ]],
 
-                li[][ button[ onClick (ChangePage (CheckpointsPage (Checkpoints.getModel Checkpoints.init))),
+                li[][ button[ onClick (ChangePage (CheckpointsPage (Checkpoints.getModel (Checkpoints.init model.metrics)))),
                     case model.dashboard of 
                         CheckpointsPage x -> class "selected"
                         _ -> class ""

@@ -13,4 +13,4 @@ port saveState: Encode.Value -> Cmd msg
 
 port storeCheckpoint: Encode.Value -> Cmd msg
 
-port loadCheckpoints: Encode.Value -> Dict String Metric
+port loadCheckpoints: List Encode.Value -> Cmd msg
