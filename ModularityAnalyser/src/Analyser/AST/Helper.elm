@@ -25,14 +25,16 @@ import Analyser.AST.Declaration exposing (Declaration_)
 import Set exposing (Set, member, fromList)
 
 
+--pipeline that calculates the relationship between modules, metrics CA CE and Instability, even LS and NOL
 mainPipeline: List Declaration_ -> RawFile -> List RawFile -> List Declaration_
 mainPipeline declarations ast rawfiles =
     --omg
     let
         --set of all declarations belonging to currently processed module so they can be disregarded
         set = getModuleDeclarationsList(declarations)
-        --list of all imports of currently processed modules
+        --set of all module names that are not external - project modules
         moduleSet = Set.fromList (List.map(\val -> (String.join "." (moduleName val))) rawfiles)
+        --set of all modules that are imported to the module and are exposing All (need to check into these modules to cross reference)
         moduleNameList = 
             List.filterMap(\imp ->
                 case imp.exposingList of
@@ -45,6 +47,8 @@ mainPipeline declarations ast rawfiles =
                     Nothing ->
                         Nothing
             ) (imports ast)
+        --list of all imports that are not exposing All - can check if module exposes a certain declaration. 
+        --Might be an issue with aliases here (import x as y) - will need to be fixed in the future
         importList = 
             List.filterMap(\imp ->
                 case imp.exposingList of
@@ -61,10 +65,7 @@ mainPipeline declarations ast rawfiles =
                     Nothing ->
                         Nothing
             ) (imports ast)
-        --all relevant modules (project modules in this case, but only those that are exposing All!!! pointless to check others)
-        -- moduleNameList = List.map(\val -> String.join "." (moduleName val)) rawfiles
     in
-        --debug log modulenames and check if everything works as intended
         --Debug.log (moduleNameList |> Debug.toString)
         --Debug.log (importList |> Debug.toString)
         List.map(\dec ->
@@ -74,10 +75,6 @@ mainPipeline declarations ast rawfiles =
                         True ->
                             "-"
                         False ->
-                            --here we need to determine which module this 'declaration' belongs to
-                            --filter out All exposes -> get their names -> getModuleByName -> build interface of module -> use interfaceExposes to check the origin of decl...
-                            --filter out the rest of exposes -> use exposingExposes to check the origin...
-                            --looking for first match! -> use find -> return declaration containing list of all "external' modules that the declaration calls
                             let
                                 exposingCheck = 
                                     find(\mod ->
@@ -112,26 +109,6 @@ mainPipeline declarations ast rawfiles =
                 ) dec.calledModules
             }
         ) declarations
-        
-
-    --TODO:
-    {--
-        - first filter out all declarations that belong to own file
-        - then check the list of imports and split it into 2 parts -> exposes All and exposes Explicit
-        - for the explicit part, use exposingExposes function and find to locate a matching Module and save it's full name into Delcaration_ mod array
-        (replace the call name in calledModules array, if find is False return string "Not found")
-        - next get the name of the module exposing All and find the module by name from RawFile list
-        - get the interface of this module by using build on it and use interfaceExposes function to find a match, same way as with Exposing type
-        - again, replace the value in calledModules array
-        - we will have an array of all modules called by declaration, now we need to remove all modules that are external
-        - we can count efferent coupling easily now. Afferent will need one more pass of all declarations, while creating a dictionary that represents
-        - the number of times external modules call each unique declaration. Also, we will already have the number of calls for each declaration in
-        calledModules field, but this is not necessary as the edges will be colored by - calculate number of decs that call each module this module
-        is connected to
-
-        Better way:
-        ??
-    --}
 
 getModuleDeclarationsList: List Declaration_ -> Set String
 getModuleDeclarationsList declarations =

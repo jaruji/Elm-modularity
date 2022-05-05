@@ -77,23 +77,29 @@ calculateLOC files =
                 acc
     ) [] files
 
+
 calculateCE: Int
 calculateCE =
     0
+
 
 calculateCA: Int
 calculateCA =
     0
 
+
 calculateLS: Int
 calculateLS =
     0
 
-calculateNOLF: Int
-calculateNOLF =
+
+calculateNOL: Int
+calculateNOL =
     0
 
+
 --need to figure out how to match boilerplate pattern
+
 
 calculateComments: List MyFile -> List Value
 calculateComments files =
@@ -181,7 +187,7 @@ calculateMetrics files =
             ("CA", init "CA" 0 0 ModuleMetric), 
             ("CE", init "CE" 0 0 ModuleMetric), 
             ("Instability", init "Instability" 0 0 ModuleMetric),
-            ("NOLF", init "NOLF" 0 0 ModuleMetric),
+            ("NOL", init "NOL" 0 0 ModuleMetric),
             ("LS", init "LS" 0 0 ModuleMetric)  
         ]
     )
