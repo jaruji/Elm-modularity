@@ -193,8 +193,8 @@ viewModuleDetailContent file model =
                             ) [] model.files
                     in
                         Helper.importsToHtml rawFiles imports,
-                    h2[][ text "Debug" ],
-                    List.map(\dec -> viewDeclarations dec) (parseRawFile ast) |> div[],
+                        h2[][ text "Debug" ],
+                        List.map(\dec -> viewDeclarations dec) (parseRawFile ast) |> div[],
                     h2[][ text "Source code" ],
                     div[][ 
                         useTheme gitHub,

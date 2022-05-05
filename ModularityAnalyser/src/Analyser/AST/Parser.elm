@@ -167,7 +167,10 @@ parseCase dec (pattr, expr) =
 
 parseLambda: Declaration_ -> Lambda -> Declaration_
 parseLambda dec { args, expression } =
-    List.foldl(\val acc -> parsePattern acc (value val)) dec args |> parseExpression (value expression)
+    let
+        lambdaLines = getNodeLOC expression + List.foldl(\val acc -> acc + getNodeLOC val) 0 args 
+    in
+        List.foldl(\val acc -> parsePattern acc (value val)) { dec | lambdaLines = lambdaLines } args |> parseExpression (value expression)
 
 parseRecordSetter: Declaration_ -> RecordSetter -> Declaration_
 parseRecordSetter dec (val, expr) =

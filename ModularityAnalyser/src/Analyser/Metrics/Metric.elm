@@ -159,8 +159,11 @@ calculateMetrics files =
             ("NoD", initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
             ("NoT", initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
             ("NoA", initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
-            ("Neegan", init "Neegan" 0 0 ModuleMetric), 
-            ("Test", init "test" 0 0 ModuleMetric) 
+            ("CA", init "CA" 0 0 ModuleMetric), 
+            ("CE", init "CE" 0 0 ModuleMetric), 
+            ("Instability", init "Instability" 0 0 ModuleMetric),
+            ("NOLF", init "NOLF" 0 0 ModuleMetric),
+            ("LS", init "LS" 0 0 ModuleMetric)  
         ]
     )
 

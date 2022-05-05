@@ -136,9 +136,6 @@ view model =
                                 
                             ],
                             div[][
-                                b[][ text "Total project lines: " ]
-                            ],
-                            div[][
                                 b[][ text "File tree: " ]
                             ]
                            

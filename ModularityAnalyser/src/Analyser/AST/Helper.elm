@@ -20,6 +20,164 @@ import Elm.Syntax.Type exposing (..)
 import Dict exposing (Dict, fromList)
 import Html exposing (a, Html, div, text)
 import Dict exposing (Dict, map, values)
+import List.Extra exposing (find)
+import Analyser.AST.Declaration exposing (Declaration_)
+
+
+mainPipeline: List Declaration_ -> RawFile -> List Import -> List RawFile -> List Declaration_
+mainPipeline declarations ast imports rawfiles =
+    --TODO:
+    {--
+        - first filter out all declarations that belong to own file
+        - then check the list of imports and split it into 2 parts -> exposes All and exposes Explicit
+        - for the explicit part, use exposingExposes function and find to locate a matching Module and save it's full name into Delcaration_ mod array
+        (replace the call name in calledModules array, if find is False return string "Not found")
+        - next get the name of the module exposing All and find the module by name from RawFile list
+        - get the interface of this module by using build on it and use interfaceExposes function to find a match, same way as with Exposing type
+        - again, replace the value in calledModules array
+        - we will have an array of all modules called by declaration, now we need to remove all modules that are external
+        - we can count efferent coupling easily now. Afferent will need one more pass of all declarations, while creating a dictionary that represents
+        - the number of times external modules call each unique declaration. Also, we will already have the number of calls for each declaration in
+        calledModules field, but this is not necessary as the edges will be colored by - calculate number of decs that call each module this module
+        is connected to
+
+        Better way:
+        ??
+    --}
+    []
+
+exposesTypeI: String -> Interface -> Bool
+exposesTypeI name int =
+    let
+        tmp = 
+            find(\exp -> 
+                case exp of
+                    CustomType (string, list) ->
+                        if string == name then
+                            True
+                        else
+                            let
+                                filtered = find(\val -> if val == name then True else False) list
+                            in
+                                case filtered of
+                                    Nothing ->
+                                        False
+                                    _ ->
+                                        True
+                    _ ->
+                        False
+            ) int
+    in
+        case tmp of
+            Nothing ->
+                False 
+            _ ->
+                True
+
+exposesAlias: String -> Exposing -> Bool
+exposesAlias name exp =
+    case exp of
+        All range ->
+            False
+        Explicit list ->
+            let
+                tmp =
+                    find(\val -> 
+                        case value val of
+                            TypeOrAliasExpose s ->
+                                if(s == name) then True else False
+                            _ ->
+                                False
+                    ) list
+            in
+                case tmp of
+                    Nothing -> 
+                        False 
+                    _ ->
+                        True
+
+exposesType: String -> Exposing -> Bool
+exposesType nm exp =
+    case exp of
+        All range ->
+            False
+        Explicit list ->
+            let 
+                tmp =
+                    find(\val -> 
+                        case value val of
+                            TypeExpose {name, open} ->
+                                if name == nm then True else False
+                            _ ->
+                                False
+                    ) list
+            in 
+                case tmp of
+                    Nothing -> 
+                        False
+                    _ ->
+                        True
+
+interfaceExposes: String -> Interface -> Bool
+interfaceExposes name int =
+    let
+        tmp = 
+            find(\exp -> 
+                case exp of
+                    CustomType (string, list) ->
+                        if string == name then
+                            True
+                        else
+                            let
+                                filtered = find(\val -> if val == name then True else False) list
+                            in
+                                case filtered of
+                                    Nothing ->
+                                        False
+                                    _ ->
+                                        True
+                    Elm.Interface.Function s ->
+                        if name == s then True else False
+                    Alias s ->
+                        if name == s then True else False
+                    _ ->
+                        False
+            ) int
+    in
+        case tmp of
+            Nothing ->
+                False 
+            _ ->
+                True
+
+
+exposingExposes: String -> Exposing -> Bool 
+exposingExposes nm exp =
+    case exp of
+        All range ->
+            False
+        Explicit list ->
+            let 
+                tmp =
+                    find(\val -> 
+                        case value val of
+                            TypeExpose {name, open} ->
+                                if nm == name then True else False
+                            InfixExpose s -> 
+                                if nm == s then True else False
+                            FunctionExpose s ->
+                                if nm == s then True else False
+                            TypeOrAliasExpose s ->
+                                if nm == s then True else False
+                    ) list
+            in 
+                case tmp of
+                    Nothing -> 
+                        False
+                    _ ->
+                        True
+
+        
 
 getImports: RawFile -> List String
 getImports ast =
