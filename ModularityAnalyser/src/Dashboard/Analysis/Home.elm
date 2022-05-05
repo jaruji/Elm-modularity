@@ -64,23 +64,6 @@ fileSelectorHelper model (fileSelector, cmd) =
     in
         ({ newModel | fileSelector = (fileSelector, cmd) }, Cmd.map FileSelectorMsg cmd)
 
-calculateMetrics: List MyFile -> Dict String Metric
-calculateMetrics files =
-    Dict.map(\key val -> 
-        Metric.setAverage val (Metric.averageMetric val)
-    ) 
-    (
-        fromList[ 
-            ("LOC", Metric.initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
-            ("Comments", Metric.initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
-            ("NoF", Metric.initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
-            ("NoD", Metric.initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
-            ("NoT", Metric.initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
-            ("NoA", Metric.initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
-            ("Neegan", Metric.init "Neegan" 0 0 ModuleMetric), 
-            ("Test", Metric.init "test" 0 0 ModuleMetric) 
-        ]
-    )
 
 view: Model -> Html Msg
 view model =

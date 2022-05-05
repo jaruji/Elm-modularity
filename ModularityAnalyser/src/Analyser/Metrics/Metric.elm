@@ -1,6 +1,6 @@
 module Analyser.Metrics.Metric exposing (..)
 import List exposing (length)
-import Dict exposing (Dict, get, foldl, map, values, keys)
+import Dict exposing (Dict, get, foldl, map, values, keys, fromList)
 import Dashboard.Components.FileSelector exposing (MyFile)
 import Analyser.AST.Helper as Helper exposing (..)
 
@@ -145,6 +145,24 @@ calculateNoT files =
             Nothing ->
                 acc
     ) [] files
+
+calculateMetrics: List MyFile -> Dict String Metric
+calculateMetrics files =
+    Dict.map(\key val -> 
+        setAverage val (averageMetric val)
+    ) 
+    (
+        fromList[ 
+            ("LOC", initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
+            ("Comments", initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
+            ("NoF", initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
+            ("NoD", initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
+            ("NoT", initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
+            ("NoA", initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
+            ("Neegan", init "Neegan" 0 0 ModuleMetric), 
+            ("Test", init "test" 0 0 ModuleMetric) 
+        ]
+    )
 
 numberOfCommentedLines: (Int, Int) -> Int -> Int
 numberOfCommentedLines (start, end) acc =
