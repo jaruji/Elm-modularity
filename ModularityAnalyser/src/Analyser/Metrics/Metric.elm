@@ -72,13 +72,13 @@ calculateLOC: List File_ -> List Value
 calculateLOC files =
     List.foldl(\file acc -> 
         case file.ast of
-            Just _ ->
+            Just ast ->
                 let
                     parsedString = String.lines file.content
                     --TODO remove empty lines here
                     loc = (List.length parsedString) |> toFloat
                 in
-                     initValue file.name loc :: acc
+                     initValue (getModuleNameRaw ast) loc :: acc
             Nothing ->
                 acc
     ) [] files
@@ -87,7 +87,7 @@ calculateCE: List File_ -> List (String, Float)
 calculateCE files =
     List.foldl(\file acc -> 
         case file.ast of
-            Just _ ->
+            Just ast ->
                 let
                     ce = 
                         List.foldl(\val sum -> 
@@ -97,7 +97,7 @@ calculateCE files =
                                 sum
                         ) 0 file.declarations |> toFloat
                 in
-                    (file.name, ce) :: acc
+                    (getModuleNameRaw ast, ce) :: acc
             Nothing ->
                 acc
     ) [] files
@@ -122,7 +122,7 @@ calculateCA files =
                            
                         ) 0 files |> toFloat
                 in
-                    (file.name, ca) :: acc
+                    (getModuleNameRaw ast, ca) :: acc
             Nothing ->
                 acc
     ) [] files
@@ -138,7 +138,7 @@ calculateComments files =
                     processedFile = Helper.processRawFile ast
                     comments = List.foldl numberOfCommentedLines 0 (Helper.getCommentLines processedFile) |> toFloat
                 in
-                     initValue file.name comments :: acc
+                     initValue (getModuleNameRaw ast) comments :: acc
             Nothing ->
                 acc
     ) [] files
@@ -152,7 +152,7 @@ calculateNoD files =
                     processedFile = Helper.processRawFile ast
                     nod = Helper.numberOfDeclarations processedFile |> toFloat
                 in
-                     initValue file.name nod :: acc
+                     initValue (getModuleNameRaw ast) nod :: acc
             Nothing ->
                 acc
     ) [] files
@@ -166,7 +166,7 @@ calculateNoF files =
                     processedFile = Helper.processRawFile ast
                     nof = Helper.numberOfFunctions processedFile |> toFloat
                 in
-                     initValue file.name nof :: acc
+                     initValue (getModuleNameRaw ast) nof :: acc
             Nothing ->
                 acc
     ) [] files
@@ -180,7 +180,7 @@ calculateNoA files =
                     processedFile = Helper.processRawFile ast
                     noa = Helper.numberOfTypeAliases processedFile |> toFloat
                 in
-                     initValue file.name noa :: acc
+                     initValue (getModuleNameRaw ast) noa :: acc
             Nothing ->
                 acc
     ) [] files
@@ -194,7 +194,7 @@ calculateNoT files =
                     processedFile = Helper.processRawFile ast
                     not = Helper.numberOfTypes processedFile |> toFloat
                 in
-                    initValue file.name not :: acc
+                    initValue (getModuleNameRaw ast) not :: acc
             Nothing ->
                 acc
     ) [] files
@@ -203,11 +203,11 @@ calculateNoL: List File_ -> List Value
 calculateNoL files =
     List.foldl(\file acc -> 
         case file.ast of
-            Just _ ->
+            Just ast ->
                     let
                         nol = List.foldl(\dec sum -> sum + dec.lambdaCount) 0 file.declarations |> toFloat
                     in
-                        initValue file.name nol :: acc
+                        initValue (getModuleNameRaw ast) nol :: acc
             Nothing ->
                 acc
     ) [] files
@@ -216,14 +216,14 @@ calculateLS: List File_ -> List Value
 calculateLS files =
     List.foldl(\file acc -> 
         case file.ast of
-            Just _ ->
+            Just ast ->
                     let
                         lambdaLoc = List.foldl(\dec sum -> sum + dec.lambdaLines) 0 file.declarations |> toFloat
                         parsedString = String.lines file.content
                         loc = (List.length parsedString) |> toFloat
                         ls = Round.roundNum decimals (lambdaLoc / loc)
                     in
-                        initValue file.name ls :: acc
+                        initValue (getModuleNameRaw ast) ls :: acc
             Nothing ->
                 acc
     ) [] files

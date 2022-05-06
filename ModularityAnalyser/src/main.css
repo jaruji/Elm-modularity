@@ -129,6 +129,7 @@
   height: 90%;
   border-radius: 10px;
   overflow: auto;
+  overflow-x: wrap;
   border:rgba(0, 0, 0, .07);
 }
 

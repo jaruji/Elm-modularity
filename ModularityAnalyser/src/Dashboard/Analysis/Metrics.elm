@@ -117,7 +117,14 @@ view model =
         ],
         let
             files = model.files
-            names = List.map (\file -> file.name) files
+            names = 
+                List.filterMap (\file -> 
+                    case file.ast of
+                        Just ast ->
+                            Just (Helper.getModuleNameRaw ast)
+                        Nothing ->
+                            Nothing
+                ) files
         in
             case List.length files of
                 0 ->

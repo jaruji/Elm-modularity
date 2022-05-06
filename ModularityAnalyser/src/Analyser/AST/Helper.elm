@@ -41,7 +41,7 @@ mainPipeline declarations ast rawfiles =
                     Just node ->
                         case value node of
                             All range ->
-                                Just (String.join "." (value imp.moduleName))
+                                Just imp
                             _ ->
                                 Nothing
                     Nothing ->
@@ -73,6 +73,7 @@ mainPipeline declarations ast rawfiles =
                 List.foldl(\val acc ->
                     case Set.member val set of
                         True ->
+                            --we skip this declaration because it's a part of this module!
                             acc
                         False ->
                             let
@@ -80,7 +81,11 @@ mainPipeline declarations ast rawfiles =
                                     find(\mod ->
                                         case mod.exposingList of
                                             Just expList ->
-                                                exposingExposes val (value expList)
+                                                --here check if alias exists
+                                                if checkDeclarationImportMatch val mod then
+                                                    True
+                                                else
+                                                    exposingExposes val (value expList)
                                             Nothing ->
                                                 False
                                     ) (importList)
@@ -92,23 +97,62 @@ mainPipeline declarations ast rawfiles =
                                         let
                                             interfaceCheck =
                                                 find(\mod ->
-                                                    case getModuleByName mod rawfiles of
-                                                        Just modName ->
-                                                            interfaceExposes val (build modName)
-                                                        Nothing ->
-                                                            False
+                                                    let
+                                                        modName = String.join "." (value mod.moduleName)
+                                                    in
+                                                        case getModuleByName modName rawfiles of
+                                                            Just m ->
+                                                                -- here check if alias exists
+                                                                if checkDeclarationImportMatch val mod then
+                                                                    True
+                                                                else
+                                                                    interfaceExposes val (build m)
+                                                            Nothing ->
+                                                                False
                                                     
                                                 ) moduleNameList
                                         in
                                             case interfaceCheck of
                                                 Nothing ->
                                                     acc
-                                                Just s ->
-                                                    s :: acc
+                                                Just m ->
+                                                     String.join "." (value m.moduleName) :: acc
                             --"Different module" 
                 ) [] dec.calledDecl
             }
         ) declarations
+
+
+checkDeclarationImportMatch: String -> Import -> Bool
+checkDeclarationImportMatch name imp =
+    let
+        split = String.split "." name
+    in
+        if List.length split == 1 then
+            False
+        else
+            let
+                tail = List.tail (List.reverse split)
+                declName = 
+                    case tail of
+                        Just val ->
+                            String.join "." (List.reverse val)
+                        Nothing ->
+                            ""
+            in
+                if declName == String.join "." (value imp.moduleName) then
+                    True
+                else
+                    case imp.moduleAlias of
+                        Just alias_ ->
+                            if declName == String.join "." (value alias_) then
+                                True
+                            else
+                                False
+                        Nothing ->
+                            False
+        
+
 
 getModuleDeclarationsList: List Declaration_ -> Set String
 getModuleDeclarationsList declarations =
@@ -139,80 +183,10 @@ findUnusedImports allImports usedImports =
     in
         Set.toList (Set.diff (Set.fromList importList) (Set.fromList usedImports))
 
-exposesTypeI: String -> Interface -> Bool
-exposesTypeI name int =
-    let
-        tmp = 
-            find(\exp -> 
-                case exp of
-                    CustomType (string, list) ->
-                        if string == name then
-                            True
-                        else
-                            let
-                                filtered = find(\val -> if val == name then True else False) list
-                            in
-                                case filtered of
-                                    Nothing ->
-                                        False
-                                    _ ->
-                                        True
-                    _ ->
-                        False
-            ) int
-    in
-        case tmp of
-            Nothing ->
-                False 
-            _ ->
-                True
-
-exposesAlias: String -> Exposing -> Bool
-exposesAlias name exp =
-    case exp of
-        All range ->
-            False
-        Explicit list ->
-            let
-                tmp =
-                    find(\val -> 
-                        case value val of
-                            TypeOrAliasExpose s ->
-                                if(s == name) then True else False
-                            _ ->
-                                False
-                    ) list
-            in
-                case tmp of
-                    Nothing -> 
-                        False 
-                    _ ->
-                        True
-
-exposesType: String -> Exposing -> Bool
-exposesType nm exp =
-    case exp of
-        All range ->
-            False
-        Explicit list ->
-            let 
-                tmp =
-                    find(\val -> 
-                        case value val of
-                            TypeExpose {name, open} ->
-                                if name == nm then True else False
-                            _ ->
-                                False
-                    ) list
-            in 
-                case tmp of
-                    Nothing -> 
-                        False
-                    _ ->
-                        True
-
 interfaceExposes: String -> Interface -> Bool
 interfaceExposes name int =
+    --String.split  "." name
+    --last (tail) compare if all remaining dont fit any interface name/alias!!
     let
         tmp = 
             find(\exp -> 
@@ -246,6 +220,8 @@ interfaceExposes name int =
 
 exposingExposes: String -> Exposing -> Bool 
 exposingExposes nm exp =
+    --last (tail) compare if all remaining dont fit any interface name/alias!!
+    --maybe try using only interface? wont work, wonder how to find if stuff has alias when exposing?? surely can be done
     case exp of
         All range ->
             False
