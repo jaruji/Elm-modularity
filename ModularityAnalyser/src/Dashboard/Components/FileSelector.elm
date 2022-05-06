@@ -73,14 +73,13 @@ update msg model =
             update ReadFiles { model | files = List.filter (isValid model.extensions) (convertFiles files), status = Loading}
 
         ReadFiles ->
-            ( { model | files = List.map(\file -> 
-              {file | name = 
-                case file.buff of
-                  Just buff ->
-                    File.name buff
-                  Nothing ->
-                    ""
-              }) model.files },
+            ( { model | files = List.map(\file ->
+              case file.buff of
+                Just buff ->
+                  { file | name = File.name buff} 
+                Nothing ->
+                  file
+              ) model.files },
             List.indexedMap (\index file ->
                 case file.buff of
                   Just buff -> 
@@ -109,7 +108,6 @@ update msg model =
             }
         
         ParseFile index ->
-        --am I braindead?
           ({ model | files = 
             case getAt index model.files of
               Just file ->

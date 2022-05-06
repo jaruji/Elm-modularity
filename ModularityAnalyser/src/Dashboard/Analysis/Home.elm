@@ -18,7 +18,9 @@ import Task
 import Dashboard.Components.FileSelector as FileSelector exposing (..)
 import Analyser.Metrics.Metric as Metric exposing (..)
 import Dict exposing (Dict, map, values, keys, fromList)
-
+import Analyser.File exposing (File_, wrapElmFile, wrapOtherFile)
+import Analyser.AST.Parser exposing (parseRawFile)
+import Analyser.AST.Helper as Helper exposing (mainPipeline)
 --make a dictionary where you pair Declarations to each file (if ast is not Nothing)
 --that way I can keep the fileselector module modular and have declaration moved up to global state and distributed to other pages if needed
 --will need to remake all the list to dict which would be terrible tbh
@@ -27,7 +29,7 @@ import Dict exposing (Dict, map, values, keys, fromList)
 type alias Model = 
     {
         fileSelector: (FileSelector.Model, Cmd FileSelector.Msg),
-        files: List MyFile,
+        files: List File_,
         status: Status
     }
 
@@ -41,7 +43,7 @@ type Status
     | Loading
     | Success (Dict String Metric)
 
-init: List MyFile -> ( Model, Cmd Msg)
+init: List File_ -> ( Model, Cmd Msg)
 init files =
     ({ fileSelector = FileSelector.init [".elm", ".json"], files = files, status = Idle}, Cmd.none)
 
@@ -63,11 +65,31 @@ fileSelectorHelper model (fileSelector, cmd) =
                 FileSelector.Loading ->
                     { model | status = Loading } 
                 FileSelector.Success ->
-                    { model | status = Success (calculateMetrics fileSelector.files), files = fileSelector.files}
+                    { model | status = Success (calculateMetrics fileSelector.files), files = wrapMyFile fileSelector.files}
                 _ ->
                     { model | status = Idle }
     in
         ({ newModel | fileSelector = (fileSelector, cmd) }, Cmd.map FileSelectorMsg cmd)
+
+wrapMyFile: List MyFile -> List File_
+wrapMyFile files =
+    let
+        rawFiles = List.foldl (\val acc ->
+                        case val.ast of 
+                            Just raw ->
+                                raw :: acc
+                            _ ->
+                                acc
+                    ) [] files
+    in
+        List.map(\file ->
+            case file.ast of
+                Just ast ->
+                    wrapElmFile file (Helper.mainPipeline (parseRawFile ast) ast rawFiles)
+                Nothing ->
+                    wrapOtherFile file
+
+        ) files
 
 
 view: Model -> Html Msg
@@ -158,9 +180,9 @@ getProjectType json =
         "Module"
     
 
-getFiles: Model -> List FileSelector.MyFile
+getFiles: Model -> List File_
 getFiles model =
-    FileSelector.getFilesContent (FileSelector.getModel model.fileSelector)
+    model.files
 
 getMetrics: Model -> Dict String Metric
 getMetrics model= 

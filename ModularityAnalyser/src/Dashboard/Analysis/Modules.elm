@@ -14,7 +14,7 @@ import Tuple exposing (..)
 import List exposing (..)
 import List.Extra exposing (..)
 import Regex exposing (..)
-import Dashboard.Components.FileSelector as FileSelector exposing (MyFile)
+import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
 import SyntaxHighlight exposing (useTheme, monokai, gitHub, elm, toBlockHtml)
 import Json.Decode as Decode exposing(Error)
@@ -32,7 +32,7 @@ import Elm.Syntax.Exposing exposing (..)
 
 type alias Model = 
     {
-        files: List MyFile,
+        files: List File_,
         search: String,
         mode: Mode,
         astTreeState: JsonTree.State,
@@ -42,15 +42,15 @@ type alias Model =
 type Msg
     = NoOp
     | UpdateSearch String
-    | SwapMode MyFile
+    | SwapMode File_
     | SetTreeState JsonTree.State
     | Back
 
 type Mode
-    = Detail MyFile
+    = Detail File_
     | Overview
 
-init: List MyFile -> ( Model, Cmd Msg)
+init: List File_ -> ( Model, Cmd Msg)
 init files =
     ({
         files = List.filter (
@@ -161,7 +161,7 @@ viewJsonTree name model =
                     ]
         ]
 
-viewModuleCard: MyFile -> Html Msg
+viewModuleCard: File_ -> Html Msg
 viewModuleCard file =
     case file.ast of
         Nothing ->
@@ -171,7 +171,7 @@ viewModuleCard file =
                 text file.name
             ]
 
-viewModuleDetailContent: MyFile -> Model -> Html Msg
+viewModuleDetailContent: File_ -> Model -> Html Msg
 viewModuleDetailContent file model =
     case file.ast of
         Just ast ->
@@ -183,41 +183,32 @@ viewModuleDetailContent file model =
                 hr[ style "width" "100%" ][],
                 div[ class "body" ][
                     h2[][ text "Debug" ],
-                    let
-                        rawFiles = List.foldl (\val acc ->
-                                        case val.ast of 
-                                            Just raw ->
-                                                raw :: acc
-                                            _ ->
-                                                acc
-                                    ) [] model.files
-                    in
-                        List.map(\dec -> viewDeclarations dec) (Helper.mainPipeline (parseRawFile ast) ast rawFiles) |> div[],
-                        h2[][ text "Source code" ],
-                        div[][ 
-                            useTheme gitHub,
-                            elm file.content
-                                |> Result.map (toBlockHtml (Just 1))
-                                |> Result.withDefault
-                                    (pre [] [ code [] [ text file.content ]])
-                        ],
-                        -- h2[][ text "Abstract Syntax Tree" ],
-                        -- viewJsonTree file.name model,
-                        h2[][ text "Exposed declarations" ],
-                        text (Debug.toString(Helper.getAllDeclarations ast))
-                        -- let
-                        --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
-                        -- in
-                        --     div[](
-                        --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
-                        --     )
+                    List.map(\dec -> viewDeclarations dec) (file.declarations) |> div[],
+                    h2[][ text "Source code" ],
+                    div[][ 
+                        useTheme gitHub,
+                        elm file.content
+                            |> Result.map (toBlockHtml (Just 1))
+                            |> Result.withDefault
+                                (pre [] [ code [] [ text file.content ]])
+                    ],
+                    -- h2[][ text "Abstract Syntax Tree" ],
+                    -- viewJsonTree file.name model,
+                    h2[][ text "Exposed declarations" ],
+                    text (Debug.toString(Helper.getAllDeclarations ast))
+                    -- let
+                    --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
+                    -- in
+                    --     div[](
+                    --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
+                    --     )
                 ]
             ]
         Nothing ->
             text "Something went wrong"
     
 
-viewModuleDetail: MyFile -> Model -> Html Msg
+viewModuleDetail: File_ -> Model -> Html Msg
 viewModuleDetail file model =
     div[][
         div[

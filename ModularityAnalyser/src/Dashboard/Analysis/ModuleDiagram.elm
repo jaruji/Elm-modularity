@@ -17,7 +17,7 @@ import TypedSvg.Attributes.InPx exposing (cx, cy, r, strokeWidth, x1, x2, y1, y2
 import TypedSvg.Core exposing (Attribute, Svg, text, attribute)
 import TypedSvg.Types exposing (AlignmentBaseline(..), AnchorAlignment(..), Cursor(..), Length(..), Opacity(..), Paint(..), Transform(..), AnimateTransformType(..))
 import TypedSvg.Events exposing (onMouseOver, onClick, onMouseLeave, onMouseDown, onMouseUp, onMouseEnter)
-import Dashboard.Components.FileSelector exposing (MyFile)
+import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (zip, andThen, indexedFoldl)
@@ -28,7 +28,7 @@ import Html.Events.Extra.Mouse exposing (eventDecoder, Event)
 type alias Model =
     { 
         graph : Graph Node_(),
-        files: List MyFile
+        files: List File_
     }
 
 type alias Node_ =
@@ -56,7 +56,7 @@ defaultNode_ =
 -- type alias Entity =
 --     Force.Entity NodeId { value : String }
 
-init : List MyFile -> ( Model, Cmd Msg )
+init : List File_ -> ( Model, Cmd Msg )
 init files =
     let
         graph =
@@ -301,7 +301,7 @@ getGraphEdges files =
                     ) res imports
             ) [] files
 
-buildGraph : List MyFile -> Graph String ()
+buildGraph : List File_ -> Graph String ()
 buildGraph files =
     Graph.fromNodeLabelsAndEdgePairs 
     (getGraphNodes (List.filter hasAst files))
@@ -319,11 +319,11 @@ buildGraph files =
         ( List.filter hasAst files )
     ))
 
-getGraphNodes: List MyFile -> List String
+getGraphNodes: List File_ -> List String
 getGraphNodes files =
     List.map(\file -> file.name) files
 
-hasAst: MyFile -> Bool
+hasAst: File_ -> Bool
 hasAst file =
     case file.ast of
         Just _ ->

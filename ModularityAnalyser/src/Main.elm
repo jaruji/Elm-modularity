@@ -17,7 +17,7 @@ import List.Extra exposing(iterate, find)
 import List exposing (length)
 import Dict exposing (Dict, fromList)
 import Analyser.Metrics.Metric exposing (Metric)
-import Dashboard.Components.FileSelector exposing (MyFile)
+import Analyser.File exposing (File_)
 import Analyser.AST.Helper exposing (getAllDeclarations)
 import Dashboard.Analysis.Home as Home exposing (..)
 import Dashboard.Analysis.Modules as Modules exposing (Model, update, view)
@@ -34,7 +34,7 @@ import Dashboard.Settings.About as About exposing (Model, update, view)
 type alias Model =
     {
         dashboard: Dashboard,
-        files: List MyFile,
+        files: List File_,
         metrics: Dict String Metric
     }
 
@@ -281,14 +281,14 @@ viewNav model =
         ]
     ]
 
-isElmJson: MyFile -> Bool
+isElmJson: File_ -> Bool
 isElmJson file =
     if file.name == "elm.json" then
         True
     else
         False
 
-getElmJson: List MyFile -> Maybe String
+getElmJson: List File_ -> Maybe String
 getElmJson files =
     let
         result = List.Extra.find isElmJson files
@@ -298,13 +298,6 @@ getElmJson files =
                 Nothing
             Just val ->
                 Just val.content
-
-getLoadedFiles: Model -> Maybe (List MyFile)
-getLoadedFiles model =
-    if length model.files == 0 then
-        Nothing
-    else
-        Just model.files
     
 ---- PROGRAM ----
 

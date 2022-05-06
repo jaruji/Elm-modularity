@@ -4,7 +4,7 @@ import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Dashboard.Components.FileSelector exposing (MyFile)
+import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
 import Analyser.AST.Parser exposing (parseDeclaration)
 -- import RadarChart exposing (..)
@@ -59,7 +59,7 @@ import Json.Encode as Encode exposing (dict)
 
 type alias Model = 
     {
-        files: List MyFile,
+        files: List File_,
         page: Page,
         metrics: Dict String Metric
     }
@@ -74,7 +74,7 @@ type Msg
     | Export
 
 
-init: List MyFile -> Dict String Metric -> ( Model, Cmd Msg)
+init: List File_ -> Dict String Metric -> ( Model, Cmd Msg)
 init files metrics =
     ({
         files = List.filter (
