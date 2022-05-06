@@ -40,12 +40,21 @@ mainPipeline declarations ast rawfiles =
                 case imp.exposingList of
                     Just node ->
                         case value node of
-                            All range ->
-                                Just imp
+                            All _ ->
+                                case Set.member (String.join "." (value imp.moduleName)) moduleSet of
+                                    True ->
+                                        Just imp
+                                    False ->
+                                        Nothing
                             _ ->
                                 Nothing
                     Nothing ->
-                        Nothing
+                        -- if exposes is not defined, still can be added to the list if project module
+                        case Set.member (String.join "." (value imp.moduleName)) moduleSet of
+                            True ->
+                                Just imp
+                            False ->
+                                Nothing
             ) (imports ast)
         --list of all imports that are not exposing All - can check if module exposes a certain declaration. 
         --Might be an issue with aliases here (import x as y) - will need to be fixed in the future
@@ -54,7 +63,7 @@ mainPipeline declarations ast rawfiles =
                 case imp.exposingList of
                     Just node ->
                         case value node of
-                            All range ->
+                            All _ ->
                                 Nothing
                             Explicit _ ->
                                 case Set.member (String.join "." (value imp.moduleName)) moduleSet of
@@ -63,11 +72,17 @@ mainPipeline declarations ast rawfiles =
                                     False ->
                                         Nothing
                     Nothing ->
-                        Nothing
+                        -- if exposes is not defined, still can be added to the list if project module
+                        case Set.member (String.join "." (value imp.moduleName)) moduleSet of
+                            True ->
+                                Just imp
+                            False ->
+                                Nothing
             ) (imports ast)
     in
-        --Debug.log (moduleNameList |> Debug.toString)
-        --Debug.log (importList |> Debug.toString)
+        -- Debug.log (moduleNameList |> Debug.toString)
+        --Debug.log ( (List.map(\node -> value node.moduleName)) |> Debug.toString)
+        -- Debug.log (moduleSet |> Debug.toString)
         List.map(\dec ->
             { dec | calledModules =
                 List.foldl(\val acc ->
@@ -77,47 +92,71 @@ mainPipeline declarations ast rawfiles =
                             acc
                         False ->
                             let
-                                exposingCheck = 
-                                    find(\mod ->
-                                        case mod.exposingList of
-                                            Just expList ->
-                                                --here check if alias exists
-                                                if checkDeclarationImportMatch val mod then
-                                                    True
-                                                else
-                                                    exposingExposes val (value expList)
-                                            Nothing ->
-                                                False
-                                    ) (importList)
+                                --first check if any name matches (Module.blabla.blabla)
+                                --import module x | import module x as y exposing (abc, abcd, abdsd) ...
+                                exposingNameCheck = 
+                                    find(\mod ->  
+                                        checkDeclarationImportMatch val mod     
+                                    )(importList)
                             in
-                                case exposingCheck of
+                                case exposingNameCheck of
                                     Just mod ->
                                         String.join "." (value mod.moduleName) :: acc
                                     Nothing ->
+                                        --if name doesn't match, we need to check if any declaration is being explicilty exposed
+                                        --import module x exposing (a, b, c)
                                         let
-                                            interfaceCheck =
+                                            exposingCheck = 
                                                 find(\mod ->
-                                                    let
-                                                        modName = String.join "." (value mod.moduleName)
-                                                    in
-                                                        case getModuleByName modName rawfiles of
-                                                            Just m ->
-                                                                -- here check if alias exists
-                                                                if checkDeclarationImportMatch val mod then
-                                                                    True
-                                                                else
-                                                                    interfaceExposes val (build m)
-                                                            Nothing ->
-                                                                False
-                                                    
-                                                ) moduleNameList
+                                                    case mod.exposingList of
+                                                        Just expList ->
+                                                            exposingExposes val (value expList)
+                                                        Nothing ->
+                                                            False
+                                                ) (importList)
                                         in
-                                            case interfaceCheck of
+                                            case exposingCheck of
+                                                Just mod ->
+                                                    String.join "." (value mod.moduleName) :: acc
                                                 Nothing ->
-                                                    acc
-                                                Just m ->
-                                                     String.join "." (value m.moduleName) :: acc
-                            --"Different module" 
+                                                    --if this doesn't match, we need to search through imports that expose All
+                                                    let
+                                                        interfaceNameCheck =
+                                                            --first we try to match the name again
+                                                            find(\mod ->
+                                                                let
+                                                                    modName = String.join "." (value mod.moduleName)
+                                                                in  
+                                                                    checkDeclarationImportMatch val mod 
+                                                            ) moduleNameList
+                                                    in
+                                                        case interfaceNameCheck of
+                                                            Just m ->
+                                                                String.join "." (value m.moduleName) :: acc
+                                                            Nothing ->
+                                                                --If name doesn't match, we start matching through all exposed declarations one import by one untill
+                                                                --we find a match
+                                                                let
+                                                                    interfaceCheck =
+                                                                        find(\mod ->
+                                                                            let
+                                                                                modName = String.join "." (value mod.moduleName)
+                                                                            in
+                                                                                case getModuleByName modName rawfiles of
+                                                                                    Just m ->
+                                                                                        interfaceExposes val (build m)
+                                                                                    Nothing ->
+                                                                                        False
+                                                                            
+                                                                        ) moduleNameList
+                                                                in
+                                                                    case interfaceCheck of
+                                                                        Nothing ->
+                                                                            --this will happen only for let variables | exports from external modules | Types as Just, Maybe etc...
+                                                                            acc
+                                                                        Just m ->
+                                                                            String.join "." (value m.moduleName) :: acc
+                                            --"Different module" 
                 ) [] dec.calledDecl
             }
         ) declarations
@@ -128,29 +167,28 @@ checkDeclarationImportMatch name imp =
     let
         split = String.split "." name
     in
-        if List.length split == 1 then
+        if (List.length split) < 2 then
             False
         else
             let
-                tail = List.tail (List.reverse split)
-                declName = 
-                    case tail of
-                        Just val ->
-                            String.join "." (List.reverse val)
-                        Nothing ->
-                            ""
+                val = List.drop 1 (List.reverse split)
+                declName = String.join "." (List.reverse val)  
             in
-                if declName == String.join "." (value imp.moduleName) then
-                    True
-                else
-                    case imp.moduleAlias of
-                        Just alias_ ->
-                            if declName == String.join "." (value alias_) then
+                case imp.moduleAlias of
+                    Just alias_ ->
+                        if declName == (String.join "." (value alias_)) then
+                            True
+                        else
+                            if declName == (String.join "." (value imp.moduleName)) then
                                 True
                             else
                                 False
-                        Nothing ->
+                    Nothing ->    
+                        if declName == (String.join "." (value imp.moduleName)) then
+                            True
+                        else
                             False
+                    
         
 
 
