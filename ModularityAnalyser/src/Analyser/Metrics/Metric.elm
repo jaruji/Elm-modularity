@@ -4,6 +4,7 @@ import Dict exposing (Dict, get, foldl, map, values, keys, fromList)
 import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
 import Round exposing (round, roundNum)
+import Set exposing (size, member)
 
 
 decimals: Int
@@ -89,18 +90,30 @@ calculateCE files =
         case file.ast of
             Just ast ->
                 let
-                    ce = 
-                        List.foldl(\val sum -> 
-                            if List.length val.calledModules > 0 then
-                                sum + 1
-                            else
-                                sum
-                        ) 0 file.declarations |> toFloat
+                    ce = Set.size file.calledModules
                 in
-                    (getModuleNameRaw ast, ce) :: acc
+                    (getModuleNameRaw ast, ce |> toFloat) :: acc
             Nothing ->
                 acc
     ) [] files
+
+    -- CE BASED ON DECLARATION CALL COUNT AND NOT MODULE CALL COUNT:
+    -- List.foldl(\file acc -> 
+    --     case file.ast of
+    --         Just ast ->
+    --             let
+    --                 ce = 
+    --                     List.foldl(\val sum -> 
+    --                         if List.length val.calledModules > 0 then
+    --                             sum + 1
+    --                         else
+    --                             sum
+    --                     ) 0 file.declarations |> toFloat
+    --             in
+    --                 (getModuleNameRaw ast, ce) :: acc
+    --         Nothing ->
+    --             acc
+    -- ) [] files
 
 calculateCA: List File_ -> List (String, Float)
 calculateCA files =
@@ -111,21 +124,40 @@ calculateCA files =
                     moduleName = Helper.getModuleNameRaw ast
                     ca = 
                         List.foldl(\val sum -> 
-                            sum 
-                            +
-                            List.foldl(\val2 sum2 ->
-                                if List.member moduleName val2.calledModules then
-                                    sum2 + 1
-                                else
-                                    sum2
-                            ) 0 val.declarations
-                           
-                        ) 0 files |> toFloat
+                            if (member moduleName val.calledModules) then
+                                sum + 1
+                            else
+                                sum
+                        ) 0 files
                 in
-                    (getModuleNameRaw ast, ca) :: acc
+                    (getModuleNameRaw ast, ca |> toFloat) :: acc
             Nothing ->
                 acc
     ) [] files
+
+    -- CA BASED ON DECLARATION CALL COUNT AND NOT MODULE CALL COUNT:
+    -- List.foldl(\file acc -> 
+    --     case file.ast of
+    --         Just ast ->
+    --             let
+    --                 moduleName = Helper.getModuleNameRaw ast
+    --                 ca = 
+    --                     List.foldl(\val sum -> 
+    --                         sum 
+    --                         +
+    --                         List.foldl(\val2 sum2 ->
+    --                             if List.member moduleName val2.calledModules then
+    --                                 sum2 + 1
+    --                             else
+    --                                 sum2
+    --                         ) 0 val.declarations
+                           
+    --                     ) 0 files |> toFloat
+    --             in
+    --                 (getModuleNameRaw ast, ca) :: acc
+    --         Nothing ->
+    --             acc
+    -- ) [] files
 
 --need to figure out how to match boilerplate pattern
 
