@@ -74,24 +74,26 @@ update msg model =
         UpdateSearch val ->
             ({ model | search = val }, Cmd.none)
         SwapMode file ->
-            ({ model | mode = 
-                case model.mode of
-                    Overview ->
-                        Detail file
-                    Detail _ ->
-                        Overview
-                , astTreeState = 
-                    case model.parsedJson of
-                        Ok node ->
-                            ((JsonTree.collapseToDepth 1) node model.astTreeState)
-                        _ ->
-                            JsonTree.defaultState
-                , parsedJson =  case file.ast of
-                    Just ast ->
-                        JsonTree.parseString (Encode.encode 0 (Elm.RawFile.encode ast) )
-                    _ ->
-                        JsonTree.parseString """{}"""
-            }, Cmd.none)
+             case model.mode of
+                Overview ->
+                    ({ 
+                        model | mode = Detail file
+                        , astTreeState = 
+                            case model.parsedJson of
+                                Ok node ->
+                                    JsonTree.defaultState
+                                    -- ((JsonTree.collapseToDepth 1) node model.astTreeState)
+                                _ ->
+                                    JsonTree.defaultState
+                        , parsedJson =  case file.ast of
+                            Just ast ->
+                                JsonTree.parseString """{}"""
+                                -- JsonTree.parseString (Encode.encode 0 (Elm.RawFile.encode ast) )
+                            _ ->
+                                JsonTree.parseString """{}"""
+                    }, Cmd.none)
+                Detail _ ->
+                    ({ model | mode = Overview, astTreeState =  JsonTree.defaultState, parsedJson = JsonTree.parseString """{}"""}, Cmd.none)
         SetTreeState state ->
             ({ model | astTreeState = state }, Cmd.none)
         Back ->

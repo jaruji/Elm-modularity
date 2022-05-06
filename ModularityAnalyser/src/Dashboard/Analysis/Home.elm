@@ -19,6 +19,11 @@ import Dashboard.Components.FileSelector as FileSelector exposing (..)
 import Analyser.Metrics.Metric as Metric exposing (..)
 import Dict exposing (Dict, map, values, keys, fromList)
 
+--make a dictionary where you pair Declarations to each file (if ast is not Nothing)
+--that way I can keep the fileselector module modular and have declaration moved up to global state and distributed to other pages if needed
+--will need to remake all the list to dict which would be terrible tbh
+--how else can I do it?
+
 type alias Model = 
     {
         fileSelector: (FileSelector.Model, Cmd FileSelector.Msg),

@@ -160,7 +160,7 @@ linkElement graph edge =
             if source.hovered == True then
                 stroke <| Paint <| Color.red
             else if target.hovered == True then
-                stroke <| Paint <| Color.green
+                stroke <| Paint <| Color.darkGreen
                 -- attribute "z-index" "5000"
             else
                 stroke <| Paint <| Color.grey
@@ -217,8 +217,7 @@ nodeElement node =
             fontSize <| Px 1.25,
             fill (Paint Color.black),
             TypedSvg.Attributes.class [ "noselect" ]
-            ]
-            [ text ( trim node.label.value ) ]
+            ][ text ( trim node.label.value ) ]
         ]
 
 

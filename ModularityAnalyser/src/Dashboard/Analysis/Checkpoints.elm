@@ -103,6 +103,9 @@ view model =
         ]
     ]
 
+--when retrieving from localStorage, make a diff with the current one - if they're the same,disable the checkpoitn button and display a propmt
+--telling the user that this checkpoint is already stored/or that you need to make some changes before creating a new checkpoint
+
 getModel: (Model, Cmd Msg) -> Model
 getModel (model, cmd) =
   model
