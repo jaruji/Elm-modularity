@@ -20,10 +20,9 @@ import SyntaxHighlight exposing (useTheme, monokai, gitHub, elm, toBlockHtml)
 import Json.Decode as Decode exposing(Error)
 import Json.Encode as Encode
 import JsonTree
-import Set exposing (Set)
+import Set exposing (Set, toList)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (getAt)
-import Analyser.AST.Parser exposing (parseRawFile, parseFile)
 import Analyser.AST.Declaration exposing (viewDeclarations)
 import Dict exposing (Dict, map, toList, values)
 import Elm.Syntax.Exposing exposing (..)
@@ -182,13 +181,15 @@ viewModuleDetailContent file model =
                 ],
                 hr[ style "width" "100%" ][],
                 div[ class "body" ][
+                    h2[][ text "Used modules" ],
+                    div[] (List.map(\mod -> div[][ text mod]) (Set.toList file.calledModules)),
                     h2[][ text "Debug" ],
                     List.map(\dec -> viewDeclarations dec) (file.declarations) |> div[],
                     h2[][ text "Source code" ],
                     div[][ 
                         useTheme gitHub,
                         elm file.content
-                            |> Result.map (toBlockHtml (Just 1))
+                            |> Result.map (toBlockHtml (Just 0))
                             |> Result.withDefault
                                 (pre [] [ code [] [ text file.content ]])
                     ],

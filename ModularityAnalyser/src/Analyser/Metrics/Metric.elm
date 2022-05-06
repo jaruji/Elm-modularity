@@ -1,8 +1,14 @@
 module Analyser.Metrics.Metric exposing (..)
 import List exposing (length)
 import Dict exposing (Dict, get, foldl, map, values, keys, fromList)
-import Dashboard.Components.FileSelector exposing (MyFile)
+import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
+import Round exposing (round, roundNum)
+
+
+decimals: Int
+decimals =
+    4
 
 type alias Metric =
     {
@@ -56,13 +62,13 @@ averageMetric metric =
         if sum == 0 then
             0.0
         else
-            sum / ((List.length(metric.values)) |> toFloat)
+            Round.roundNum decimals (sum / ((List.length(metric.values)) |> toFloat))
 
 setAverage: Metric -> Float -> Metric
 setAverage metric avg =
     ({metric | averageValue = avg})
 
-calculateLOC: List MyFile -> List Value
+calculateLOC: List File_ -> List Value
 calculateLOC files =
     List.foldl(\file acc -> 
         case file.ast of
@@ -77,31 +83,53 @@ calculateLOC files =
                 acc
     ) [] files
 
+calculateCE: List File_ -> List (String, Float)
+calculateCE files =
+    List.foldl(\file acc -> 
+        case file.ast of
+            Just _ ->
+                let
+                    ce = 
+                        List.foldl(\val sum -> 
+                            if List.length val.calledModules > 0 then
+                                sum + 1
+                            else
+                                sum
+                        ) 0 file.declarations |> toFloat
+                in
+                    (file.name, ce) :: acc
+            Nothing ->
+                acc
+    ) [] files
 
-calculateCE: Int
-calculateCE =
-    0
-
-
-calculateCA: Int
-calculateCA =
-    0
-
-
-calculateLS: Int
-calculateLS =
-    0
-
-
-calculateNOL: Int
-calculateNOL =
-    0
-
+calculateCA: List File_ -> List (String, Float)
+calculateCA files =
+    List.foldl(\file acc -> 
+        case file.ast of
+            Just ast ->
+                let
+                    moduleName = Helper.getModuleNameRaw ast
+                    ca = 
+                        List.foldl(\val sum -> 
+                            sum 
+                            +
+                            List.foldl(\val2 sum2 ->
+                                if List.member moduleName val2.calledModules then
+                                    sum2 + 1
+                                else
+                                    sum2
+                            ) 0 val.declarations
+                           
+                        ) 0 files |> toFloat
+                in
+                    (file.name, ca) :: acc
+            Nothing ->
+                acc
+    ) [] files
 
 --need to figure out how to match boilerplate pattern
 
-
-calculateComments: List MyFile -> List Value
+calculateComments: List File_ -> List Value
 calculateComments files =
     List.foldl(\file acc -> 
         case file.ast of
@@ -115,7 +143,7 @@ calculateComments files =
                 acc
     ) [] files
 
-calculateNoD: List MyFile -> List Value
+calculateNoD: List File_ -> List Value
 calculateNoD files =
     List.foldl(\file acc -> 
         case file.ast of
@@ -129,7 +157,7 @@ calculateNoD files =
                 acc
     ) [] files
 
-calculateNoF: List MyFile -> List Value
+calculateNoF: List File_ -> List Value
 calculateNoF files =
     List.foldl(\file acc -> 
         case file.ast of
@@ -143,7 +171,7 @@ calculateNoF files =
                 acc
     ) [] files
 
-calculateNoA: List MyFile -> List Value
+calculateNoA: List File_ -> List Value
 calculateNoA files =
     List.foldl(\file acc -> 
         case file.ast of
@@ -157,7 +185,7 @@ calculateNoA files =
                 acc
     ) [] files
 
-calculateNoT: List MyFile -> List Value
+calculateNoT: List File_ -> List Value
 calculateNoT files =
     List.foldl(\file acc -> 
         case file.ast of
@@ -166,32 +194,84 @@ calculateNoT files =
                     processedFile = Helper.processRawFile ast
                     not = Helper.numberOfTypes processedFile |> toFloat
                 in
-                     initValue file.name not :: acc
+                    initValue file.name not :: acc
             Nothing ->
                 acc
     ) [] files
 
-calculateMetrics: List MyFile -> Dict String Metric
-calculateMetrics files =
-    Dict.map(\key val -> 
-        setAverage val (averageMetric val)
-    ) 
-    (
-        fromList[ 
-            ("LOC", initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
-            ("Comments", initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
-            ("NoF", initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
-            ("NoD", initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
-            ("NoT", initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
-            ("NoA", initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
-            ("CA", init "CA" 0 0 ModuleMetric), 
-            ("CE", init "CE" 0 0 ModuleMetric), 
-            ("Instability", init "Instability" 0 0 ModuleMetric),
-            ("NOL", init "NOL" 0 0 ModuleMetric),
-            ("LS", init "LS" 0 0 ModuleMetric)
-        ]
-    )
+calculateNoL: List File_ -> List Value
+calculateNoL files =
+    List.foldl(\file acc -> 
+        case file.ast of
+            Just _ ->
+                    let
+                        nol = List.foldl(\dec sum -> sum + dec.lambdaCount) 0 file.declarations |> toFloat
+                    in
+                        initValue file.name nol :: acc
+            Nothing ->
+                acc
+    ) [] files
 
+calculateLS: List File_ -> List Value
+calculateLS files =
+    List.foldl(\file acc -> 
+        case file.ast of
+            Just _ ->
+                    let
+                        lambdaLoc = List.foldl(\dec sum -> sum + dec.lambdaLines) 0 file.declarations |> toFloat
+                        parsedString = String.lines file.content
+                        loc = (List.length parsedString) |> toFloat
+                        ls = Round.roundNum decimals (lambdaLoc / loc)
+                    in
+                        initValue file.name ls :: acc
+            Nothing ->
+                acc
+    ) [] files
+
+calculateInstability: List (String, Float) -> List (String, Float) -> List Value
+calculateInstability caList ceList =
+    List.map2(\ca ce -> 
+        let
+            caVal = Tuple.second ca
+            ceVal = Tuple.second ce
+
+        in
+            if ceVal + caVal == 0 then
+                initValue (Tuple.first ca) 0
+            else
+                initValue (Tuple.first ca) (roundNum decimals (ceVal/(ceVal + caVal)))
+    ) caList ceList
+
+
+
+
+calculateMetrics: List File_ -> Dict String Metric
+calculateMetrics files =
+    let
+        ca = calculateCA files
+        ce = calculateCE files
+    in
+        Dict.map(\_ val -> 
+            setAverage val (averageMetric val)
+        ) 
+        (
+            fromList[ 
+                ("LOC", initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
+                ("Comments", initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
+                ("NoF", initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
+                ("NoD", initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
+                ("NoT", initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
+                ("NoA", initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
+                ("CA", initWithValues "CA" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ca)), 
+                ("CE", initWithValues "CE" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ce)), 
+                ("Instability", initWithValues "Instability" 0 0 ModuleMetric (calculateInstability ca ce)),
+                ("NoL", initWithValues "NoL" 0 0 ModuleMetric (calculateNoL files)),
+                ("LS", initWithValues "LS" 0 0 ModuleMetric (calculateLS files))
+            ]
+        )
+
+
+--infix, outfix also possible
 --SCCS - interesting concept
 
 numberOfCommentedLines: (Int, Int) -> Int -> Int

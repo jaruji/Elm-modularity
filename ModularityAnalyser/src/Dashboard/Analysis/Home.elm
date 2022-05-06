@@ -14,7 +14,7 @@ import File exposing (..)
 import List exposing (length)
 import List.Extra exposing (find)
 import Html.Events exposing (onClick)
-import Task
+import Set exposing (union, empty, insert)
 import Dashboard.Components.FileSelector as FileSelector exposing (..)
 import Analyser.Metrics.Metric as Metric exposing (..)
 import Dict exposing (Dict, map, values, keys, fromList)
@@ -65,7 +65,10 @@ fileSelectorHelper model (fileSelector, cmd) =
                 FileSelector.Loading ->
                     { model | status = Loading } 
                 FileSelector.Success ->
-                    { model | status = Success (calculateMetrics fileSelector.files), files = wrapMyFile fileSelector.files}
+                    let
+                        files = wrapMyFile fileSelector.files
+                    in
+                        { model | status = Success (calculateMetrics files), files = files}
                 _ ->
                     { model | status = Idle }
     in
@@ -85,7 +88,18 @@ wrapMyFile files =
         List.map(\file ->
             case file.ast of
                 Just ast ->
-                    wrapElmFile file (Helper.mainPipeline (parseRawFile ast) ast rawFiles)
+                    let
+                        declarations = Helper.mainPipeline (parseRawFile ast) ast rawFiles
+                        calledModules = 
+                            List.foldl (\val set -> 
+                                Set.union
+                                (List.foldl(\val2 set2 -> 
+                                    Set.insert val2 set2
+                                ) Set.empty val.calledModules)
+                                set
+                            ) Set.empty declarations
+                    in
+                        wrapElmFile file declarations calledModules
                 Nothing ->
                     wrapOtherFile file
 

@@ -22,7 +22,7 @@ import Html exposing (a, Html, div, text)
 import Dict exposing (Dict, map, values)
 import List.Extra exposing (find)
 import Analyser.AST.Declaration exposing (Declaration_)
-import Set exposing (Set, member, fromList)
+import Set exposing (Set, member, fromList, toList, diff)
 
 
 --pipeline that calculates the relationship between modules, metrics CA CE and Instability, even LS and NOL
@@ -70,10 +70,10 @@ mainPipeline declarations ast rawfiles =
         --Debug.log (importList |> Debug.toString)
         List.map(\dec ->
             { dec | calledModules =
-                List.map(\val ->
+                List.foldl(\val acc ->
                     case Set.member val set of
                         True ->
-                            "-"
+                            acc
                         False ->
                             let
                                 exposingCheck = 
@@ -87,7 +87,7 @@ mainPipeline declarations ast rawfiles =
                             in
                                 case exposingCheck of
                                     Just mod ->
-                                        String.join "." (value mod.moduleName)
+                                        String.join "." (value mod.moduleName) :: acc
                                     Nothing ->
                                         let
                                             interfaceCheck =
@@ -102,11 +102,11 @@ mainPipeline declarations ast rawfiles =
                                         in
                                             case interfaceCheck of
                                                 Nothing ->
-                                                    "-"
+                                                    acc
                                                 Just s ->
-                                                    s
+                                                    s :: acc
                             --"Different module" 
-                ) dec.calledDecl
+                ) [] dec.calledDecl
             }
         ) declarations
 
@@ -131,6 +131,13 @@ getModuleByName name list =
                 Nothing
             Just raw ->
                 Just raw
+
+findUnusedImports: List Import -> List String -> List String
+findUnusedImports allImports usedImports =
+    let
+        importList = List.map(\imp -> String.join "." (value imp.moduleName)) allImports
+    in
+        Set.toList (Set.diff (Set.fromList importList) (Set.fromList usedImports))
 
 exposesTypeI: String -> Interface -> Bool
 exposesTypeI name int =
@@ -335,6 +342,10 @@ isImportedFromModule imports dec =
 getModuleName: Import -> String
 getModuleName {moduleName, moduleAlias, exposingList} =
     String.join "." (moduleNameToList (value moduleName))
+
+getModuleNameRaw: RawFile -> String
+getModuleNameRaw raw =
+    String.join "." (moduleName raw)
 
 moduleNameToString: RawFile -> String
 moduleNameToString raw =

@@ -9,21 +9,21 @@ type alias Declaration_ =
         depth: Int,
         calledModules: List String,
         calledDecl: List String,
-        uniqueCalledModulesCount: Int,
         lambdaCount: Int,
         lambdaLines: Int,
         debugString: String,
         lineCount: Int,
-        caseCount: Int
+        caseCount: Int,
+        unusedImports: List String
     }
 
 init: String -> Type -> Int -> List String -> Int -> Int -> Declaration_
 init name decType d cm ucmc lc =
-    (Declaration_ name decType d cm [] ucmc lc 0 "" 0 0)
+    (Declaration_ name decType d cm [] lc 0 "" 0 0 [])
 
 default: Declaration_
 default =
-    (Declaration_ "" Default 0 [] [] 0 0 0 "" 0 0)
+    (Declaration_ "" Default 0 [] [] 0 0 "" 0 0 [])
 
 viewDeclarations: Declaration_ -> Html msg
 viewDeclarations decl =
@@ -33,16 +33,13 @@ viewDeclarations decl =
             text ("Type: " ++ (decl.decType |> toString))
         ],
         div[][
-            text ("Depth: " ++ (decl.depth |> toString))
+            text ("Unused imports: " ++ (decl.unusedImports |> toString))
         ],
         div[][
             text ("Called declarations: " ++ (decl.calledDecl |> toString))
         ],
         div[][
             text ("Called modules: " ++ (decl.calledModules |> toString))
-        ],
-        div[][
-            text ("Unique modules count: " ++ (decl.uniqueCalledModulesCount |> toString))
         ],
         div[][
             text ("Lambda Count: " ++ (decl.lambdaCount |> toString))
