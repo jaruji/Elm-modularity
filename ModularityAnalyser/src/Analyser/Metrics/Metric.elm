@@ -97,23 +97,25 @@ calculateCE files =
                 acc
     ) [] files
 
-    -- CE BASED ON DECLARATION CALL COUNT AND NOT MODULE CALL COUNT:
-    -- List.foldl(\file acc -> 
-    --     case file.ast of
-    --         Just ast ->
-    --             let
-    --                 ce = 
-    --                     List.foldl(\val sum -> 
-    --                         if List.length val.calledModules > 0 then
-    --                             sum + 1
-    --                         else
-    --                             sum
-    --                     ) 0 file.declarations |> toFloat
-    --             in
-    --                 (getModuleNameRaw ast, ce) :: acc
-    --         Nothing ->
-    --             acc
-    -- ) [] files
+calculateCED: List File_ -> List (String, Float)
+calculateCED files =
+    --CE BASED ON DECLARATION CALL COUNT AND NOT MODULE CALL COUNT:
+    List.foldl(\file acc -> 
+        case file.ast of
+            Just ast ->
+                let
+                    ce = 
+                        List.foldl(\val sum -> 
+                            if List.length val.calledModules > 0 then
+                                sum + 1
+                            else
+                                sum
+                        ) 0 file.declarations |> toFloat
+                in
+                    (getModuleNameRaw ast, ce) :: acc
+            Nothing ->
+                acc
+    ) [] files
 
 calculateCA: List File_ -> List (String, Float)
 calculateCA files =
@@ -135,29 +137,31 @@ calculateCA files =
                 acc
     ) [] files
 
-    -- CA BASED ON DECLARATION CALL COUNT AND NOT MODULE CALL COUNT:
-    -- List.foldl(\file acc -> 
-    --     case file.ast of
-    --         Just ast ->
-    --             let
-    --                 moduleName = Helper.getModuleNameRaw ast
-    --                 ca = 
-    --                     List.foldl(\val sum -> 
-    --                         sum 
-    --                         +
-    --                         List.foldl(\val2 sum2 ->
-    --                             if List.member moduleName val2.calledModules then
-    --                                 sum2 + 1
-    --                             else
-    --                                 sum2
-    --                         ) 0 val.declarations
-                           
-    --                     ) 0 files |> toFloat
-    --             in
-    --                 (getModuleNameRaw ast, ca) :: acc
-    --         Nothing ->
-    --             acc
-    -- ) [] files
+calculateCAD: List File_ -> List (String, Float)
+calculateCAD files =
+-- CA BASED ON DECLARATION CALL COUNT AND NOT MODULE CALL COUNT:
+    List.foldl(\file acc -> 
+        case file.ast of
+            Just ast ->
+                let
+                    moduleName = Helper.getModuleNameRaw ast
+                    ca = 
+                        List.foldl(\val sum -> 
+                            sum 
+                            +
+                            List.foldl(\val2 sum2 ->
+                                if List.member moduleName val2.calledModules then
+                                    sum2 + 1
+                                else
+                                    sum2
+                            ) 0 val.declarations
+                            
+                        ) 0 files |> toFloat
+                in
+                    (getModuleNameRaw ast, ca) :: acc
+            Nothing ->
+                acc
+    ) [] files
 
 --need to figure out how to match boilerplate pattern
 
@@ -282,6 +286,8 @@ calculateMetrics files =
     let
         ca = calculateCA files
         ce = calculateCE files
+        cad = calculateCAD files
+        ced = calculateCED files
     in
         Dict.map(\_ val -> 
             setAverage val (averageMetric val)
@@ -289,14 +295,17 @@ calculateMetrics files =
         (
             fromList[ 
                 ("LOC", initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
-                ("Comments", initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
+                -- ("Comments", initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
                 ("NoF", initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
                 ("NoD", initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
                 ("NoT", initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
                 ("NoA", initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
                 ("CA", initWithValues "CA" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ca)), 
                 ("CE", initWithValues "CE" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ce)), 
+                ("CA(d)", initWithValues "CA(d)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) cad)), 
+                ("CE(d)", initWithValues "CE(d)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ced)), 
                 ("Instability", initWithValues "Instability" 0 0 ModuleMetric (calculateInstability ca ce)),
+                ("Instability(d)", initWithValues "Instability(d)" 0 0 ModuleMetric (calculateInstability cad ced)),
                 ("NoL", initWithValues "NoL" 0 0 ModuleMetric (calculateNoL files)),
                 ("LS", initWithValues "LS" 0 0 ModuleMetric (calculateLS files))
             ]
