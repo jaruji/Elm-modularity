@@ -342,11 +342,15 @@ view model =
                                         case res of 
                                             Ok ac ->
                                                 div[][
-                                                    div[ Attributes.class "main-header" ][ text "Strongly connected components generated"]
+                                                    div[ Attributes.class "main-header" ][ text "Graph is acylic."]
                                                     -- lazy viewGraph ac somehow figure this out
                                                 ]
-                                            _ ->
-                                                div[ Attributes.class "main-header" ][ text "Graph has cycles!"]
+                                            Err components ->
+                                                div[][ 
+                                                    div[ Attributes.class "main-header" ][ text "Graph has multiple components."],
+                                                    (List.map (\component -> lazy viewGraph component) components) |> div[]
+                                                ]
+                                                
                             ]
                         ]
                     ]

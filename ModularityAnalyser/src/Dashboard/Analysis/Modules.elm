@@ -188,10 +188,13 @@ viewModuleDetailContent file model =
                 hr[ style "width" "100%" ][],
                 div[ class "body" ][
                     h2[][ text "Used modules" ],
+                    hr[ style "width" "20%" ][],
                     div[] (List.map(\mod -> div[][ text mod]) (Set.toList file.calledModules)),
-                    h2[][ text "Debug" ],
+                    h2[][ text "Declarations" ],
+                    hr[ style "width" "20%" ][],
                     List.map(\dec -> viewDeclarations dec) (file.declarations) |> div[],
                     h2[][ text "Source code" ],
+                    hr[ style "width" "20%" ][],
                     div[][ 
                         useTheme gitHub,
                         elm file.content
@@ -202,6 +205,7 @@ viewModuleDetailContent file model =
                     -- h2[][ text "Abstract Syntax Tree" ],
                     -- viewJsonTree file.name model,
                     h2[][ text "Exposed declarations" ],
+                    hr[ style "width" "20%" ][],
                     text (Debug.toString(Helper.getAllDeclarations ast))
                     -- let
                     --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)

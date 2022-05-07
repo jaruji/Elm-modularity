@@ -5,6 +5,7 @@ import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
 import Round exposing (round, roundNum)
 import Set exposing (size, member)
+import Analyser.Metrics.Thresholds exposing (..)
 
 
 decimals: Int
@@ -82,6 +83,10 @@ getNonEmptyLineCount content =
             ) parsedString
     in
         (List.length filtered)
+
+calculateDeclarationOutdegree: List File_ -> List File_
+calculateDeclarationOutdegree files =
+    files
 
 
 calculateLOC: List File_ -> List Value
@@ -325,6 +330,7 @@ calculateMetrics files =
 
 
 --infix, outfix also possible
+--operatorCount, --operandCount
 --SCCS - interesting concept
 
 numberOfCommentedLines: (Int, Int) -> Int -> Int

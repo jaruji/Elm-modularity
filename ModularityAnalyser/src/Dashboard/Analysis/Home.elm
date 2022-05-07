@@ -118,71 +118,93 @@ view model =
         ],
         
         div[][
-            case length model.files of
-                0 ->
-                    div[][
-                        div[ class "main-cards" ][
-                            div[ class "card", style "width" "100%" ][
-                                div[][
-                                    h2[] [ text "Getting started" ],
-                                    text "Please, select an Elm project directory that you want to analyse by clicking the ",
-                                    span[ class "bold" ][ text "Upload Folder " ],
-                                    text "button.",
-                                    -- h4[][ text "The solution for modular Elm code"],
-                                    div[ style "text-align" "center", style "margin" "15px" ][
-                                        FileSelector.view (FileSelector.getModel model.fileSelector) |> toUnstyled |> Html.map FileSelectorMsg
-                                    ]
+            if List.length model.files > 0 then
+                div[ class "main-cards"][
+                    div[ class "card", style "text-align" "center" ][
+                        h2[][ text "A project is currently loaded in the tool." ],
+                        hr[ class "customhr" ][],
+                        div[](List.map(\file -> div[][ text file.name ]) model.files),
+                        hr[ class "customhr" ][],
+                        button[onClick Remove, class "button-special", style "background-color" "darkred", style "margin" "15px" ][ 
+                            text "Remove project" 
+                        ]
+                    ],
+                    div[ class "card" ][
+                        h2[][ text "Basic information" ],
+                        hr[ class "customhr" ][],
+                        div[][
+                            b[][ text "Loaded module count: " ],
+                            let
+                                filtered = 
+                                    List.filter(\file -> 
+                                        case file.ast of
+                                            Nothing ->
+                                                False
+                                            Just _ ->
+                                                True
+                                    ) model.files
+                            in
+                                text (List.length filtered |> Debug.toString)
+                        ],
+                        div[][
+                            b[][ text "Project type: " ],
+                            let
+                                filtered = find(\val -> if val.name == "elm.json" then True else False) model.files
+                            in
+                                case filtered of
+                                    Just val ->
+                                        text (getProjectType val.content)
+                                    Nothing ->    
+                                        text "Elm.json not loaded"
+                            
+                        ]
+                        -- ,
+                        -- div[][
+                        --     let
+                        --         loc = Dict.get "LOC" dict
+                        --     in
+                        --         case loc of
+                        --                 Just val ->
+                        --                     let
+                        --                       totalLoc = List.foldl(\x acc -> acc + x.value) 0 val.values 
+                        --                     in
+                        --                         b[][ text ("Total lines of code: " ++ (totalLoc |> Debug.toString)) ]
+                        --                 _ ->
+                        --                     text ""
+                                
+                        -- ],
+                        -- div[][
+                        --     let
+                        --         nod = Dict.get "NoD" dict
+                        --     in
+                        --         case nod of
+                        --                 Just val ->
+                        --                     let
+                        --                       totalNod = List.foldl(\x acc -> acc + x.value) 0 val.values 
+                        --                     in
+                        --                         b[][ text ("Total number of declarations: " ++ (totalNod |> Debug.toString)) ]
+                        --                 _ ->
+                        --                     text ""
+                            
+                        -- ]
+                    ]
+                ]
+            else
+                div[][
+                    div[ class "main-cards" ][
+                        div[ class "card", style "width" "100%" ][
+                            div[][
+                                h2[] [ text "Getting started" ],
+                                text "Please, select an Elm project directory that you want to analyse by clicking the ",
+                                span[ class "bold" ][ text "Upload Folder " ],
+                                text "button.",
+                                div[ style "text-align" "center", style "margin" "15px" ][
+                                    FileSelector.view (FileSelector.getModel model.fileSelector) |> toUnstyled |> Html.map FileSelectorMsg
                                 ]
                             ]
-                        ]        
-                    ]
-                _ ->
-                    div[ class "main-cards"][
-                        div[ class "card", style "text-align" "center" ][
-                            h2[][ text "A project is currently loaded in the tool." ],
-                            hr[ class "customhr" ][],
-                            div[](List.map(\file -> div[][ text file.name ]) model.files),
-                            hr[ class "customhr" ][],
-                            button[onClick Remove, class "button-special", style "background-color" "darkred", style "margin" "15px" ][ 
-                                text "Remove project" 
-                            ]
-                        ],
-                        div[ class "card" ][
-                            h2[][ text "Basic information" ],
-                            hr[ class "customhr" ][],
-                            div[][
-                                b[][ text "Loaded module count: " ],
-                                let
-                                    filtered = 
-                                        List.filter(\file -> 
-                                            case file.ast of
-                                                Nothing ->
-                                                    False
-                                                Just _ ->
-                                                    True
-                                        ) model.files
-                                in
-                                    text (List.length filtered |> Debug.toString)
-                            ],
-                            div[][
-                                b[][ text "Project type: " ],
-                                let
-                                    filtered = find(\val -> if val.name == "elm.json" then True else False) model.files
-                                in
-                                    case filtered of
-                                        Just val ->
-                                            text (getProjectType val.content)
-                                        Nothing ->    
-                                            text "Elm.json not loaded"
-                                
-                            ],
-                            div[][
-                                b[][ text "File tree: " ]
-                            ]
-                           
                         ]
-                    ]
-                    
+                    ]        
+                ]
         ]
     ]
 
