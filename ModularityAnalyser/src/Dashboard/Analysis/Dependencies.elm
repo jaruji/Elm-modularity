@@ -44,7 +44,7 @@ view model =
                     ]
                 Just val ->
                     div[][
-                        div[ class "main-header" ][ text "Header" ],
+                        div[ class "main-header" ][],
                         case decodeString Dependency.decodeElmJson val of
                             Ok result ->
                                 Dependency.view result

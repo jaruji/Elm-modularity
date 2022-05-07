@@ -161,7 +161,6 @@ mainPipeline declarations ast rawfiles =
             }
         ) declarations
 
-
 checkDeclarationImportMatch: String -> Import -> Bool
 checkDeclarationImportMatch name imp =
     let

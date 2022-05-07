@@ -117,7 +117,6 @@ view model =
                 section[][
                     div[][
                         div[ class "main-header"][
-                            text "Header"
                         ],
                         h2[ style "margin" "25px" ][ text "Module list" ],
                         div[ class "explanation" ][

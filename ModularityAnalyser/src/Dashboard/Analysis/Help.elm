@@ -30,9 +30,7 @@ view model =
             h1[][ text "Help"],
             div[ class "subtext" ][ text "Basic information about used metrics, what they measure and how were the threshold values obtained."]
         ],
-        div[ class "main-header" ][
-            text "Metrics list..."
-        ]
+        div[ class "main-header" ][]
     ]
 
 getModel: (Model, Cmd Msg) -> Model

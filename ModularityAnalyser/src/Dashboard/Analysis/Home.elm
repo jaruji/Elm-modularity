@@ -98,8 +98,16 @@ wrapMyFile files =
                                 ) Set.empty val.calledModules)
                                 set
                             ) Set.empty declarations
+                        calledDeclarations = 
+                            List.foldl (\val set -> 
+                                Set.union
+                                (List.foldl(\val2 set2 -> 
+                                    Set.insert val2 set2
+                                ) Set.empty val.calledDecl)
+                                set
+                            ) Set.empty declarations
                     in
-                        wrapElmFile file declarations calledModules
+                        wrapElmFile file declarations calledModules calledDeclarations
                 Nothing ->
                     wrapOtherFile file
 
@@ -114,9 +122,7 @@ view model =
             div[ class "subtext" ][ text "Analytical tool to measure the quality of your Elm codebase through the usage of software metrics and numerous visualizations."]
         ],
         div[ class "main-header" ][
-            text "Header"
         ],
-        
         div[][
             if List.length model.files > 0 then
                 div[ class "main-cards"][

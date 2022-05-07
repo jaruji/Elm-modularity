@@ -333,9 +333,7 @@ view model =
                     ]
                 _ -> 
                     div[][
-                        div[ Attributes.class "main-header"][
-                            text "Header"
-                        ],
+                        div[ Attributes.class "main-header"][],
                         div[ Attributes.class "explanation" ][
                             text "This graph visualizes the relationships between project modules."
                         ],

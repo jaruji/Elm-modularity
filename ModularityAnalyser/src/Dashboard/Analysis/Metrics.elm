@@ -143,7 +143,6 @@ view model =
                 _ ->
                     div[][
                         div[ class "main-header" ][
-                            text "Header"
                         ],
                         button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"],
                         button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project" ],

@@ -81,9 +81,7 @@ view model =
             h1[][ text "Checkpoints"],
             div[ class "subtext" ][ text "Follow the changes in your project through checkpoints."]
         ],
-        div[ class "main-header" ][
-            text "Header"
-        ],
+        div[ class "main-header" ][],
         h2[][ text "Project progression "],
         div[ class "explanation" ][ text """This tool allows the user to set specific checkpoints, which can be used to track the project's metric progression over a period of time.
             This feature can be helpful when looking to refactor and restructure code to improve it's overall quality.

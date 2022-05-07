@@ -53,10 +53,10 @@ viewDeclarations decl =
             text ("Case branch count: " ++ (decl.caseCount |> toString))
         ],
         div[][
-            text "Indegree: "
+            text ("Indegree: " ++ (decl.indegree |> toString))
         ],
         div[][
-            text "Outdegree: "
+            text ("Outdegree: " ++ (decl.outdegree |> toString))
         ]
     ]
 
