@@ -24,6 +24,7 @@ import List.Extra exposing (zip, andThen, indexedFoldl)
 import Material.Icons exposing (ten_k)
 import Html.Lazy exposing (lazy, lazy2)
 import Html.Events.Extra.Mouse exposing (eventDecoder, Event)
+import Set exposing (foldl)
 
 type alias Model =
     { 
@@ -264,46 +265,56 @@ viewGraph graph =
 
 
 
-getGraphEdges: List RawFile -> List (Int, Int)
-getGraphEdges files =
+getGraphEdges: List File_ -> List (Int, Int)
+getGraphEdges files_ =
     let
-        imports = 
-            List.indexedMap 
-                (\index file -> 
-                    Helper.getImports file
-                ) files
+        files = 
+            List.filterMap(\file ->
+                case file.ast of
+                    Just _ ->
+                        Just file
+                    Nothing ->
+                        Nothing 
+            ) files_
     in
-        indexedFoldl
-            (\index file res -> 
-                indexedFoldl
-                    (\index2 importList acc ->
-                        List.foldl
-                            (\arg acc2 ->
-                                if arg == Helper.joinPath file then
-                                    (index, index2) :: acc2
-                                else
+        indexedFoldl(\index file acc ->
+            case file.ast of
+                Just _ ->
+                    acc 
+                    ++
+                    List.foldl(\modName acc1 -> 
+                        acc1
+                        ++
+                        indexedFoldl(\index2 file2 acc2 ->
+                            case file2.ast of
+                                Just ast ->
+                                    if((Helper.getModuleNameFromAst ast) == modName) then
+                                        (index2, index) :: acc2
+                                    else
+                                        acc2
+                                _ ->
                                     acc2
-                            ) acc importList
-                    ) res imports
-            ) [] files
+                        ) [] files
+                    ) [] (Set.toList (file.calledModules))
+                Nothing ->
+                    acc
+        ) [] files
+    
+getGraphNodes: List File_ -> List String
+getGraphNodes files =
+        List.filterMap(\file ->
+            case file.ast of
+                Just ast ->
+                    Just (Helper.getModuleNameRaw ast)
+                Nothing ->
+                    Nothing 
+        ) files
 
 buildGraph : List File_ -> Graph String ()
 buildGraph files =
     Graph.fromNodeLabelsAndEdgePairs 
     (getGraphNodes (List.filter hasAst files))
-    --(List.map(\leaf -> leaf.content ++ "lel") files)
-    --[]
-    (getGraphEdges 
-        (List.map 
-            (\leaf ->
-                case leaf.ast of
-                    Just ast ->
-                        ast
-                    Nothing ->
-                        Debug.todo "This error is impossible to get"
-            )
-        ( List.filter hasAst files )
-    ))
+    (getGraphEdges files)
 
 
 view: Model -> Html Msg
@@ -356,10 +367,6 @@ view model =
                     ]
         ]
     ]
-
-getGraphNodes: List File_ -> List String
-getGraphNodes files =
-    List.map(\file -> file.name) files
 
 hasAst: File_ -> Bool
 hasAst file =
