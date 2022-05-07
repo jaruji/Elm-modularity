@@ -108,36 +108,35 @@ view model =
                 div[ class "subtext" ][ text "All the basic information about loaded Elm modules."]
             ],
             if len == 0 then
-                section[][
+                div[][
                     article[ class "main-header"][
                         text "No Elm project currently loaded."
                     ]
                 ]
             else
-                section[][
-                    div[][
-                        div[ class "main-header"][
-                        ],
-                        h2[ style "margin" "25px" ][ text "Module list" ],
-                        div[ class "explanation" ][
-                            input [ id "search", value model.search, placeholder "Search...", onInput UpdateSearch ] []
-                        ],
-                        div[ class "main-overview" ](
-                            List.map (\file ->
-                                if String.contains (String.toLower model.search) (String.toLower file.name) then
-                                    lazy viewModuleCard file
-                                else
-                                    text ""
-                            ) model.files
-                        ),
-                        --div[](List.map (viewCard model) model.files),
-                        case model.mode of
-                            Detail file ->    
-                                lazy2 viewModuleDetail file model
-                            _ ->
-                                text ""
-                    ]
-                ]
+                case model.mode of
+                    Overview ->
+                        div[][
+                            div[ class "main-header"][
+                            ],
+                            h2[ style "margin" "25px" ][ text "Module list" ],
+                            div[ class "explanation" ][
+                                input [ id "search", value model.search, placeholder "Search...", onInput UpdateSearch ] []
+                            ],
+                            div[ class "main-overview" ](
+                                List.map (\file ->
+                                    if String.contains (String.toLower model.search) (String.toLower file.name) then
+                                        lazy viewModuleCard file
+                                    else
+                                        text ""
+                                ) model.files
+                            )
+                        ]
+                
+                    Detail file ->
+                        div[][
+                                viewModuleDetailContent file model
+                        ]
         ]
 
 viewJsonTree: String -> Model -> Html Msg
@@ -180,38 +179,45 @@ viewModuleDetailContent file model =
     case file.ast of
         Just ast ->
             div[][
+                hr[ style "width" "100%" ][],
                 div[ class "header" ][
                     h1[][ text (getModuleNameFromAst ast) ],
                     button [ onClick Back, class "button-special", style "float" "right", style "margin" "5px" ][ text "Back" ]
                 ],
-                hr[ style "width" "100%" ][],
+                div[ class "main-header"][],
                 div[ class "body" ][
-                    h2[][ text "Used modules" ],
-                    hr[ style "width" "20%" ][],
-                    div[] (List.map(\mod -> div[][ text mod]) (Set.toList file.calledModules)),
-                    h2[][ text "Declarations" ],
-                    hr[ style "width" "20%" ][],
-                    List.map(\dec -> viewDeclarations dec) (file.declarations) |> div[],
-                    h2[][ text "Source code" ],
-                    hr[ style "width" "20%" ][],
-                    div[][ 
-                        useTheme gitHub,
-                        elm file.content
-                            |> Result.map (toBlockHtml (Just 0))
-                            |> Result.withDefault
-                                (pre [] [ code [] [ text file.content ]])
-                    ],
-                    -- h2[][ text "Abstract Syntax Tree" ],
-                    -- viewJsonTree file.name model,
                     h2[][ text "Exposed declarations" ],
                     hr[ style "width" "20%" ][],
-                    text (Debug.toString(Helper.getAllDeclarations ast))
-                    -- let
-                    --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
-                    -- in
-                    --     div[](
-                    --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
-                    --     )
+                    div[ class "explanation" ] <| (List.map (\val -> text (val ++ ", ")) (Helper.getAllDeclarations ast)),
+                    h2[][ text "Used modules" ],
+                    hr[ style "width" "20%" ][],
+                    let
+                        usedModules = Set.toList file.calledModules
+                    in
+                        if List.length usedModules == 0 then
+                            div[ class "explanation" ][ text "None" ]
+                        else
+                            div[ class "explanation" ] ( List.map(\mod -> div[][ text mod ]) usedModules )
+                        ,h2[][ text "Declarations" ],
+                        hr[ style "width" "20%" ][],
+                        List.map(\dec -> viewDeclarations dec) (file.declarations) |> div[],
+                        h2[][ text "Source code" ],
+                        hr[ style "width" "20%" ][],
+                        div[][ 
+                            useTheme gitHub,
+                            elm file.content
+                                |> Result.map (toBlockHtml (Just 0))
+                                |> Result.withDefault
+                                    (pre [] [ code [] [ text file.content ]])
+                        ]
+                        -- h2[][ text "Abstract Syntax Tree" ],
+                        -- viewJsonTree file.name model,
+                        -- let
+                        --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
+                        -- in
+                        --     div[](
+                        --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
+                        --     )
                 ]
             ]
         Nothing ->

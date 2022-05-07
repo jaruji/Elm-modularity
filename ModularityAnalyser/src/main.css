@@ -38,6 +38,29 @@
   color: slategray;
 }
 
+.div-special {
+  margin: 20px;
+  padding: 20px;
+  min-height: 100px;
+  background-color: rgb(135, 206, 250);
+  border-radius: 10px;
+  color: var(--black)
+}
+
+.div-special h3{
+  font-weight: 1000;
+  text-decoration-line: underline;
+}
+
+.div-special h4{
+  text-decoration: underline;
+}
+
+.div-special b{
+  font-weight: 800;
+}
+
+
 @media screen and (min-width: 40em) {
   .mycard {
      max-width: calc(50% -  1em);

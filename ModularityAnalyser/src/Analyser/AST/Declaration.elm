@@ -29,34 +29,49 @@ default =
 
 viewDeclarations: Declaration_ -> Html msg
 viewDeclarations decl =
-    div[][
-        h3[][ text decl.name ],
-        div[][
-            text ("Type: " ++ (decl.decType |> toString))
+    div[ class "div-special" ][
+        div[ class "header" ][
+            h3[][ text decl.name ],
+            div[ class "subtext"][
+                text (decl.decType |> toString)
+            ]
         ],
-         div[][
-            text ("Called modules: " ++ (decl.calledModules |> toString))
+        h4[][ text "Basic metrics"],
+        table[ style "width" "60%", style "text-align" "left" ][
+            tr[][
+                th[][text "LOC"],
+                th[][text "Lambda Count"],
+                th[][text "Lambda Lines"],
+                th[][text "Case branches"],
+                th[][text "Indegree"],
+                th[][text "Outdegree"]
+            ],
+            tbody[][
+                tr[][
+                    td[][ text (decl.lineCount |> toString) ],
+                    td[][ text (decl.lambdaCount |> toString) ],
+                    td[][ text (decl.lambdaLines |> toString) ],
+                    td[][ text (decl.caseCount |> toString) ],
+                    td[][ text (decl.indegree |> toString) ],
+                    td[][ text (decl.outdegree |> toString) ]
+                ]
+            ]
         ],
         div[][
-            text ("Operands (not primitives): " ++ (decl.calledDecl |> toString))
+            h4[][ text "Called modules" ],
+            case List.length decl.calledModules of
+                0 ->
+                    text "None"
+                _ ->
+                    List.map(\val -> div[][ text val ] ) decl.calledModules |> div[ class "card", style "min-height" "100px" ]
         ],
         div[][
-            text ("LOC: " ++ (decl.lineCount |> toString))
-        ],
-        div[][
-            text ("Lambda count: " ++ (decl.lambdaCount |> toString))
-        ],
-        div[][
-            text ("Lambda lines: " ++ (decl.lambdaLines |> toString))
-        ],
-        div[][
-            text ("Case branch count: " ++ (decl.caseCount |> toString))
-        ],
-        div[][
-            text ("Indegree: " ++ (decl.indegree |> toString))
-        ],
-        div[][
-            text ("Outdegree: " ++ (decl.outdegree |> toString))
+            h4[][ text "Operands (not primitives)" ],
+            case List.length decl.calledDecl of
+                0 ->
+                    text "None"
+                _ ->
+                    List.map(\val -> text (val ++ ", ")) decl.calledDecl |> div[ class "card", style "min-height" "100px" ]
         ]
     ]
 
