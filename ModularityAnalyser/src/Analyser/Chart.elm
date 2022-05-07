@@ -51,7 +51,8 @@ viewMetricBarplot name avg metrics =
             CA.y1 avg,
             CA.x2 p.x.max,
             CA.dashed [ 10, 10 ],
-            CA.color CA.red
+            CA.color CA.red,
+            CA.width 5
           ]
         ],
         C.labelAt CA.middle .max [ CA.fontSize 30, CA.moveUp 15 ]

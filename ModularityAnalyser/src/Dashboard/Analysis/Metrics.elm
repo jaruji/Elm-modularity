@@ -169,6 +169,11 @@ view model =
                                     div[ style "text-align" "center" ][
                                         button[ class "button-special", onClick Export ][ text "Export CSV" ]
                                     ],
+                                    h2[ style "margin" "25px" ][ text "Modularity metrics"],
+                                    div[ class "explanation"][
+                                        text "Collection of metrics directly connected to modularity of the project.",
+                                        span[ class "bold" ][ text " modules." ]
+                                    ],
                                     h2[ style "margin" "25px" ][ text "Metrics visualization"],
                                     div[ class "explanation"][
                                         text "Collection of basic information and visualizations of selected software metrics. The red line visualizes the project average for the metric."

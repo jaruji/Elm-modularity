@@ -52,8 +52,8 @@ viewDeclarations decl =
                     td[][ text (decl.lambdaCount |> toString) ],
                     td[][ text (decl.lambdaLines |> toString) ],
                     td[][ text (decl.caseCount |> toString) ],
-                    td[][ text (decl.indegree |> toString) ],
-                    td[][ text (decl.outdegree |> toString) ]
+                    td[][ text ((List.length decl.calledModules) |> toString) ],
+                    td[][ text ("?") ]
                 ]
             ]
         ],
