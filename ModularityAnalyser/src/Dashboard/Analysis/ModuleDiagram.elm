@@ -236,18 +236,19 @@ nodeElement node =
             ][ text ( trim node.label.value ) ]
         ]
 
-
-
 trim: String -> String
 trim name =
     if String.length name > 12 then
         let
-            newName = String.dropRight 4 name
+            temp = String.split "." name
         in
-            if String.length newName > 12 then
-                String.append  (String.slice 0 12 name) ".."
+            if List.length temp > 1 then
+                if (String.length name) > 12 then
+                    (String.join "." (List.drop ((List.length temp) - 1) temp))
+                else
+                    (String.join "." (List.drop ((List.length temp) - 2) temp))
             else
-                String.append newName "..."
+                name
     else
         name
 
