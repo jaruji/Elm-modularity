@@ -8,7 +8,7 @@ import Chart.Svg as CS
 import Svg as S
 import Dict exposing (Dict)
 import Analyser.Metrics.Metric exposing (Value)
-import List exposing (map)
+import List exposing (map, filter, drop)
 import RadarChart
 
 --this module contains all the chart logic. It has no state nor any functionality except visualizing data through Html messages.
@@ -16,35 +16,46 @@ import RadarChart
 
 viewMetricBarplot : String -> Float -> List Value -> Html msg
 viewMetricBarplot name avg metrics =
-  C.chart
-    [ 
-      height 600,
-      width 600
-    ]
-    [ C.xTicks []
-    , C.yTicks []
-    , C.binLabels .parentDeclaration [ CA.moveDown 80, CA.rotate 80 ]
-    , C.yLabels []
-    
-    , C.bars []
-        [ 
-          C.bar .value [ CA.color "pink" ],
-          C.bar .value [ CA.striped [ CA.spacing 4 ]]
-        ]
-        metrics,
-      C.withPlane <| \p ->
+  let
+      values = 
+        List.map(\val -> 
+          let 
+            split = String.split "." val.parentDeclaration
+          in
+            if List.length split > 2 then
+              { val | parentDeclaration = String.join "." (List.drop 1 split)}
+            else
+              val
+        ) metrics
+  in
+    C.chart
       [ 
-        C.line[ 
-          CA.x1 p.x.min,
-          CA.y1 avg,
-          CA.x2 p.x.max,
-          CA.dashed [ 10, 10 ],
-          CA.color CA.red
-        ]
-      ],
-      C.labelAt CA.middle .max [ CA.fontSize 30, CA.moveUp 15 ]
-        [ S.text name ]
-    ]
+        height 600,
+        width 600
+      ]
+      [ C.xTicks []
+      , C.yTicks []
+      , C.binLabels .parentDeclaration [ CA.moveDown 80, CA.rotate 80 ]
+      , C.yLabels []
+      
+      , C.bars []
+          [ 
+            C.bar .value [ CA.color "pink", CA.striped [ CA.spacing 4 ]]
+          ]
+          values,
+        C.withPlane <| \p ->
+        [ 
+          C.line[ 
+            CA.x1 p.x.min,
+            CA.y1 avg,
+            CA.x2 p.x.max,
+            CA.dashed [ 10, 10 ],
+            CA.color CA.red
+          ]
+        ],
+        C.labelAt CA.middle .max [ CA.fontSize 30, CA.moveUp 15 ]
+          [ S.text name ]
+      ]
 
 viewRadarChart: Html msg
 viewRadarChart =

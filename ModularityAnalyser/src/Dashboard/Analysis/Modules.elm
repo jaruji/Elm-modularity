@@ -172,7 +172,6 @@ viewModuleCard file =
                 in
                     if List.length arr > 2 then
                         text (String.join "." (List.drop 1 arr))
-
                     else
                         text moduleName
             ]

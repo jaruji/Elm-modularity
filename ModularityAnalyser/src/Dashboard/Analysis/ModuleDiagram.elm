@@ -5,9 +5,9 @@ import Browser.Events
 import Color
 import Html.Attributes as Attributes exposing (class)
 import Force exposing (State)
-import Graph exposing (Edge, Graph, Node, NodeContext, NodeId, Adjacency, get)
-import Html exposing (div, article, Html, section, h1)
-import Html.Events exposing (on)
+import Graph exposing (Edge, Graph, Node, NodeContext, NodeId, Adjacency, get, stronglyConnectedComponents )
+import Html exposing (div, article, Html, section, h1, button)
+import Html.Events as Events exposing (on, onClick)
 import Json.Decode as Decode
 import Time
 import IntDict exposing (IntDict)
@@ -28,7 +28,8 @@ import Html.Events.Extra.Mouse exposing (eventDecoder, Event)
 type alias Model =
     { 
         graph : Graph Node_(),
-        files: List File_
+        files: List File_,
+        scc: State
     }
 
 type alias Node_ =
@@ -41,6 +42,10 @@ type alias Node_ =
         dragged: Bool
     }
 
+type State
+    = None
+    | Done (Result (List (Graph Node_ ())) (Graph.AcyclicGraph Node_ ()))
+
 type Msg
     = NoOp
     | MouseMove Event 
@@ -48,6 +53,7 @@ type Msg
     | MouseLeave NodeId
     | MouseDown NodeId
     | MouseUp NodeId
+    | CalculateSCC (Result (List (Graph Node_ ())) (Graph.AcyclicGraph Node_ ()))
 
 defaultNode_: Node_
 defaultNode_ =
@@ -71,7 +77,8 @@ init files =
                     True
                 Nothing ->
                     False
-        ) files
+        ) files,
+        scc = None
     }, Cmd.none )
 
 update : Msg -> Model -> ( Model, Cmd Msg)
@@ -121,6 +128,8 @@ update msg model =
                         ({ model | graph = Graph.update ctx.node.id (Maybe.map(\val -> hoverNode ctx hoveredNode)) model.graph }, Cmd.none)
         MouseMove data ->
             (model, Cmd.none)
+        CalculateSCC graph ->
+            ({ model | scc = Done graph }, Cmd.none)
         
 hoverNode: NodeContext Node_ () -> Node_ -> NodeContext Node_ ()
 hoverNode ctx val =
@@ -187,8 +196,14 @@ arrow =
 
 nodeElement : Node Node_ -> Svg Msg
 nodeElement node =
-    g [ TypedSvg.Attributes.class [ "node" ], onMouseEnter (MouseHover node.id), onMouseLeave (MouseLeave node.id), cursor CursorPointer, TypedSvg.Attributes.class ["graph-node"],
-        onMouseDown (MouseDown node.id), onMouseUp (MouseUp node.id)
+    g [ 
+        TypedSvg.Attributes.class [ "node" ],
+        onMouseEnter (MouseHover node.id),
+        onMouseLeave (MouseLeave node.id),
+        cursor CursorPointer,
+        TypedSvg.Attributes.class ["graph-node"],
+        onMouseDown (MouseDown node.id),
+        onMouseUp (MouseUp node.id)
     ][ 
             circle[ 
                 r 5.5,
@@ -221,35 +236,6 @@ nodeElement node =
         ]
 
 
-view: Model -> Html Msg
-view model =
-    div[][
-        div[ Attributes.class "header" ][
-            h1[][ text "Module diagram"],
-            div[ Attributes.class "subtext" ][ text "Visualization of relationships between modules."]
-        ],
-        article[][
-            case List.length model.files of
-                0 ->
-                    article[ Attributes.class "main-header"][
-                        text "No Elm project currently loaded."
-                    ]
-                _ -> 
-                    div[][
-                        div[ Attributes.class "main-header"][
-                            text "Header"
-                        ],
-                        div[ Attributes.class "explanation" ][
-                            text "This graph visualizes the relationships between project modules."
-                        ],
-                        div[ Attributes.class "main-card"][
-                            div[ Attributes.class "card" ][
-                                lazy viewGraph model
-                            ]
-                        ]
-                    ]
-        ]
-    ]
 
 trim: String -> String
 trim name =
@@ -264,14 +250,14 @@ trim name =
     else
         name
 
-viewGraph : Model -> Svg Msg
-viewGraph model =
+viewGraph : Graph Node_ () -> Svg Msg
+viewGraph graph =
     svg [ viewBox -80 -60 150 150 ][ 
         defs [] [ arrow ],
-        Graph.edges model.graph
-            |> List.map (linkElement model.graph)
+        Graph.edges graph
+            |> List.map (linkElement graph)
             |> g [ TypedSvg.Attributes.class [ "links" ] ]
-        , Graph.nodes model.graph
+        , Graph.nodes graph
             |> List.map nodeElement
             |> g [ TypedSvg.Attributes.class [ "nodes" ] ]
     ]
@@ -318,6 +304,54 @@ buildGraph files =
             )
         ( List.filter hasAst files )
     ))
+
+
+view: Model -> Html Msg
+view model =
+    div[][
+        div[ Attributes.class "header" ][
+            h1[][ text "Module diagram"],
+            div[ Attributes.class "subtext" ][ text "Visualization of relationships between modules."]
+        ],
+        article[][
+            case List.length model.files of
+                0 ->
+                    article[ Attributes.class "main-header"][
+                        text "No Elm project currently loaded."
+                    ]
+                _ -> 
+                    div[][
+                        div[ Attributes.class "main-header"][
+                            text "Header"
+                        ],
+                        div[ Attributes.class "explanation" ][
+                            text "This graph visualizes the relationships between project modules."
+                        ],
+                        div[ Attributes.class "main-card"][
+                            div[ Attributes.class "card" ][
+                                lazy viewGraph model.graph
+                            ]
+                        ],
+                        div[ Attributes.class "main-card"][
+                            div[ Attributes.class "card" ][
+                                Html.button[ Attributes.class "button-special", Events.onClick (CalculateSCC (stronglyConnectedComponents model.graph)) ][ text "Get SCC" ],
+                                case model.scc of
+                                    None ->
+                                        div[ Attributes.class "main-header" ][ text "Strongly connected components not generated" ]
+                                    Done res ->
+                                        case res of 
+                                            Ok ac ->
+                                                div[][
+                                                    div[ Attributes.class "main-header" ][ text "Strongly connected components generated"]
+                                                    -- lazy viewGraph ac somehow figure this out
+                                                ]
+                                            _ ->
+                                                div[ Attributes.class "main-header" ][ text "Graph has cycles!"]
+                            ]
+                        ]
+                    ]
+        ]
+    ]
 
 getGraphNodes: List File_ -> List String
 getGraphNodes files =
