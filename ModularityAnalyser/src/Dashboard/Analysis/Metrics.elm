@@ -61,17 +61,23 @@ type alias Model =
     {
         files: List File_,
         page: Page,
-        metrics: Dict String Metric
+        metrics: Dict String Metric,
+        state: State
     }
 
 type Page 
     = Global
     | Local
 
+type State
+    = Idle
+    | Selected Metric
+
 type Msg
     = NoOp
     | Swap Page
     | Export
+    | Select Metric
 
 
 init: List File_ -> Dict String Metric -> ( Model, Cmd Msg)
@@ -85,7 +91,8 @@ init files metrics =
                     False
         ) files,
         page = Local,
-        metrics = metrics
+        metrics = metrics,
+        state = Idle
     }, Cmd.none)
 
 exportCsv : String -> Cmd msg
@@ -101,6 +108,8 @@ update msg model =
             ({ model | page = page }, Cmd.none)
         Export ->
             ( model, exportCsv (constructCsv model.metrics))
+        Select metric ->
+            ({ model | state = Selected metric }, Cmd.none)
 
 constructCsv: Dict String Metric -> String
 constructCsv metrics =
@@ -163,16 +172,45 @@ view model =
                                     ],
                                     h2[ style "margin" "25px" ][ text "Metrics visualization"],
                                     div[ class "explanation"][
-                                        text "Collection of visualizations of calculated metrics. The red line visualizes the project average for the selected metric."
+                                        text "Collection of basic information and visualizations of selected software metrics. The red line visualizes the project average for the metric."
                                     ],
-                                    List.map(\metric -> 
-                                        if length metric.values == 0 then 
-                                            text ""
-                                        else
-                                            div[ class "chartcard" ][
-                                            Chart.viewMetricBarplot metric.name metric.averageValue metric.values
-                                        ]
-                                    ) (values model.metrics) |> div[ class "chart-cards" ]
+                                    div[ class "main-overview"] (
+                                        List.map(\val -> 
+                                            div[ class "overviewcard", onClick (Select val),
+                                                case model.state of
+                                                    Selected metric ->
+                                                        if metric == val then
+                                                            class "overviewcardHovered"
+                                                        else
+                                                            class ""
+                                                    Idle ->
+                                                        class ""
+                                            ][ text val.name]
+                                        ) (values model.metrics)
+                                    ),
+                                    case model.state of
+                                        Idle ->
+                                            div[ class "main-header" ][ text "No metric selected" ]
+                                        Selected metric ->
+                                            div[][
+                                                h2[][ text metric.name],
+                                                hr[][],
+                                                div[ class "explanation" ][ text "Here comes the description of the metric" ],
+                                                h3[][ text "Histogram" ],
+                                                div[ class "chart-cards" ][
+                                                    div[ class "chartcard" ][
+                                                        Chart.viewMetricBarplot metric.name metric.averageValue metric.values
+                                                    ]
+                                                ]
+                                            ]
+                                    -- List.map(\metric -> 
+                                    --     if length metric.values == 0 then 
+                                    --         text ""
+                                    --     else
+                                    --         div[ class "main-overview" ][
+                                    --         Chart.viewMetricBarplot metric.name metric.averageValue metric.values
+                                    --     ]
+                                    -- ) (values model.metrics) |> div[ class "chart-cards" ]
                                 ]
                             Global ->
                                 div[][

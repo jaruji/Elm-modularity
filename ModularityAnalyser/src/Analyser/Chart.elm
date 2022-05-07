@@ -30,17 +30,18 @@ viewMetricBarplot name avg metrics =
   in
     C.chart
       [ 
-        height 600,
-        width 600
+        height 800,
+        width 1000
       ]
       [ C.xTicks []
       , C.yTicks []
-      , C.binLabels .parentDeclaration [ CA.moveDown 80, CA.rotate 80 ]
+      , C.binLabels .parentDeclaration [ CA.moveDown 100, CA.rotate 80 ]
       , C.yLabels []
       
-      , C.bars []
+      , C.bars [ CA.roundTop 0.5 ]
           [ 
-            C.bar .value [ CA.color "pink", CA.striped [ CA.spacing 4 ]]
+            
+            C.bar .value [ CA.gradient [ CA.blue, CA.darkBlue ]]
           ]
           values,
         C.withPlane <| \p ->

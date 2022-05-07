@@ -34,14 +34,14 @@ viewDeclarations decl =
         div[][
             text ("Type: " ++ (decl.decType |> toString))
         ],
+         div[][
+            text ("Called modules: " ++ (decl.calledModules |> toString))
+        ],
         div[][
             text ("Operands (not primitives): " ++ (decl.calledDecl |> toString))
         ],
         div[][
             text ("LOC: " ++ (decl.lineCount |> toString))
-        ],
-        div[][
-            text ("Called modules: " ++ (decl.calledModules |> toString))
         ],
         div[][
             text ("Lambda count: " ++ (decl.lambdaCount |> toString))
