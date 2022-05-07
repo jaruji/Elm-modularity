@@ -5,6 +5,7 @@ import Chart as C exposing (..)
 import Chart.Attributes as CA exposing (..)
 import Chart.Events as CE exposing (..)
 import Chart.Svg as CS
+import Chart.Item as CI
 import Svg as S
 import Dict exposing (Dict)
 import Analyser.Metrics.Metric exposing (Value)
@@ -13,6 +14,77 @@ import RadarChart
 
 --this module contains all the chart logic. It has no state nor any functionality except visualizing data through Html messages.
 --It uses the elm-charts library
+
+type alias Model =
+  { hovering : List (CI.One { x : Float, y : Float } CI.Any) }
+
+
+init : Model
+init =
+  { hovering = [] }
+
+
+type Msg
+  = OnHover (List (CI.One { x : Float, y : Float } CI.Any))
+
+update : Msg -> Model -> Model
+update msg model =
+  case msg of
+    OnHover hovering ->
+      { model | hovering = hovering }
+
+viewHeatmap: Model -> Html Msg
+viewHeatmap model =
+  C.chart
+  [ CA.height 300
+  , CA.width 300
+  , CE.onMouseMove OnHover (CE.getNearest CI.any)
+  , CE.onMouseLeave (OnHover [])
+  ]
+  [ C.xTicks []
+  , C.xLabels []
+  , C.yTicks []
+  , C.yLabels []
+  , C.list <|
+      let heatmapItem index value =
+            let x = toFloat (remainderBy 5 index) * 2
+                y = toFloat (index // 5) * 2
+                color =
+                  if value > 5 then "darkred" else
+                  if value > 3  then "red" else
+                  if value > 1  then "yellow" else
+                  if value == 1  then "lightgreen"
+                  else
+                    "white"
+            in
+            C.custom
+              { name = "Modularity heatmap"
+              , color = color
+              , position = { x1 = x, x2 = x + 2, y1 = y, y2 = y + 2 }
+              , format = .y >> String.fromFloat >> (\v -> v ++ " C°")
+              , data = { x = toFloat index, y = value }
+              , render = \p ->
+                  CS.rect p
+                    [ CA.x1 x
+                    , CA.x2 (x + 2)
+                    , CA.y1 y
+                    , CA.y2 (y + 2)
+                    , CA.color color
+                    , CA.border "white"
+                    ]
+              }
+      in
+      List.indexedMap heatmapItem
+        [ 2, 5, 8, 5, 3
+        , 5, 7, 9, 0, 3
+        , 2, 4, 6, 3, 5
+        , 7, 9, 0, 3, 2
+        , 4, 6, 7, 8, 10
+        ]
+        
+  , C.each model.hovering <| \_ item ->
+      [ C.tooltip item [ CA.center, CA.offset 0, CA.onTopOrBottom ] [] [] ]
+  ]
 
 viewMetricBarplot : String -> Float -> List Value -> Html msg
 viewMetricBarplot name avg metrics =
@@ -58,16 +130,6 @@ viewMetricBarplot name avg metrics =
         C.labelAt CA.middle .max [ CA.fontSize 30, CA.moveUp 15 ]
           [ S.text name ]
       ]
-
-viewRadarChart: Html msg
-viewRadarChart =
-  div[ style "height" "500px", style "width" "500px" ][
-    RadarChart.view RadarChart.defaultOptions 
-      [ "Values", "Variables", "Conditionals", "Loops", "Functions", "Programs" ]
-      [ { color = "yellow", data = [ 120, 500, 310, 130, 300, 180 ] } ]
-  ]
-  
-
 
 viewTemplateGraph : Html msg
 viewTemplateGraph =

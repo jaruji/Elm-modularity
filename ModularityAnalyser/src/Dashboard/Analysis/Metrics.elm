@@ -19,7 +19,6 @@ import Debug exposing (toString)
 import File.Download as Download
 import Json.Encode as Encode exposing (dict)
 
-
 {--
     metrics:
         local:
@@ -62,7 +61,8 @@ type alias Model =
         files: List File_,
         page: Page,
         metrics: Dict String Metric,
-        state: State
+        state: State,
+        heatmap: Chart.Model
     }
 
 type Page 
@@ -78,6 +78,7 @@ type Msg
     | Swap Page
     | Export
     | Select Metric
+    | ChartMsg Chart.Msg
 
 
 init: List File_ -> Dict String Metric -> ( Model, Cmd Msg)
@@ -92,7 +93,8 @@ init files metrics =
         ) files,
         page = Local,
         metrics = metrics,
-        state = Idle
+        state = Idle,
+        heatmap = Chart.init
     }, Cmd.none)
 
 exportCsv : String -> Cmd msg
@@ -110,6 +112,8 @@ update msg model =
             ( model, exportCsv (constructCsv model.metrics))
         Select metric ->
             ({ model | state = Selected metric }, Cmd.none)
+        ChartMsg chartMsg ->
+            ({ model | heatmap = Chart.update chartMsg model.heatmap }, Cmd.none)
 
 constructCsv: Dict String Metric -> String
 constructCsv metrics =
@@ -144,8 +148,10 @@ view model =
                     div[][
                         div[ class "main-header" ][
                         ],
-                        button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"],
-                        button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project" ],
+                        div[ style "margin" "auto", style "float" "center" ][
+                            button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"],
+                            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Averages" ]
+                        ],
                         case model.page of
                             Local ->
                                 div[][
@@ -169,10 +175,12 @@ view model =
                                     div[ style "text-align" "center" ][
                                         button[ class "button-special", onClick Export ][ text "Export CSV" ]
                                     ],
-                                    h2[ style "margin" "25px" ][ text "Modularity metrics"],
+                                    h2[ style "margin" "25px" ][ text "Modularity heatmap"],
                                     div[ class "explanation"][
-                                        text "Collection of metrics directly connected to modularity of the project.",
-                                        span[ class "bold" ][ text " modules." ]
+                                        text "Heatmap visualizing the number of calls between each module."
+                                    ],
+                                    div[][
+                                        Chart.viewHeatmap model.heatmap |> Html.map ChartMsg
                                     ],
                                     h2[ style "margin" "25px" ][ text "Metrics visualization"],
                                     div[ class "explanation"][

@@ -98,14 +98,14 @@ wrapMyFile files =
                                 ) Set.empty val.calledModules)
                                 set
                             ) Set.empty declarations
-                        calledDeclarations = 
-                            List.foldl (\val set -> 
-                                Set.union
-                                (List.foldl(\val2 set2 -> 
-                                    Set.insert val2 set2
-                                ) Set.empty val.calledDecl)
-                                set
-                            ) Set.empty declarations
+                        calledDeclarations = Set.empty
+                            -- List.foldl (\val set -> 
+                            --     Set.union
+                            --     (List.foldl(\val2 set2 -> 
+                            --         Set.insert val2 set2
+                            --     ) Set.empty val.calledDecl)
+                            --     set
+                            -- ) Set.empty declarations
                     in
                         wrapElmFile file declarations calledModules calledDeclarations
                 Nothing ->
