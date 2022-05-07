@@ -81,24 +81,30 @@ view model =
             h1[][ text "Checkpoints"],
             div[ class "subtext" ][ text "Follow the changes in your project through checkpoints."]
         ],
-        div[ class "main-header" ][],
-        h2[][ text "Project progression "],
-        div[ class "explanation" ][ text """This tool allows the user to set specific checkpoints, which can be used to track the project's metric progression over a period of time.
-            This feature can be helpful when looking to refactor and restructure code to improve it's overall quality.
-            """ ],
-        if List.length model.checkpoints == 0 then
-            div[ class "main-header" ][ text "No checkpoints created for this project so far." ]
-        else
-            div[class "main-cards"][
-                div[ class "card" ][],
-                div[ class "card "][]
-            ]
-        , h2[][ text "Set checkpoint" ],
-        div[ class "explanation" ][ text "Set a new unique checkpoint for Elm Metrics to track." ],
-        button[ class "button-special", onClick SetCheckpoint ][ text "Set Checkpoint" ],
-        div[ class "card", style "margin" "25px" ][
-            text (encode 0 (dictToJson model.metrics))
-        ]
+        case Dict.isEmpty model.metrics of
+            True ->
+                div[ class "main-header" ][ text "No project currently loaded" ]
+            False ->
+                div[][
+                    div[ class "main-header" ][],
+                    h2[][ text "Project progression "],
+                    div[ class "explanation" ][ text """This tool allows the user to set specific checkpoints, which can be used to track the project's metric progression over a period of time.
+                        This feature can be helpful when looking to refactor and restructure code to improve it's overall quality.
+                        """ ],
+                    if List.length model.checkpoints == 0 then
+                        div[ class "main-header" ][ text "No checkpoints created for this project so far." ]
+                    else
+                        div[class "main-cards"][
+                            div[ class "card" ][],
+                            div[ class "card "][]
+                        ]
+                    , h2[][ text "Set checkpoint" ],
+                    div[ class "explanation" ][ text "Set a new unique checkpoint for Elm Metrics to track." ],
+                    button[ class "button-special", onClick SetCheckpoint ][ text "Set Checkpoint" ],
+                    div[ class "card", style "margin" "25px" ][
+                        text (encode 0 (dictToJson model.metrics))
+                    ]
+                ]
     ]
 
 --when retrieving from localStorage, make a diff with the current one - if they're the same,disable the checkpoitn button and display a propmt
