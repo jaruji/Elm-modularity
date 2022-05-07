@@ -13,30 +13,26 @@ type alias Declaration_ =
         lambdaLines: Int,
         debugString: String,
         lineCount: Int,
-        caseCount: Int,
-        unusedImports: List String
+        caseCount: Int
     }
 
 init: String -> Type -> Int -> List String -> Int -> Int -> Declaration_
 init name decType d cm ucmc lc =
-    (Declaration_ name decType d cm [] lc 0 "" 0 0 [])
+    (Declaration_ name decType d cm [] lc 0 "" 0 0)
 
 default: Declaration_
 default =
-    (Declaration_ "" Default 0 [] [] 0 0 "" 0 0 [])
+    (Declaration_ "" Default 0 [] [] 0 0 "" 0 0)
 
 viewDeclarations: Declaration_ -> Html msg
 viewDeclarations decl =
     div[][
         h2[][ text decl.name ],
         div[][
-            text ("Type: " ++ (decl.decType |> toString))
+            text ("Declaration type: " ++ (decl.decType |> toString))
         ],
         div[][
-            text ("Unused imports: " ++ (decl.unusedImports |> toString))
-        ],
-        div[][
-            text ("Called declarations: " ++ (decl.calledDecl |> toString))
+            text ("Used declarations: " ++ (decl.calledDecl |> toString))
         ],
         div[][
             text ("Called modules: " ++ (decl.calledModules |> toString))
@@ -48,13 +44,16 @@ viewDeclarations decl =
             text ("Lambda lines: " ++ (decl.lambdaLines |> toString))
         ],
         div[][
-            text ("LOC: " ++ (decl.lineCount |> toString))
+            text ("Declaration LOC: " ++ (decl.lineCount |> toString))
         ],
         div[][
-            text ("Case count: " ++ (decl.caseCount |> toString))
+            text ("Case branch count: " ++ (decl.caseCount |> toString))
         ],
         div[][
-            text ("Debug: " ++ (decl.debugString |> toString))
+            text "Infix: "
+        ],
+        div[][
+            text "Outfix: "
         ]
     ]
 

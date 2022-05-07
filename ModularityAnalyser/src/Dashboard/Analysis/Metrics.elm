@@ -213,7 +213,7 @@ projectTableContent metrics =
             th[][ text "Metric" ],
             th[][ text "Value" ]
         ],
-        (List.map(\val -> tr[][ td[][ text ("A" ++ val.name)], td[][ text (val.averageValue |> toString) ]]) (values metrics)) |> tbody[]
+        (List.map(\val -> tr[][ td[][ text ("Average " ++ val.name)], td[][ text (val.averageValue |> toString) ]]) (values metrics)) |> tbody[]
     ]
 
 removeEmpty: String -> Bool

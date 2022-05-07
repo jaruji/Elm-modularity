@@ -69,15 +69,28 @@ setAverage: Metric -> Float -> Metric
 setAverage metric avg =
     ({metric | averageValue = avg})
 
+getNonEmptyLineCount: String -> Int
+getNonEmptyLineCount content =
+    let
+        parsedString = String.lines content
+        filtered = 
+            List.filter(\line -> 
+                if String.length line == 0 then
+                    False
+                else
+                    True
+            ) parsedString
+    in
+        (List.length filtered)
+
+
 calculateLOC: List File_ -> List Value
 calculateLOC files =
     List.foldl(\file acc -> 
         case file.ast of
             Just ast ->
                 let
-                    parsedString = String.lines file.content
-                    --TODO remove empty lines here
-                    loc = (List.length parsedString) |> toFloat
+                    loc = (getNonEmptyLineCount file.content) |> toFloat
                 in
                      initValue (getModuleNameRaw ast) loc :: acc
             Nothing ->
@@ -255,8 +268,7 @@ calculateLS files =
             Just ast ->
                     let
                         lambdaLoc = List.foldl(\dec sum -> sum + dec.lambdaLines) 0 file.declarations |> toFloat
-                        parsedString = String.lines file.content
-                        loc = (List.length parsedString) |> toFloat
+                        loc = (getNonEmptyLineCount file.content) |> toFloat
                         ls = Round.roundNum decimals (lambdaLoc / loc)
                     in
                         initValue (getModuleNameRaw ast) ls :: acc

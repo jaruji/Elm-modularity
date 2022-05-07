@@ -12,7 +12,6 @@ import File exposing (..)
 import Task
 import Tuple exposing (..)
 import List exposing (..)
-import List.Extra exposing (..)
 import Regex exposing (..)
 import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
@@ -167,7 +166,15 @@ viewModuleCard file =
             text ""
         Just ast ->
             div[ onClick (SwapMode file), class "overviewcard" ][
-                text file.name
+                let
+                    moduleName = Helper.getModuleNameRaw ast
+                    arr = String.split "." moduleName
+                in
+                    if List.length arr > 2 then
+                        text (String.join "." (List.drop 1 arr))
+
+                    else
+                        text moduleName
             ]
 
 viewModuleDetailContent: File_ -> Model -> Html Msg
