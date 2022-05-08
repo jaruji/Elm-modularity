@@ -17,7 +17,7 @@ import Elm.Syntax.Pattern exposing (..)
 import Elm.Syntax.Signature exposing (..)
 import Elm.Syntax.TypeAlias exposing (..)
 import Elm.Syntax.Type exposing (..)
-import Dict exposing (Dict, fromList)
+import Dict exposing (Dict, fromList, keys)
 import Html exposing (a, Html, div, text)
 import Dict exposing (Dict, map, values)
 import List.Extra exposing (find)
@@ -222,7 +222,7 @@ addCalledByModules files =
                 Set.fromList (List.foldl(\file2 acc2 ->
                     case file1.ast of
                         Just ast ->
-                            if Set.member (getModuleNameRaw ast) file2.calledModules then
+                            if Set.member (getModuleNameRaw ast) (Set.fromList (keys file2.calledModules)) then
                                 case file2.ast of
                                     Just ast2 ->
                                         (getModuleNameRaw ast2) :: acc2

@@ -90,31 +90,30 @@ wrapMyFile files =
                 Just ast ->
                     let
                         declarations = Helper.mainPipeline (parseRawFile ast) ast rawFiles
-                        calledModules = 
-                            List.foldl (\val set -> 
-                                Set.union
-                                (List.foldl(\val2 set2 -> 
-                                    Set.insert val2 set2
-                                ) Set.empty val.calledModules)
-                                set
-                            ) Set.empty declarations
+                        -- calledModules = 
+                        --     List.foldl (\val set -> 
+                        --         Set.union
+                        --         (List.foldl(\val2 set2 -> 
+                        --             Set.insert val2 set2
+                        --         ) Set.empty val.calledModules)
+                        --         set
+                        --     ) Set.empty declarations
 
-                        calledModulesCount = 
+                        calledModules = 
                             List.foldl (\val dict -> 
                                 Dict.union
-                                dict
                                 (List.foldl(\val2 dict2 -> 
                                     let
                                         dictVal = Dict.get val2 dict2
                                     in
                                         case dictVal of
-                                            Just value ->
-                                                Dict.insert val2 (value + 1) dict2
+                                            Just _ ->
+                                                Dict.update val2 (Maybe.map(\sum -> sum + 1)) dict2
                                             Nothing ->
                                                 Dict.insert val2 1 dict2
                                 ) Dict.empty val.calledModules)
+                                dict
                             ) Dict.empty declarations
-                        
                     in
                         wrapElmFile file declarations calledModules Set.empty
                 Nothing ->

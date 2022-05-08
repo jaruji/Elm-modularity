@@ -108,7 +108,7 @@ calculateCE files =
         case file.ast of
             Just ast ->
                 let
-                    ce = Set.size file.calledModules
+                    ce = Dict.size file.calledModules
                 in
                     (getModuleNameRaw ast, ce |> toFloat) :: acc
             Nothing ->
@@ -144,7 +144,7 @@ calculateCA files =
                     moduleName = Helper.getModuleNameRaw ast
                     ca = 
                         List.foldl(\val sum -> 
-                            if (member moduleName val.calledModules) then
+                            if (Dict.member moduleName val.calledModules) then
                                 sum + 1
                             else
                                 sum
@@ -301,7 +301,7 @@ calculateCBM files =
         case file.ast of
             Just ast ->
                     let
-                        set = Set.union file.calledByModules file.calledModules
+                        set = Set.union file.calledByModules (Set.fromList (keys file.calledModules))
                     in
                         initValue (getModuleNameRaw ast) ((Set.size set) |> toFloat) :: acc
             Nothing ->

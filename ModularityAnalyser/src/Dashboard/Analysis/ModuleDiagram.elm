@@ -25,6 +25,7 @@ import Material.Icons exposing (ten_k)
 import Html.Lazy exposing (lazy, lazy2)
 import Html.Events.Extra.Mouse exposing (eventDecoder, Event)
 import Set exposing (foldl)
+import Dict exposing (keys)
 
 type alias Model =
     { 
@@ -296,7 +297,7 @@ getGraphEdges files_ =
                                 _ ->
                                     acc2
                         ) [] files
-                    ) [] (Set.toList (file.calledModules))
+                    ) [] (keys file.calledModules)
                 Nothing ->
                     acc
         ) [] files

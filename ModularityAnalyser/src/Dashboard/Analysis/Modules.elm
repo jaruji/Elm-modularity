@@ -23,7 +23,7 @@ import Set exposing (Set, toList)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (getAt)
 import Analyser.AST.Declaration exposing (viewDeclarations)
-import Dict exposing (Dict, map, toList, values)
+import Dict exposing (Dict, map, toList, values, keys)
 import Elm.Syntax.Exposing exposing (..)
 
 
@@ -192,7 +192,7 @@ viewModuleDetailContent file model =
                     h2[][ text "Used modules" ],
                     hr[ style "width" "20%" ][],
                     let
-                        usedModules = Set.toList file.calledModules
+                        usedModules = keys file.calledModules
                     in
                         if List.length usedModules == 0 then
                             div[ class "explanation" ][ text "None" ]
