@@ -17,7 +17,7 @@ import Html.Events exposing (onClick)
 import Set exposing (union, empty, insert)
 import Dashboard.Components.FileSelector as FileSelector exposing (..)
 import Analyser.Metrics.Metric as Metric exposing (..)
-import Dict exposing (Dict, map, values, keys, fromList)
+import Dict exposing (Dict, map, values, keys, fromList, empty)
 import Analyser.File exposing (File_, wrapElmFile, wrapOtherFile)
 import Analyser.AST.Parser exposing (parseRawFile)
 import Analyser.AST.Helper as Helper exposing (mainPipeline)
@@ -98,16 +98,13 @@ wrapMyFile files =
                                 ) Set.empty val.calledModules)
                                 set
                             ) Set.empty declarations
-                        calledDeclarations = Set.empty
-                            -- List.foldl (\val set -> 
-                            --     Set.union
-                            --     (List.foldl(\val2 set2 -> 
-                            --         Set.insert val2 set2
-                            --     ) Set.empty val.calledDecl)
-                            --     set
-                            -- ) Set.empty declarations
+
+                        calledModulesCount = 
+                            List.foldl(\val acc -> 
+                               acc
+                            ) [] declarations
                     in
-                        wrapElmFile file declarations calledModules calledDeclarations
+                        wrapElmFile file declarations calledModules Set.empty
                 Nothing ->
                     wrapOtherFile file
 
