@@ -331,10 +331,10 @@ calculateMetrics files =
                 ("NoA", initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
                 ("CA", initWithValues "CA" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ca)), 
                 ("CE", initWithValues "CE" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ce)), 
-                ("CA(d)", initWithValues "CA(d)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) cad)), 
-                ("CE(d)", initWithValues "CE(d)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ced)), 
+                ("CA(w)", initWithValues "CA(w)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) cad)), 
+                ("CE(w)", initWithValues "CE(w)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ced)), 
                 ("Instability", initWithValues "Instability" 0 0 ModuleMetric (calculateInstability ca ce)),
-                ("Instability(d)", initWithValues "Instability(d)" 0 0 ModuleMetric (calculateInstability cad ced)),
+                ("Instability(w)", initWithValues "Instability(w)" 0 0 ModuleMetric (calculateInstability cad ced)),
                 ("NoL", initWithValues "NoL" 0 0 ModuleMetric (calculateNoL files)),
                 ("LS", initWithValues "LS" 0 0 ModuleMetric (calculateLS files)),
                 ("CBM", initWithValues "CBM" 0 0 ModuleMetric (calculateCBM files))

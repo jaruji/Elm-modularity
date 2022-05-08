@@ -100,9 +100,20 @@ wrapMyFile files =
                             ) Set.empty declarations
 
                         calledModulesCount = 
-                            List.foldl(\val acc -> 
-                               acc
-                            ) [] declarations
+                            List.foldl (\val dict -> 
+                                Dict.union
+                                dict
+                                (List.foldl(\val2 dict2 -> 
+                                    let
+                                        dictVal = Dict.get val2 dict2
+                                    in
+                                        case dictVal of
+                                            Just value ->
+                                                Dict.insert val2 (value + 1) dict2
+                                            Nothing ->
+                                                Dict.insert val2 1 dict2
+                                ) Dict.empty val.calledModules)
+                            ) Dict.empty declarations
                         
                     in
                         wrapElmFile file declarations calledModules Set.empty
