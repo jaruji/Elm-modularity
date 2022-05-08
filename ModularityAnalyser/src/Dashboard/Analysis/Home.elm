@@ -66,7 +66,7 @@ fileSelectorHelper model (fileSelector, cmd) =
                     { model | status = Loading } 
                 FileSelector.Success ->
                     let
-                        files = wrapMyFile fileSelector.files
+                        files = Helper.addCalledByModules ( wrapMyFile fileSelector.files )
                     in
                         { model | status = Success (calculateMetrics files), files = files}
                 _ ->
@@ -103,6 +103,7 @@ wrapMyFile files =
                             List.foldl(\val acc -> 
                                acc
                             ) [] declarations
+                        
                     in
                         wrapElmFile file declarations calledModules Set.empty
                 Nothing ->

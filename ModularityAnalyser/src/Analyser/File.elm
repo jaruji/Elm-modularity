@@ -13,14 +13,14 @@ type alias File_ =
         ast : Maybe Elm.RawFile.RawFile,
         declarations: List Declaration_,
         calledModules: Set String,
-        calledDeclarations: Set String
+        calledByModules: Set String
     }
 
 wrapElmFile: MyFile -> List Declaration_ -> Set String -> Set String -> File_
 wrapElmFile {buff, path, name, content, ast, status} declarations setM setD =
-    { name = name, content = content, ast = ast, declarations = declarations, calledModules = setM, calledDeclarations = setD}
+    { name = name, content = content, ast = ast, declarations = declarations, calledModules = setM, calledByModules = setD}
 
 wrapOtherFile: MyFile -> File_
 wrapOtherFile {buff, path, name, content, ast, status} =
-    { name = name, content = content, ast = ast, declarations = [], calledModules =  Set.empty, calledDeclarations = Set.empty}
+    { name = name, content = content, ast = ast, declarations = [], calledModules =  Set.empty, calledByModules = Set.empty}
     

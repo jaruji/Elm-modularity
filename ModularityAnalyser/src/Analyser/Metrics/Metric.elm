@@ -4,7 +4,7 @@ import Dict exposing (Dict, get, foldl, map, values, keys, fromList)
 import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
 import Round exposing (round, roundNum)
-import Set exposing (size, member)
+import Set exposing (size, member, union)
 import Analyser.Metrics.Thresholds exposing (..)
 
 
@@ -295,6 +295,18 @@ calculateInstability caList ceList =
                 initValue (Tuple.first ca) (roundNum decimals (ceVal/(ceVal + caVal)))
     ) caList ceList
 
+calculateCBM: List File_ -> List Value
+calculateCBM files =
+    List.foldl(\file acc -> 
+        case file.ast of
+            Just ast ->
+                    let
+                        set = Set.union file.calledByModules file.calledModules
+                    in
+                        initValue (getModuleNameRaw ast) ((Set.size set) |> toFloat) :: acc
+            Nothing ->
+                acc
+    ) [] files
 
 
 
@@ -324,7 +336,8 @@ calculateMetrics files =
                 ("Instability", initWithValues "Instability" 0 0 ModuleMetric (calculateInstability ca ce)),
                 ("Instability(d)", initWithValues "Instability(d)" 0 0 ModuleMetric (calculateInstability cad ced)),
                 ("NoL", initWithValues "NoL" 0 0 ModuleMetric (calculateNoL files)),
-                ("LS", initWithValues "LS" 0 0 ModuleMetric (calculateLS files))
+                ("LS", initWithValues "LS" 0 0 ModuleMetric (calculateLS files)),
+                ("CBM", initWithValues "CBM" 0 0 ModuleMetric (calculateCBM files))
             ]
         )
 

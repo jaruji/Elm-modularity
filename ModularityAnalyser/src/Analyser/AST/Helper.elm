@@ -23,6 +23,7 @@ import Dict exposing (Dict, map, values)
 import List.Extra exposing (find)
 import Analyser.AST.Declaration exposing (Declaration_)
 import Set exposing (Set, member, fromList, toList, diff)
+import Analyser.File exposing (File_)
 
 
 --pipeline that calculates the relationship between modules, metrics CA CE and Instability, even LS and NOL
@@ -212,6 +213,66 @@ getModuleByName name list =
                 Nothing
             Just raw ->
                 Just raw
+
+addCalledByModules: List File_ -> List File_
+addCalledByModules files =
+    List.foldl(\file1 acc1 ->
+        {
+            file1 | calledByModules = 
+                Set.fromList (List.foldl(\file2 acc2 ->
+                    case file1.ast of
+                        Just ast ->
+                            if Set.member (getModuleNameRaw ast) file2.calledModules then
+                                case file2.ast of
+                                    Just ast2 ->
+                                        (getModuleNameRaw ast2) :: acc2
+                                    Nothing ->
+                                        acc2
+                            else
+                                acc2
+                        Nothing ->
+                            acc2               
+                ) [] files)
+        } :: acc1
+    ) [] files
+
+
+
+    --     List.foldl(\file acc ->
+    --         acc
+    --         ++
+    --         case file.ast of
+    --             Just ast ->
+    --                 List.foldl(\file2 acc2 ->
+    --                     { file | calledByModules =
+    --                         case file2.ast of
+    --                             Just ast2 ->
+    --                                 Set.foldl(\moduleName acc3 -> 
+    --                                     if(getModuleNameRaw ast) == moduleName then
+    --                                         Set.insert (getModuleNameRaw ast2) acc3
+    --                                     else
+    --                                         acc3
+    --                                 ) file.calledByModules file2.calledModules
+    --                             Nothing ->
+    --                                 file.calledByModules
+    --                     } :: acc2
+    --                 ) [] files
+    --             Nothing ->
+    --                 acc
+    --     )[] files
+
+        -- List.foldl(\file2 acc ->
+        --     acc
+        --     ++
+        --     List.foldl(\mod acc2 -> 
+        --         case file2.ast of
+        --             Just ast2 ->
+        --                 if(Helper.getModuleNameRaw ast) == mod then
+        --                     (Helper.getModuleNameRaw ast2) :: acc2
+        --                 else
+        --                     acc2
+        --     ) [] file2.calledModules
+        -- ) [] files
 
 findUnusedImports: List Import -> List String -> List String
 findUnusedImports allImports usedImports =

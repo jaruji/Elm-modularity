@@ -188,7 +188,7 @@ viewModuleDetailContent file model =
                 div[ class "body" ][
                     h2[][ text "Exposed declarations" ],
                     hr[ style "width" "20%" ][],
-                    div[ class "explanation" ] <| (List.map (\val -> text (val ++ ", ")) (Helper.getAllDeclarations ast)),
+                    div[ class "div-special" ] <| (List.map (\val -> text (val ++ ", ")) (Helper.getAllDeclarations ast)),
                     h2[][ text "Used modules" ],
                     hr[ style "width" "20%" ][],
                     let
@@ -197,7 +197,16 @@ viewModuleDetailContent file model =
                         if List.length usedModules == 0 then
                             div[ class "explanation" ][ text "None" ]
                         else
-                            div[ class "explanation" ] ( List.map(\mod -> div[][ text mod ]) usedModules )
+                            div[ class "div-special" ] ( List.map(\mod -> div[][ text mod ]) usedModules )
+                        ,h2[][ text "Used by modules" ],
+                        hr[ style "width" "20%" ][],
+                        let
+                            usedByModules = Set.toList file.calledByModules
+                        in
+                            if List.length usedByModules == 0 then
+                                div[ class "explanation" ][ text "None" ]
+                            else
+                                div[ class "div-special" ] ( List.map(\mod -> div[][ text mod ]) usedByModules )
                         ,h2[][ text "Declarations" ],
                         hr[ style "width" "20%" ][],
                         List.map(\dec -> viewDeclarations dec) (file.declarations) |> div[],
