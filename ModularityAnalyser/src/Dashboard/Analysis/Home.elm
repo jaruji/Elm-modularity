@@ -99,19 +99,17 @@ wrapMyFile files =
                         --         set
                         --     ) Set.empty declarations
 
-                        calledModules = 
-                            List.foldl (\val dict -> 
+                        calledModules =
+                            --doesn't count correctly, why? 
+                            List.foldl (\dec dict -> 
                                 Dict.union
-                                (List.foldl(\val2 dict2 -> 
-                                    let
-                                        dictVal = Dict.get val2 dict2
-                                    in
-                                        case dictVal of
-                                            Just _ ->
-                                                Dict.update val2 (Maybe.map(\sum -> sum + 1)) dict2
-                                            Nothing ->
-                                                Dict.insert val2 1 dict2
-                                ) Dict.empty val.calledModules)
+                                (List.foldl(\mod dict2 -> 
+                                    case Dict.member mod dict2 of
+                                        True ->
+                                            Dict.update mod (Maybe.map(\sum -> sum + 1)) dict2
+                                        False ->
+                                            Dict.insert mod 1 dict2
+                                ) Dict.empty dec.calledModules)
                                 dict
                             ) Dict.empty declarations
                     in
