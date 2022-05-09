@@ -12,7 +12,7 @@ import Html.Styled exposing(toUnstyled)
 import Time exposing (..)
 import File exposing (..)
 import List exposing (length)
-import List.Extra exposing (find)
+import List.Extra exposing (find, gatherEquals)
 import Html.Events exposing (onClick)
 import Set exposing (union, empty, insert)
 import Dashboard.Components.FileSelector as FileSelector exposing (..)
@@ -100,18 +100,20 @@ wrapMyFile files =
                         --     ) Set.empty declarations
 
                         calledModules =
-                            --doesn't count correctly, why? 
-                            List.foldl (\dec dict -> 
-                                Dict.union
-                                (List.foldl(\mod dict2 -> 
-                                    case Dict.member mod dict2 of
-                                        True ->
-                                            Dict.update mod (Maybe.map(\sum -> sum + 1)) dict2
-                                        False ->
-                                            Dict.insert mod 1 dict2
-                                ) Dict.empty dec.calledModules)
-                                dict
-                            ) Dict.empty declarations
+                            --finally works
+                            Dict.fromList(
+                                List.map(\(x, y) -> (x , 1 + List.length y))(
+                                    gatherEquals(
+                                        List.foldl(\dec acc1 ->
+                                            acc1
+                                            ++
+                                            List.foldl(\mod acc2 ->
+                                                mod :: acc2
+                                            ) [] (Set.toList (Set.fromList dec.calledModules))
+                                        ) [] declarations
+                                    )
+                                )
+                            )
                     in
                         wrapElmFile file declarations calledModules Set.empty
                 Nothing ->
