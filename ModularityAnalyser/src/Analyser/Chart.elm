@@ -131,6 +131,22 @@ viewMetricBarplot name avg metrics =
             CA.y1 avg,
             CA.x2 p.x.max,
             CA.dashed [ 10, 10 ],
+            CA.color CA.green,
+            CA.width 5
+          ],
+          C.line[ 
+            CA.x1 p.x.min,
+            CA.y1 0,
+            CA.x2 p.x.max,
+            CA.dashed [ 10, 10 ],
+            CA.color CA.red,
+            CA.width 5
+          ],
+          C.line[ 
+            CA.x1 p.x.min,
+            CA.y1 0,
+            CA.x2 p.x.max,
+            CA.dashed [ 10, 10 ],
             CA.color CA.red,
             CA.width 5
           ]
