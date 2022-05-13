@@ -17,6 +17,7 @@ type alias Metric =
         name: String,
         upperThreshold: Float,
         lowerThreshold: Float,
+        description: String,
         metricType: MetricType,
         values: List Value,
         averageValue: Float
@@ -34,11 +35,11 @@ type alias Value =
 
 init: String -> Float -> Float -> MetricType -> Metric
 init string lower upper mType =
-    ({ name = string, upperThreshold = upper, lowerThreshold = lower, metricType = mType, values = [], averageValue = 0.0})
+    ({ name = string, upperThreshold = upper, lowerThreshold = lower, description = "", metricType = mType, values = [], averageValue = 0.0})
 
-initWithValues: String -> Float -> Float -> MetricType -> List Value -> Metric
-initWithValues string lower upper mType values =
-    ({ name = string, upperThreshold = upper, lowerThreshold = lower, metricType = mType, values = values, averageValue = 0.0})
+initWithValues: String -> Float -> Float -> String -> MetricType -> List Value -> Metric
+initWithValues string lower upper desc mType values =
+    ({ name = string, upperThreshold = upper, lowerThreshold = lower, description = desc, metricType = mType, values = values, averageValue = 0.0})
 
 initValue: String -> Float -> Value
 initValue dec val =
@@ -323,21 +324,21 @@ calculateMetrics files =
         ) 
         (
             fromList[ 
-                ("LOC", initWithValues "LOC" 0 0 ModuleMetric (calculateLOC files)),
+                ("LOC", initWithValues "LOC" 0 0 "Lines of code metric displays the count of the real lines of code, without empty lines." ModuleMetric (calculateLOC files)),
                 -- ("Comments", initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
-                ("NoF", initWithValues "NoF" 0 0 ModuleMetric (calculateNoF files)), 
-                ("NoD", initWithValues "NoD" 0 0 ModuleMetric (calculateNoD files)), 
-                ("NoT", initWithValues "NoT" 0 0 ModuleMetric (calculateNoT files)), 
-                ("NoA", initWithValues "NoA" 0 0 ModuleMetric (calculateNoA files)), 
-                ("CA", initWithValues "CA" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ca)), 
-                ("CE", initWithValues "CE" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ce)), 
-                ("CA(w)", initWithValues "CA(w)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) cad)), 
-                ("CE(w)", initWithValues "CE(w)" 0 0 ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ced)), 
-                ("Instability", initWithValues "Instability" 0 0 ModuleMetric (calculateInstability ca ce)),
-                ("Instability(w)", initWithValues "Instability(w)" 0 0 ModuleMetric (calculateInstability cad ced)),
-                ("NoL", initWithValues "NoL" 0 0 ModuleMetric (calculateNoL files)),
-                ("LS", initWithValues "LS" 0 0 ModuleMetric (calculateLS files)),
-                ("CBM", initWithValues "CBM" 0 0 ModuleMetric (calculateCBM files))
+                ("NoF", initWithValues "NoF" 0 0 "Number of functions metric represents the number of function declarations in a module." ModuleMetric (calculateNoF files)), 
+                ("NoD", initWithValues "NoD" 0 0 "Number of declarations metric represents the number of all declarations in a module." ModuleMetric (calculateNoD files)), 
+                ("NoT", initWithValues "NoT" 0 0 "Number of types metric represents the number of type declarations in a module." ModuleMetric (calculateNoT files)), 
+                ("NoA", initWithValues "NoA" 0 0 "Number of aliases metric represents the number of type alias declarations in a module." ModuleMetric (calculateNoA files)), 
+                ("CA", initWithValues "CA" 0 0 "Afferent coupling..." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ca)), 
+                ("CE", initWithValues "CE" 0 0 "Efferent coupling..." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ce)), 
+                ("CA(w)", initWithValues "CA(w)" 0 0 "Weighted afferent coupling" ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) cad)), 
+                ("CE(w)", initWithValues "CE(w)" 0 0 "Weighted efferent coupling..." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ced)), 
+                ("Instability", initWithValues "Instability" 0 0 "Instability..." ModuleMetric (calculateInstability ca ce)),
+                ("Instability(w)", initWithValues "Instability(w)" 0 0 "Weighted instability..." ModuleMetric (calculateInstability cad ced)),
+                ("NoL", initWithValues "NoL" 0 0 "Number of lambdas metric represents the number of lambda function declarations in a module." ModuleMetric (calculateNoL files)),
+                ("LS", initWithValues "LS" 0 0 "Lambda score metric represents the ratio of lambda function lines to all lines of code (LOC metric)." ModuleMetric (calculateLS files)),
+                ("CBM", initWithValues "CBM" 0 0 "Coupling between modules..." ModuleMetric (calculateCBM files))
             ]
         )
 

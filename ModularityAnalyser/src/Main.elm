@@ -236,7 +236,7 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Outlined.psychology 20 Inherit ], text "Checkpoints" ]],
 
-                li[][ button[ onClick (ChangePage (HelpPage (Help.getModel Help.init))),
+                li[][ button[ onClick (ChangePage (HelpPage (Help.getModel (Help.init model.metrics)))),
                     case model.dashboard of 
                         HelpPage x -> class "selected"
                         _ -> class ""
