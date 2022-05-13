@@ -1,5 +1,5 @@
 module Analyser.Metrics.Thresholds exposing (..)
 
-loc_low: Float
-loc_low =
+loc_lower: Float
+loc_lower =
     100.0

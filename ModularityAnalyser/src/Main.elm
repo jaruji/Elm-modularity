@@ -107,8 +107,8 @@ update msg model =
                     (model, Cmd.none)
         HelpMsg mesg ->
             case model.dashboard of
-                HelpPage hint ->
-                     ({ model | dashboard = HelpPage hint }, Cmd.none)
+                HelpPage help ->
+                     helpHelper model (Help.update mesg help)
                 _ ->
                     (model, Cmd.none)
         SettingsMsg mesg ->
@@ -149,6 +149,10 @@ moduleDiagramHelper model (mod, cmd) =
 metricsHelper: Model -> (Metrics.Model, Cmd Metrics.Msg) -> (Model, Cmd Msg)
 metricsHelper model (metrics, cmd) =
   ({ model | dashboard = MetricsPage metrics }, Cmd.map MetricsMsg cmd)
+
+helpHelper: Model -> (Help.Model, Cmd Help.Msg) -> (Model, Cmd Msg)
+helpHelper model (help, cmd) =
+  ({ model | dashboard = HelpPage help }, Cmd.map HelpMsg cmd)
 
 
 ---- VIEW ----

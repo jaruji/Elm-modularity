@@ -3,6 +3,7 @@ module Dashboard.Analysis.Help exposing (..)
 import Svg exposing (svg)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onInput)
 import Analyser.File exposing (File_)
 import Analyser.Metrics.Metric exposing (Metric, Value)
 import Dict exposing (Dict, values)
@@ -10,22 +11,26 @@ import Debug exposing (toString)
 
 type alias Model = 
     {
-        metrics: Dict String Metric
+        metrics: Dict String Metric,
+        search: String
     }
 
 type Msg
     = NoOp
+    | UpdateSearch String
 
 
 init: Dict String Metric -> ( Model, Cmd Msg)
 init metrics =
-    ({ metrics = metrics }, Cmd.none)
+    ({ metrics = metrics, search = "" }, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         NoOp ->
             (model, Cmd.none)
+        UpdateSearch search ->
+            ({ model | search = search }, Cmd.none)
 
 view: Model -> Html Msg
 view model =
@@ -35,7 +40,15 @@ view model =
             div[ class "subtext" ][ text "Basic information about used metrics, what they measure and how were the threshold values obtained."]
         ],
         div[ class "main-header" ][],
-        div[] <| List.map viewMetricInfo (values model.metrics)
+        div[ class "explanation" ][
+            input [ id "search", value model.search, placeholder "Search...", onInput UpdateSearch ] []
+        ],
+        div[] <| List.map viewMetricInfo (List.filter (\val ->
+            if String.contains (String.toLower model.search) (String.toLower val.name) then
+                True
+            else
+                False
+        ) (values model.metrics) )
     ]
 
 viewMetricInfo: Metric -> Html msg 

@@ -124,18 +124,18 @@ view model =
                                 input [ id "search", value model.search, placeholder "Search...", onInput UpdateSearch ] []
                             ],
                             div[ class "main-overview" ](
-                                List.map (\file ->
-                                    if String.contains (String.toLower model.search) (String.toLower file.name) then
-                                        lazy viewModuleCard file
+                                List.map (lazy viewModuleCard) (List.filter(\val ->
+                                    if String.contains (String.toLower model.search) (String.toLower val.name) then
+                                        True
                                     else
-                                        text ""
-                                ) model.files
+                                        False
+                                ) model.files )
                             )
                         ]
                 
                     Detail file ->
                         div[][
-                                viewModuleDetailContent file model
+                            viewModuleDetailContent file model
                         ]
         ]
 

@@ -185,10 +185,10 @@ view model =
                                     h2[ style "margin" "25px" ][ text "Modularity heatmap"],
                                     -- div[] <| (List.map(\val -> div[] <| List.map(\val2 -> text ((val2 |> Debug.toString) ++ " ")) val ) (constructAdjacencyMatrix model.files)),
                                     div[ class "explanation"][
-                                        text "Heatmap visualizing the number of calls between each module."
+                                        text "Heatmap visualizing the number of calls between each module. Color changes based on the severity of the dependency between two modules."
                                     ],
-                                    div[ class "chart-cards", style "height" "1000px"][
-                                        div[ class "chartcard", style "margin" "auto" ][
+                                    div[ class "chart-cards", style "min-height" "400px", style "max-width" "100%"][
+                                        div[ class "chartcard" ][
                                             let
                                                 fileNames =
                                                     List.filterMap(\val ->
@@ -199,7 +199,6 @@ view model =
                                                                 Nothing
                                                     ) files
                                             in
-                                                --text ""
                                                 (Chart.viewHeatmap model.heatmap (constructAdjacencyMatrix model.files) fileNames) |> Html.map ChartMsg
                                         ]
                                     ],
@@ -228,7 +227,7 @@ view model =
                                             div[][
                                                 h2[][ text metric.name],
                                                 hr[][],
-                                                div[ class "explanation" ][ text "Here comes the description of the metric" ],
+                                                div[ class "explanation" ][ text metric.description ],
                                                 h3[][ text "Histogram" ],
                                                 div[ class "chart-cards" ][
                                                     div[ class "chartcard" ][
