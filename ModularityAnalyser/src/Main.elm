@@ -25,7 +25,7 @@ import Dashboard.Analysis.Dependencies as Dependencies exposing (Model, update, 
 import Dashboard.Analysis.Metrics as Metrics exposing (Model, update, view)
 import Dashboard.Analysis.ModuleDiagram as ModuleDiagram exposing (Model, update, view)
 import Dashboard.Analysis.Help as Help exposing (Model, update, view)
-import Dashboard.Settings.Settings as Settings exposing (Model, update, view)
+import Dashboard.Analysis.Boilerplate as Boilerplate exposing (Model, update, view)
 import Dashboard.Analysis.Checkpoints as Checkpoints exposing (Model, update, view)
 import Dashboard.Settings.About as About exposing (Model, update, view)
 
@@ -45,7 +45,7 @@ type Dashboard
     | MetricsPage Metrics.Model
     | ModuleDiagramPage ModuleDiagram.Model
     | HelpPage Help.Model
-    | SettingsPage Settings.Model
+    | BoilerplatePage Boilerplate.Model
     | CheckpointsPage Checkpoints.Model
     | AboutPage About.Model
     
@@ -67,7 +67,7 @@ type Msg
     | MetricsMsg Metrics.Msg
     | ModuleDiagramMsg ModuleDiagram.Msg
     | HelpMsg Help.Msg
-    | SettingsMsg Settings.Msg
+    | BoilerplateMsg Boilerplate.Msg
     | CheckpointsMsg Checkpoints.Msg
     | AboutMsg About.Msg
 
@@ -111,10 +111,10 @@ update msg model =
                      helpHelper model (Help.update mesg help)
                 _ ->
                     (model, Cmd.none)
-        SettingsMsg mesg ->
+        BoilerplateMsg mesg ->
             case model.dashboard of
-                SettingsPage set ->
-                     ({ model | dashboard = SettingsPage set }, Cmd.none)
+                BoilerplatePage set ->
+                     ({ model | dashboard = BoilerplatePage set }, Cmd.none)
                 _ ->
                     (model, Cmd.none)
         CheckpointsMsg mesg ->
@@ -177,8 +177,8 @@ view model =
                         ModuleDiagram.view mod |> Html.map ModuleDiagramMsg
                     HelpPage hint ->
                         Help.view hint |> Html.map HelpMsg
-                    SettingsPage set ->
-                        Settings.view set |> Html.map SettingsMsg
+                    BoilerplatePage set ->
+                        Boilerplate.view set |> Html.map BoilerplateMsg
                     CheckpointsPage pref ->
                         Checkpoints.view pref |> Html.map CheckpointsMsg
                     AboutPage abo ->
@@ -228,6 +228,12 @@ viewNav model =
                         _ -> class ""
                     ][ span[][ Filled.analytics 20 Inherit ], text "Metrics" ]],
 
+                li[][ button[ onClick (ChangePage (BoilerplatePage (Boilerplate.getModel (Boilerplate.init model.files)))),
+                    case model.dashboard of 
+                        BoilerplatePage x -> class "selected"
+                        _ -> class ""
+                    ][ span[][ Outlined.addchart 20 Inherit ], text "Boilerplate" ]],
+
                 li[][ button[ onClick (ChangePage (ModuleDiagramPage (ModuleDiagram.getModel (ModuleDiagram.init model.files)))),
                     case model.dashboard of 
                         ModuleDiagramPage x -> class "selected"
@@ -251,12 +257,6 @@ viewNav model =
                         text "Settings"
                     ]
                 ],
-
-                li[][ button[ onClick (ChangePage (SettingsPage (Settings.getModel Settings.init))),
-                    case model.dashboard of 
-                        SettingsPage x -> class "selected"
-                        _ -> class ""
-                    ][ span[][ Outlined.settings 20 Inherit ], text "Settings" ]],
 
                 li[][ button[ onClick (ChangePage (AboutPage (About.getModel About.init))),
                     case model.dashboard of 

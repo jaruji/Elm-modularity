@@ -30,11 +30,18 @@ view model =
             h2[] [ text "About" ],
             div[ class "subtext" ][ text "Basic information about the project." ]
         ],
-        div[ class "main-header" ][
-            text "Header"
-        ],
+        div[ class "main-header" ][],
+        h2[][ text "Introduction"],
         div[ class "explanation" ][
             text "This project was created during solving my Master's thesis on FIIT STU 2022."
+        ],
+        h2[][ text "Used approaches"],
+        div[ class "explanation" ][
+            text "Lorem Ipsum"
+        ],
+        h2[][ text "Obtained results"],
+        div[ class "explanation" ][
+            text "Lorem Ipsum"
         ]
     ]
     

@@ -12,7 +12,6 @@ import Analyser.Metrics.Metric exposing (Value)
 import List exposing (map, filter, drop)
 import RadarChart
 
---this module contains all the chart logic. It has no state nor any functionality except visualizing data through Html messages.
 --It uses the elm-charts library
 
 type alias Model =
@@ -90,15 +89,7 @@ viewHeatmap model matrix filenames =
               ) val
             ) [] matrix
           in
-            List.indexedMap heatmapItem modifiedMatrix
-      -- List.indexedMap heatmapItem
-      --   [ 2, 5, 8, 5, 3
-      --   , 5, 7, 9, 0, 3
-      --   , 2, 4, 6, 3, 5
-      --   , 7, 9, 0, 3, 2
-      --   , 4, 6, 7, 8, 10
-      --   ]
-        
+            List.indexedMap heatmapItem modifiedMatrix        
   , C.each model.hovering <| \_ item ->
       [ C.tooltip item [ CA.center, CA.offset 0, CA.onTopOrBottom ] [] [] ]
   ]
@@ -147,20 +138,3 @@ viewMetricBarplot name avg metrics =
         C.labelAt CA.middle .max [ CA.fontSize 30, CA.moveUp 15 ]
           [ S.text name ]
       ]
-
-viewTemplateGraph : Html msg
-viewTemplateGraph =
-  C.chart
-    [ height 325
-    , width 600
-    ]
-    [ C.xTicks []
-    , C.yTicks []
-    , C.binLabels .label [ CA.moveDown 20 ]
-    , C.yLabels []
-    , C.bars []
-        [ 
-          C.bar .income [ CA.color "pink" ]
-        ]
-        [{income = 1.0, label= "test1"},{income =5, label = "test2"}]
-    ]

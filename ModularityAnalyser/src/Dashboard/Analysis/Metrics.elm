@@ -187,7 +187,11 @@ view model =
                                     div[ class "explanation"][
                                         text "Heatmap visualizing the number of calls between each module. Color changes based on the severity of the dependency between two modules."
                                     ],
-                                    div[ class "chart-cards", style "min-height" "400px", style "max-width" "100%"][
+                                    div[ class "chart-cards", 
+                                        style "height" "auto", 
+                                        style "resize" "horizontal", 
+                                        style "overflow" "hidden", 
+                                        style "width" "1250px"][
                                         div[ class "chartcard" ][
                                             let
                                                 fileNames =
@@ -235,14 +239,6 @@ view model =
                                                     ]
                                                 ]
                                             ]
-                                    -- List.map(\metric -> 
-                                    --     if length metric.values == 0 then 
-                                    --         text ""
-                                    --     else
-                                    --         div[ class "main-overview" ][
-                                    --         Chart.viewMetricBarplot metric.name metric.averageValue metric.values
-                                    --     ]
-                                    -- ) (values model.metrics) |> div[ class "chart-cards" ]
                                 ]
                             Global ->
                                 div[][

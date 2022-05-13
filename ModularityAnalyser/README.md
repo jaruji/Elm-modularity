@@ -686,7 +686,7 @@ Create Elm App uses [elm-test](https://github.com/rtfeldman/node-test-runner) as
 
 #### Travis CI
 
-1. Following the [Travis Getting started](https://docs.travis-ci.com/user/getting-started/) guide for syncing your GitHub repository with Travis. You may need to initialize some settings manually in your [profile](https://travis-ci.org/profile) page.
+1. Following the [Travis Getting started](https://docs.travis-ci.com/user/getting-started/) guide for syncing your GitHub repository with Travis. You may need to initialize some Boilerplate manually in your [profile](https://travis-ci.org/profile) page.
 2. Add a `.travis.yml` file to your git repository.
 
 ```yaml
@@ -851,7 +851,7 @@ npm install -g serve
 serve -s build
 ```
 
-The last command shown above will serve your static site on the port **5000**. Like many of [serve](https://github.com/zeit/serve)’s internal settings, the port can be adjusted using the `-p` or `--port` flags.
+The last command shown above will serve your static site on the port **5000**. Like many of [serve](https://github.com/zeit/serve)’s internal Boilerplate, the port can be adjusted using the `-p` or `--port` flags.
 
 Run this command to get a full list of the options available:
 
@@ -878,7 +878,7 @@ Since netlify runs the build step on their server we need to install create-elm-
   to = "/index.html"
   status = 200
 ```
-#### Step 5: Go to the netlify settings and set the publish directory to `build` and the build command to `npm run build`
+#### Step 5: Go to the netlify Boilerplate and set the publish directory to `build` and the build command to `npm run build`
 This step is important to make sure netlify uses the correct build command.
 
 ### GitHub Pages
@@ -916,9 +916,9 @@ Now run:
 gh-pages -d build
 ```
 
-#### Step 4: Ensure your project’s settings use `gh-pages`
+#### Step 4: Ensure your project’s Boilerplate use `gh-pages`
 
-Finally, make sure **GitHub Pages** option in your GitHub project settings is set to use the `gh-pages` branch:
+Finally, make sure **GitHub Pages** option in your GitHub project Boilerplate is set to use the `gh-pages` branch:
 
 ![GH Pages branch](https://i.imgur.com/HUjEr9l.png)
 

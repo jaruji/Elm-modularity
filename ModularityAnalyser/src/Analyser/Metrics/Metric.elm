@@ -310,7 +310,6 @@ calculateCBM files =
     ) [] files
 
 
-
 calculateMetrics: List File_ -> Dict String Metric
 calculateMetrics files =
     let

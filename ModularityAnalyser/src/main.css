@@ -19,6 +19,10 @@
   color:black;
 }
 
+.helperRow {
+  background-color: lightseagreen;
+}
+
 .main-header {
   display: flex;
   justify-content: space-between;
