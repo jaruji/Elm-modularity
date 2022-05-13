@@ -33,54 +33,71 @@ update msg model =
     OnHover hovering ->
       { model | hovering = hovering }
 
-viewHeatmap: Model -> Html Msg
-viewHeatmap model =
+viewHeatmap: Model -> List (List Int) -> List String -> Html Msg
+viewHeatmap model matrix filenames =
   C.chart
-  [ CA.height 300
-  , CA.width 300
-  , CE.onMouseMove OnHover (CE.getNearest CI.any)
-  , CE.onMouseLeave (OnHover [])
+  [ 
+    CA.height 1000,
+    CA.width 1000,
+    CE.onMouseMove OnHover (CE.getNearest CI.any),
+    CE.onMouseLeave (OnHover [])
   ]
-  [ C.xTicks []
-  , C.xLabels []
-  , C.yTicks []
+  [ C.xTicks [ CA.noGrid ],
+  --, (List.map(\val -> C.xLabel[ CA.rotate 80 ][ S.text val ] ) filenames)
+  C.generate (List.length matrix) C.ints .x [] <| \plane int ->
+    [
+      C.xLabel[ CA.x (toFloat (remainderBy (List.length matrix) int) * 0.4), CA.moveRight 2, CA.rotate 90 ][ S.text "Test" ]
+    ]
+  --, C.xLabel [][ S.text (Debug.toString filenames) ]
+  , C.yTicks [ CA.noGrid ]
   , C.yLabels []
   , C.list <|
       let heatmapItem index value =
-            let x = toFloat (remainderBy 5 index) * 2
-                y = toFloat (index // 5) * 2
+            let x = toFloat (remainderBy (List.length matrix) index) * 0.4
+                y = toFloat (index // (List.length matrix)) * 0.4
                 color =
                   if value > 5 then "darkred" else
                   if value > 3  then "red" else
                   if value > 1  then "yellow" else
                   if value == 1  then "lightgreen"
                   else
-                    "white"
+                    "black"
             in
             C.custom
               { name = "Modularity heatmap"
-              , color = color
-              , position = { x1 = x, x2 = x + 2, y1 = y, y2 = y + 2 }
-              , format = .y >> String.fromFloat >> (\v -> v ++ " C°")
+              , color = "black"
+              , position = { x1 = x, x2 = x + 0.4, y1 = y, y2 = y + 0.4 }
+              , format = .y >> String.fromFloat >> (\v -> v ++ " Calls")
               , data = { x = toFloat index, y = value }
               , render = \p ->
                   CS.rect p
                     [ CA.x1 x
-                    , CA.x2 (x + 2)
+                    , CA.x2 (x + 0.4)
                     , CA.y1 y
-                    , CA.y2 (y + 2)
+                    , CA.y2 (y + 0.4)
                     , CA.color color
                     , CA.border "white"
                     ]
               }
       in
-      List.indexedMap heatmapItem
-        [ 2, 5, 8, 5, 3
-        , 5, 7, 9, 0, 3
-        , 2, 4, 6, 3, 5
-        , 7, 9, 0, 3, 2
-        , 4, 6, 7, 8, 10
-        ]
+        let 
+          modifiedMatrix =
+            List.foldl(\val acc -> 
+              acc 
+              ++
+              List.map(\value -> 
+                value |> toFloat
+              ) val
+            ) [] matrix
+          in
+            List.indexedMap heatmapItem modifiedMatrix
+      -- List.indexedMap heatmapItem
+      --   [ 2, 5, 8, 5, 3
+      --   , 5, 7, 9, 0, 3
+      --   , 2, 4, 6, 3, 5
+      --   , 7, 9, 0, 3, 2
+      --   , 4, 6, 7, 8, 10
+      --   ]
         
   , C.each model.hovering <| \_ item ->
       [ C.tooltip item [ CA.center, CA.offset 0, CA.onTopOrBottom ] [] [] ]

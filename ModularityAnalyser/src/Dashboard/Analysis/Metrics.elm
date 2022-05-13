@@ -14,7 +14,7 @@ import Analyser.Metrics.Metric as Metric exposing (..)
 import Dict exposing (Dict, toList, fromList, map, values, keys, get)
 import Svg.Attributes exposing (in_)
 import List exposing (length)
-import List.Extra exposing (find)
+import List.Extra exposing (find, indexedFoldl)
 import Debug exposing (toString)
 import File.Download as Download
 import Json.Encode as Encode exposing (dict)
@@ -120,6 +120,13 @@ constructCsv metrics =
     Dict.foldl(\key _ acc -> acc ++ key ++ ",") "" metrics
     ++ 
     "\n"
+    ++ List.foldl(\metric acc1-> 
+        acc1 ++ (
+            List.foldl(\val acc2 -> 
+            acc2 ++ (val.value |> Debug.toString) ++ ","
+            ) "" metric.values
+        ) ++ "\n"
+    ) "" (values metrics)
 
 view: Model -> Html Msg
 view model =
@@ -176,11 +183,25 @@ view model =
                                         button[ class "button-special", onClick Export ][ text "Export CSV" ]
                                     ],
                                     h2[ style "margin" "25px" ][ text "Modularity heatmap"],
+                                    -- div[] <| (List.map(\val -> div[] <| List.map(\val2 -> text ((val2 |> Debug.toString) ++ " ")) val ) (constructAdjacencyMatrix model.files)),
                                     div[ class "explanation"][
                                         text "Heatmap visualizing the number of calls between each module."
                                     ],
-                                    div[][
-                                        Chart.viewHeatmap model.heatmap |> Html.map ChartMsg
+                                    div[ class "chart-cards", style "height" "1000px"][
+                                        div[ class "chartcard", style "margin" "auto" ][
+                                            let
+                                                fileNames =
+                                                    List.filterMap(\val ->
+                                                        case val.ast of
+                                                            Just ast ->
+                                                                Just (Helper.getModuleNameRaw ast)
+                                                            Nothing ->
+                                                                Nothing
+                                                    ) files
+                                            in
+                                                --text ""
+                                                (Chart.viewHeatmap model.heatmap (constructAdjacencyMatrix model.files) fileNames) |> Html.map ChartMsg
+                                        ]
                                     ],
                                     h2[ style "margin" "25px" ][ text "Metrics visualization"],
                                     div[ class "explanation"][
@@ -240,6 +261,46 @@ view model =
                     ]
                     
     ]
+
+constructAdjacencyMatrix: List File_ -> List (List Int)
+constructAdjacencyMatrix files =
+    let
+        fileNames = 
+            List.filterMap(\val ->
+                case val.ast of
+                    Just ast ->
+                        Just (Helper.getModuleNameRaw ast)
+                    Nothing ->
+                        Nothing
+            ) files
+        calledModules =
+            List.filterMap(\val ->
+                case val.ast of
+                    Just ast ->
+                        Just val.calledModules
+                    Nothing ->
+                        Nothing
+            ) files
+    in    
+        indexedFoldl(\index dict acc ->
+            (List.foldl(\name acc2 ->
+                case Dict.get name dict of
+                    Just value ->
+                        value :: acc2
+                    Nothing ->
+                        0 :: acc2
+            ) [] fileNames ) :: acc
+        ) [] calledModules
+
+    -- List.foldl(\mod1 index1 acc1 -> 
+
+    -- ) [] calledModules
+
+    -- indexedFoldl(\mod1 index1 acc1 -> 
+    --     indexedFoldl(\mod2 index2 acc2 -> 
+    --         if Dict.get mod1 
+    --     ) (keys calledModules)
+    -- ) [] (keys calledModules)
 
 localTableContent: Dict String Metric -> String -> Html msg
 localTableContent metrics name  =

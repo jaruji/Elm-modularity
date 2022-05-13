@@ -169,9 +169,9 @@ linkElement graph edge =
             y2 target.y,
             markerEnd "url(#arrow)",
             if source.hovered == True then
-                stroke <| Paint <| Color.red
-            else if target.hovered == True then
                 stroke <| Paint <| Color.darkGreen
+            else if target.hovered == True then
+                stroke <| Paint <| Color.red
                 -- attribute "z-index" "5000"
             else
                 stroke <| Paint <| Color.grey
