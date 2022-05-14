@@ -1,6 +1,7 @@
 module Analyser.AST.Parser exposing (..)
 
-import Analyser.AST.Helper exposing (getFunctionLOC, getNodeLOC, moduleNameToString2, getNodeRange)
+import Analyser.AST.Helper exposing (getFunctionLOC, getNodeLOC, moduleNameToString2, getNodeRange, getModuleNameRaw)
+import List.Extra exposing (find)
 import Elm.RawFile exposing (..)
 import Elm.Interface exposing (..)
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -24,6 +25,7 @@ import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import List exposing (length)
 import Analyser.AST.Boilerplate as Boilerplate exposing (Boilerplate_, default, init, Type_(..))
+import Analyser.File exposing (File_)
 
 --best way to store used imports?
 --Dict ModuleName (List Import_)
@@ -294,52 +296,141 @@ flattenModuleNameList list =
 -- parseQNameRef dec qNameRef =
 --     dec
 
-findBoilerplateRaw: RawFile -> List Boilerplate_
-findBoilerplateRaw raw =
-    findBoilerplate (process Processing.init raw)
+findBoilerplateRaw: RawFile -> List File_ -> List Boilerplate_
+findBoilerplateRaw raw files =
+    let
+        raws =
+            List.filterMap(\val ->
+                case val.ast of
+                    Just ast ->
+                        Just ast
+                    Nothing ->
+                        Nothing
+            ) files
+    in
+        findBoilerplate (process Processing.init raw) raws
 
-findBoilerplate: File -> List Boilerplate_
-findBoilerplate {moduleDefinition, imports, declarations, comments} =
-   locateBoilerplateTypes declarations
+findBoilerplate: File -> List RawFile -> List Boilerplate_
+findBoilerplate {moduleDefinition, imports, declarations, comments} files =
+   locateBoilerplateTypes declarations files
 
-locateBoilerplateTypes: List (Node Declaration) -> List Boilerplate_
-locateBoilerplateTypes decNodeList =
+locateBoilerplateTypes: List (Node Declaration) -> List RawFile -> List Boilerplate_
+locateBoilerplateTypes decNodeList files =
     List.foldl(\val acc ->
         let
             dec = value val
         in
             case dec of
                 CustomTypeDeclaration type_ ->
-                    acc ++ (List.foldl(\node acc2 -> acc2 ++ listBoilerplateTypes (value node)) [] type_.constructors)
+                    acc ++ (List.foldl(\node acc2 -> acc2 ++ listBoilerplateTypes (value node) files) [] type_.constructors)
                 _ ->
                     acc
     ) [] decNodeList
 
-listBoilerplateTypes: ValueConstructor -> List Boilerplate_
-listBoilerplateTypes val =
+listBoilerplateTypes: ValueConstructor -> List RawFile -> List Boilerplate_
+listBoilerplateTypes val files =
     case List.length val.arguments of
         0 ->
             []
         _ ->
-            List.filterMap (\node -> checkBoilerPlateTypeAnnotation (value val.name) (value node)) val.arguments
+            List.filterMap (\node -> checkBoilerPlateTypeAnnotation (value val.name) (value node) files) val.arguments
 
-checkBoilerPlateTypeAnnotation: String -> TypeAnnotation -> Maybe Boilerplate_
-checkBoilerPlateTypeAnnotation name ta =
+checkBoilerPlateTypeAnnotation: String -> TypeAnnotation -> List RawFile -> Maybe Boilerplate_
+checkBoilerPlateTypeAnnotation name ta files =
     case ta of
         Typed node1 node2 ->
+        --disregard node2 for this boilerplate calculation (multiple arguments)
             let
                 typed = value node1
             in
-                Just (Boilerplate.init (getNodeRange node1) Boilerplate.Type_ (name) (
-                    let
-                        nameToStr = moduleNameToString2 (Tuple.first typed)
-                    in
-                    if String.length nameToStr == 0 then
-                        [ Tuple.second typed ]
-                    else
-                        [nameToStr, Tuple.second typed]
-                ))
+                let
+                    boilerplate =
+                        Boilerplate.init (getNodeRange node1) Boilerplate.Type_ (name) (
+                            let
+                                nameToStr = moduleNameToString2 (Tuple.first typed)
+                            in
+                                if String.length nameToStr == 0 then
+                                    [ Tuple.second typed ]
+                                else
+                                    [nameToStr, Tuple.second typed]
+                        )
+                in
+                    verifyBoilerplateType files boilerplate
         _ ->
             Nothing
-            
+
+verifyBoilerplateType: List RawFile -> Boilerplate_ -> Maybe Boilerplate_
+verifyBoilerplateType files boilerplate =
+    let
+        bName = 
+            if List.length boilerplate.argument > 1 then
+                case List.head boilerplate.argument of
+                    Just val ->
+                        Just val
+                    Nothing ->
+                        Nothing
+            else
+                Nothing
+        tName =
+            if List.length boilerplate.argument > 1 then
+                case List.head (List.reverse boilerplate.argument) of
+                    Just val ->
+                        Just val
+                    Nothing ->
+                        Nothing
+            else
+                Nothing
+    in
+        case bName of
+            Nothing ->
+                Nothing
+            Just bpName ->
+                let
+                    file = 
+                        find(\val ->
+                            let
+                                name = getModuleNameRaw val
+                            in
+                                if bpName == name then
+                                    True
+                                else
+                                    False
+                        ) files
+                in 
+                    case file of
+                        Nothing ->
+                            Nothing
+                        Just raw ->
+                            let
+                                processed = process Processing.init raw
+                            in
+                                let
+                                    lookup = 
+                                        find(\val ->
+                                            let
+                                                dec = value val
+                                            in
+                                                case dec of
+                                                    CustomTypeDeclaration type_ ->
+                                                        case tName of
+                                                            Nothing ->
+                                                                False
+                                                            Just tyName ->
+                                                                if value type_.name == tyName then
+                                                                    True
+                                                                else
+                                                                    False
+                                                    _ ->
+                                                        False
+                                        ) processed.declarations
+                                in
+                                    case lookup of
+                                        Nothing ->
+                                            Nothing
+                                        Just _ ->
+                                            Just boilerplate
+
+-- verifyModuleModelPresence:
+
+
 --locateUpdate: List Declaration

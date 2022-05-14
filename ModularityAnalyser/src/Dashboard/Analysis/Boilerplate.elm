@@ -49,7 +49,7 @@ view model =
                                 Just ast ->
                                     div[][
                                         h2[][ text (getModuleNameRaw ast)],
-                                        div[] <| List.map(\node -> viewBoilerplate node) (Parser.findBoilerplateRaw ast)
+                                        div[] <| List.map(\node -> viewBoilerplate node) (Parser.findBoilerplateRaw ast model.files)
                                     ]
                                 _ ->
                                     text ""
