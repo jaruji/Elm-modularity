@@ -2,6 +2,7 @@ module Analyser.AST.Declaration exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Debug exposing (toString)
+import List
 
 type alias Declaration_ =
     {

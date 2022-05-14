@@ -1,6 +1,6 @@
 module Analyser.AST.Parser exposing (..)
 
-import Analyser.AST.Helper exposing (getFunctionLOC, getNodeLOC)
+import Analyser.AST.Helper exposing (getFunctionLOC, getNodeLOC, moduleNameToString2, getNodeRange)
 import Elm.RawFile exposing (..)
 import Elm.Interface exposing (..)
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -23,6 +23,7 @@ import Analyser.AST.Declaration as Custom exposing (Declaration_)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation)
 import Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..))
 import List exposing (length)
+import Analyser.AST.Boilerplate as Boilerplate exposing (Boilerplate_, default, init, Type_(..))
 
 --best way to store used imports?
 --Dict ModuleName (List Import_)
@@ -292,3 +293,53 @@ flattenModuleNameList list =
 -- parseQNameRef: Declaration_ -> QualifiedNameRef -> Declaration_
 -- parseQNameRef dec qNameRef =
 --     dec
+
+findBoilerplateRaw: RawFile -> List Boilerplate_
+findBoilerplateRaw raw =
+    findBoilerplate (process Processing.init raw)
+
+findBoilerplate: File -> List Boilerplate_
+findBoilerplate {moduleDefinition, imports, declarations, comments} =
+   locateBoilerplateTypes declarations
+
+locateBoilerplateTypes: List (Node Declaration) -> List Boilerplate_
+locateBoilerplateTypes decNodeList =
+    List.foldl(\val acc ->
+        let
+            dec = value val
+        in
+            case dec of
+                CustomTypeDeclaration type_ ->
+                    acc ++ (List.foldl(\node acc2 -> acc2 ++ listBoilerplateTypes (value node)) [] type_.constructors)
+                _ ->
+                    acc
+    ) [] decNodeList
+
+listBoilerplateTypes: ValueConstructor -> List Boilerplate_
+listBoilerplateTypes val =
+    case List.length val.arguments of
+        0 ->
+            []
+        _ ->
+            List.filterMap (\node -> checkBoilerPlateTypeAnnotation (value val.name) (value node)) val.arguments
+
+checkBoilerPlateTypeAnnotation: String -> TypeAnnotation -> Maybe Boilerplate_
+checkBoilerPlateTypeAnnotation name ta =
+    case ta of
+        Typed node1 node2 ->
+            let
+                typed = value node1
+            in
+                Just (Boilerplate.init (getNodeRange node1) Boilerplate.Type_ (name) (
+                    let
+                        nameToStr = moduleNameToString2 (Tuple.first typed)
+                    in
+                    if String.length nameToStr == 0 then
+                        [ Tuple.second typed ]
+                    else
+                        [nameToStr, Tuple.second typed]
+                ))
+        _ ->
+            Nothing
+            
+--locateUpdate: List Declaration

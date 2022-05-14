@@ -3,8 +3,9 @@ module Dashboard.Analysis.Boilerplate exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Analyser.File exposing (File_)
-import Analyser.AST.Helper
-import Analyser.AST.Parser
+import Analyser.AST.Helper as Helper exposing (getModuleNameRaw)
+import Analyser.AST.Parser as Parser exposing (findBoilerplateRaw)
+import Analyser.AST.Boilerplate exposing (Boilerplate_)
 
 type alias Model = 
     {
@@ -42,9 +43,29 @@ view model =
                         div[ class "main-header" ][],
                         div[ class "explanation" ][
                             text "The purpose of this page is to provide functionality regarding boilerplate pattern detection in Elm modules."
-                        ]
+                        ],
+                        div[](List.map(\val -> 
+                            case val.ast of
+                                Just ast ->
+                                    div[][
+                                        h2[][ text (getModuleNameRaw ast)],
+                                        div[] <| List.map(\node -> viewBoilerplate node) (Parser.findBoilerplateRaw ast)
+                                    ]
+                                _ ->
+                                    text ""
+                        ) model.files )
+                            
                     ]
                     
+    ]
+
+viewBoilerplate: Boilerplate_ -> Html msg
+viewBoilerplate boilerplate =
+    div[][
+        text (boilerplate.name),
+        text "  ",
+        text (String.join "." boilerplate.argument),
+        text (" - " ++ Debug.toString boilerplate.range)
     ]
 
 getModel: (Model, Cmd Msg) -> Model

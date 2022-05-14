@@ -188,10 +188,9 @@ view model =
                                         text "Heatmap visualizing the number of calls between each module. Color changes based on the severity of the dependency between two modules."
                                     ],
                                     div[ class "chart-cards", 
-                                        style "height" "auto", 
-                                        style "resize" "horizontal", 
-                                        style "overflow" "hidden", 
-                                        style "width" "1250px"][
+                                        --style "resize" "horizontal", 
+                                        --style "overflow" "hidden", 
+                                        style "width" "100%"][
                                         div[ class "chartcard" ][
                                             let
                                                 fileNames =

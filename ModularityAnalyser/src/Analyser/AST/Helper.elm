@@ -429,6 +429,10 @@ moduleNameToList: ModuleName -> List String
 moduleNameToList modules =
     modules
 
+moduleNameToString2: ModuleName -> String
+moduleNameToString2 name =
+    String.join "." name
+
 rawFileToString: RawFile -> String
 rawFileToString ast =
     write (writeFile (processRawFile ast))
