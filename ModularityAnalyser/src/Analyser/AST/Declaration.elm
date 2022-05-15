@@ -44,8 +44,7 @@ viewDeclarations decl =
                 th[][text "Lambda Count"],
                 th[][text "Lambda Lines"],
                 th[][text "Case branches"],
-                th[][text "Indegree"],
-                th[][text "Outdegree"]
+                th[][text "Indegree"]
             ],
             tbody[][
                 tr[][
@@ -53,8 +52,7 @@ viewDeclarations decl =
                     td[][ text (decl.lambdaCount |> toString) ],
                     td[][ text (decl.lambdaLines |> toString) ],
                     td[][ text (decl.caseCount |> toString) ],
-                    td[][ text ((List.length decl.calledModules) |> toString) ],
-                    td[][ text ("?") ]
+                    td[][ text ((List.length decl.calledModules) |> toString) ]
                 ]
             ]
         ],

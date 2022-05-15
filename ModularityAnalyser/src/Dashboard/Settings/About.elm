@@ -33,15 +33,18 @@ view model =
         div[ class "main-header" ][],
         h2[][ text "Introduction"],
         div[ class "explanation" ][
-            text "This project was created during solving my Master's thesis on FIIT STU 2022."
+            text "This project was created as a result of solving my Master's thesis on FIIT STU 2022."
         ],
         h2[][ text "Used approaches"],
         div[ class "explanation" ][
-            text "Lorem Ipsum"
+            text """This analytical tool is one of the obtained results, along with the metrics and their threshold values.
+            Threshold values were calculated over the dataset of few Elm modules by using quartiles. """
         ],
         h2[][ text "Obtained results"],
         div[ class "explanation" ][
-            text "Lorem Ipsum"
+            text """ Metrics and the analytical tool were
+            used to objectively compare approaches to integrating reusable components. Results of this comparation are a key part of this work,
+            along with this tool and defined metrics. """
         ]
     ]
     
