@@ -1,5 +1,5 @@
 module Analyser.Metrics.Metric exposing (..)
-import List exposing (length)
+import List exposing (length, sortBy)
 import List.Extra exposing (getAt)
 import Dict exposing (Dict, get, foldl, map, values, keys, fromList)
 import Analyser.File exposing (File_)
@@ -73,7 +73,7 @@ medianMetric: Metric -> Float
 medianMetric metric =
     let
         n = (List.length metric.values) |> toFloat
-        values = metric.values
+        values = List.sortBy(\val -> val.value) metric.values
     in
         let
             median = 
