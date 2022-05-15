@@ -202,7 +202,7 @@ view model =
                                                 h3[][ text "Histogram" ],
                                                 div[ class "chart-cards" ][
                                                     div[ class "chartcard" ][
-                                                        Chart.viewMetricBarplot metric.name metric.averageValue metric.values
+                                                        Chart.viewMetricBarplot metric.name metric.averageValue metric.lowerThreshold metric.upperThreshold metric.values
                                                     ]
                                                 ]
                                             ]
@@ -272,7 +272,7 @@ localTableContent metrics name  =
     List.foldl(\metric acc ->
         case find(\val -> if(val.parentDeclaration == name) then True else False) (Metric.getValues metric) of
             Just num ->
-                acc ++ [ td[][ text (num.value |> toString) ]] 
+                acc ++ [ td[ if metric.upperThreshold < num.value || metric.lowerThreshold > num.value then style "color" "red" else class "" ][ text (num.value |> toString) ]] 
             Nothing ->
                 acc ++ [ td [][ text "--" ] ]
     ) [td[] [ text name ]] (values metrics) |> tr[]

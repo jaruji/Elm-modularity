@@ -95,8 +95,8 @@ viewHeatmap model matrix filenames =
       [ C.tooltip item [ CA.center, CA.offset 0, CA.onTopOrBottom ] [] [] ]
   ]
 
-viewMetricBarplot : String -> Float -> List Value -> Html msg
-viewMetricBarplot name avg metrics =
+viewMetricBarplot : String -> Float -> Float -> Float -> List Value -> Html msg
+viewMetricBarplot name avg lower upper metrics =
   let
       values = 
         List.map(\val -> 
@@ -137,7 +137,7 @@ viewMetricBarplot name avg metrics =
           ],
           C.line[ 
             CA.x1 p.x.min,
-            CA.y1 0,
+            CA.y1 lower,
             CA.x2 p.x.max,
             CA.dashed [ 10, 10 ],
             CA.color CA.red,
@@ -145,7 +145,7 @@ viewMetricBarplot name avg metrics =
           ],
           C.line[ 
             CA.x1 p.x.min,
-            CA.y1 0,
+            CA.y1 upper,
             CA.x2 p.x.max,
             CA.dashed [ 10, 10 ],
             CA.color CA.red,
