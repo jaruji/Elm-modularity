@@ -1,7 +1,7 @@
 module Analyser.AST.Parser exposing (..)
 
 import Analyser.AST.Helper exposing (getFunctionLOC, getNodeLOC, moduleNameToString2, getNodeRange, getModuleNameRaw)
-import List.Extra exposing (find)
+import List.Extra exposing (find, findMap)
 import Elm.RawFile exposing (..)
 import Elm.Interface exposing (..)
 import Elm.Syntax.ModuleName exposing (ModuleName)
@@ -312,31 +312,31 @@ findBoilerplateRaw raw files =
 
 findBoilerplate: File -> List RawFile -> List Boilerplate_
 findBoilerplate {moduleDefinition, imports, declarations, comments} files =
-   locateBoilerplateTypes declarations files
+   locateBoilerplateTypes declarations files imports
 
-locateBoilerplateTypes: List (Node Declaration) -> List RawFile -> List Boilerplate_
-locateBoilerplateTypes decNodeList files =
+locateBoilerplateTypes: List (Node Declaration) -> List RawFile -> List (Node Import)  -> List Boilerplate_
+locateBoilerplateTypes decNodeList files imports =
     List.foldl(\val acc ->
         let
             dec = value val
         in
             case dec of
                 CustomTypeDeclaration type_ ->
-                    acc ++ (List.foldl(\node acc2 -> acc2 ++ listBoilerplateTypes (value node) files) [] type_.constructors)
+                    acc ++ (List.foldl(\node acc2 -> acc2 ++ listBoilerplateTypes (value node) files imports) [] type_.constructors)
                 _ ->
                     acc
     ) [] decNodeList
 
-listBoilerplateTypes: ValueConstructor -> List RawFile -> List Boilerplate_
-listBoilerplateTypes val files =
+listBoilerplateTypes: ValueConstructor -> List RawFile -> List (Node Import) -> List Boilerplate_
+listBoilerplateTypes val files imports =
     case List.length val.arguments of
         0 ->
             []
         _ ->
-            List.filterMap (\node -> checkBoilerPlateTypeAnnotation (value val.name) (value node) files) val.arguments
+            List.filterMap (\node -> checkBoilerPlateTypeAnnotation (value val.name) (value node) files imports) val.arguments
 
-checkBoilerPlateTypeAnnotation: String -> TypeAnnotation -> List RawFile -> Maybe Boilerplate_
-checkBoilerPlateTypeAnnotation name ta files =
+checkBoilerPlateTypeAnnotation: String -> TypeAnnotation -> List RawFile -> List (Node Import) -> Maybe Boilerplate_
+checkBoilerPlateTypeAnnotation name ta files imports =
     case ta of
         Typed node1 node2 ->
         --disregard node2 for this boilerplate calculation (multiple arguments)
@@ -345,92 +345,102 @@ checkBoilerPlateTypeAnnotation name ta files =
             in
                 let
                     boilerplate =
-                        Boilerplate.init (getNodeRange node1) Boilerplate.Type_ (name) (
+                        Boilerplate.init (getNodeRange node1) (Boilerplate.Type_ name) (
                             let
-                                nameToStr = moduleNameToString2 (Tuple.first typed)
+                                moduleName = moduleNameToString2 (Tuple.first typed)
+                                lookup = 
+                                    --first look up if the moduleName of type argument is in imports, if so return that it's a valid 'external' type
+                                    find(\val ->
+                                        let
+                                            import_ = value val
+                                        in
+                                            if moduleNameToString2 (value import_.moduleName) == moduleName then
+                                                True
+                                            else
+                                                False 
+                                    ) imports
                             in
-                                if String.length nameToStr == 0 then
-                                    [ Tuple.second typed ]
-                                else
-                                    [nameToStr, Tuple.second typed]
-                        )
+                                case lookup of
+                                    Just res ->
+                                        Just moduleName
+                                    Nothing ->
+                                        --if I didn't find the moduleName, there is a possibility it's using an alias
+                                        --here we check if aliases exists and if so, if any of them matches our moduleName
+                                        let
+                                            lookup2 =
+                                                findMap(\val -> 
+                                                    let
+                                                        import_= value val
+                                                    in
+                                                        case import_.moduleAlias of
+                                                            Nothing ->
+                                                                Nothing
+                                                            Just res ->
+                                                                let
+                                                                    alias_ = value res
+                                                                in
+                                                                    if moduleNameToString2 alias_ == moduleName then
+                                                                        Just (moduleNameToString2 (value import_.moduleName))
+                                                                    else
+                                                                        Nothing
+                                                ) imports
+                                        in
+                                            case lookup2 of
+                                                Nothing ->
+                                                    Nothing
+                                                Just modName ->
+                                                    --we found a match with one alias, so we return the full moduleName belonging to this alias
+                                                    Just modName
+                        ) (Tuple.second typed)
                 in
+                    --in this function we need to filter out the results
+                    --first of all remove all values that have no moduleName defined (primitive types, etc.)
+                    --next we need to check if we are dealing with a type (what we are looking for), alias (not boilerplate) or maybe even a function (not boilerplate)
                     verifyBoilerplateType files boilerplate
         _ ->
             Nothing
 
 verifyBoilerplateType: List RawFile -> Boilerplate_ -> Maybe Boilerplate_
 verifyBoilerplateType files boilerplate =
-    let
-        bName = 
-            if List.length boilerplate.argument > 1 then
-                case List.head boilerplate.argument of
-                    Just val ->
-                        Just val
+    case boilerplate.moduleName of
+        Just moduleName ->
+            let
+                file = 
+                    find(\val ->
+                        let
+                            name = getModuleNameRaw val
+                        in
+                            if moduleName == name then
+                                True
+                            else
+                                --check alias!!
+                                False
+                    ) files
+            in
+                case file of
                     Nothing ->
                         Nothing
-            else
-                Nothing
-        tName =
-            if List.length boilerplate.argument > 1 then
-                case List.head (List.reverse boilerplate.argument) of
-                    Just val ->
-                        Just val
-                    Nothing ->
-                        Nothing
-            else
-                Nothing
-    in
-        case bName of
-            Nothing ->
-                Nothing
-            Just bpName ->
-                let
-                    file = 
-                        find(\val ->
-                            let
-                                name = getModuleNameRaw val
-                            in
-                                if bpName == name then
-                                    True
-                                else
-                                    False
-                        ) files
-                in 
-                    case file of
-                        Nothing ->
-                            Nothing
-                        Just raw ->
-                            let
-                                processed = process Processing.init raw
-                            in
-                                let
-                                    lookup = 
-                                        find(\val ->
-                                            let
-                                                dec = value val
-                                            in
-                                                case dec of
-                                                    CustomTypeDeclaration type_ ->
-                                                        case tName of
-                                                            Nothing ->
-                                                                False
-                                                            Just tyName ->
-                                                                if value type_.name == tyName then
-                                                                    True
-                                                                else
-                                                                    False
-                                                    _ ->
-                                                        False
-                                        ) processed.declarations
-                                in
-                                    case lookup of
-                                        Nothing ->
-                                            Nothing
-                                        Just _ ->
-                                            Just boilerplate
-
--- verifyModuleModelPresence:
-
-
---locateUpdate: List Declaration
+                    Just module_ ->
+                        let
+                            processed = process Processing.init module_
+                        in
+                            case find(\val ->
+                                case value val of
+                                    CustomTypeDeclaration type_ ->
+                                        --filter out only results which call a type of different module. This is the basis for boilerplate detection,
+                                        --now we need to execute additional steps (check if this module's Model (or any alias) is used on our module's alias)
+                                        --next we need to check how this type is handled in update and locate any helper functions that are boilerplate too
+                                        if value type_.name == boilerplate.argument then
+                                            True
+                                        else
+                                            False
+                                    _ ->
+                                        False
+                             ) processed.declarations of
+                                Just _ ->
+                                    Just boilerplate
+                                _ ->
+                                    Nothing
+        Nothing ->
+            Nothing
+   

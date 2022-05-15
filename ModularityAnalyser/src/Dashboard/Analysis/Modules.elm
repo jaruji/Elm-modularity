@@ -18,7 +18,6 @@ import Analyser.AST.Helper as Helper exposing (..)
 import SyntaxHighlight exposing (useTheme, monokai, gitHub, elm, toBlockHtml)
 import Json.Decode as Decode exposing(Error)
 import Json.Encode as Encode
-import JsonTree
 import Set exposing (Set, toList)
 import Elm.RawFile exposing (..)
 import List.Extra exposing (getAt)
@@ -32,16 +31,13 @@ type alias Model =
     {
         files: List File_,
         search: String,
-        mode: Mode,
-        astTreeState: JsonTree.State,
-        parsedJson: (Result Decode.Error JsonTree.Node)
+        mode: Mode
     }
 
 type Msg
     = NoOp
     | UpdateSearch String
     | SwapMode File_
-    | SetTreeState JsonTree.State
     | Back
 
 type Mode
@@ -59,9 +55,7 @@ init files =
                     False
         ) files, 
         search = "",
-        mode = Overview,
-        astTreeState = JsonTree.defaultState,
-        parsedJson = JsonTree.parseString """{}"""
+        mode = Overview
     }, Cmd.none)
 
 update: Msg -> Model -> (Model, Cmd Msg)
@@ -76,24 +70,9 @@ update msg model =
                 Overview ->
                     ({ 
                         model | mode = Detail file
-                        , astTreeState = 
-                            case model.parsedJson of
-                                Ok node ->
-                                    JsonTree.defaultState
-                                    -- ((JsonTree.collapseToDepth 1) node model.astTreeState)
-                                _ ->
-                                    JsonTree.defaultState
-                        , parsedJson =  case file.ast of
-                            Just ast ->
-                                JsonTree.parseString """{}"""
-                                -- JsonTree.parseString (Encode.encode 0 (Elm.RawFile.encode ast) )
-                            _ ->
-                                JsonTree.parseString """{}"""
                     }, Cmd.none)
                 Detail _ ->
-                    ({ model | mode = Overview, astTreeState =  JsonTree.defaultState, parsedJson = JsonTree.parseString """{}"""}, Cmd.none)
-        SetTreeState state ->
-            ({ model | astTreeState = state }, Cmd.none)
+                    ({ model | mode = Overview}, Cmd.none)
         Back ->
             ({ model | mode = Overview}, Cmd.none)
 
@@ -137,24 +116,6 @@ view model =
                         div[][
                             viewModuleDetailContent file model
                         ]
-        ]
-
-viewJsonTree: String -> Model -> Html Msg
-viewJsonTree name model = 
-    let
-        config = { onSelect = Nothing, toMsg = SetTreeState, colors = JsonTree.defaultColors }
-    in
-        div[][
-            case model.parsedJson of
-                Ok node ->
-                    div[ style "align-items" "start" ][
-                        JsonTree.view node (config) model.astTreeState
-                    ]
-                                
-                Err _ ->
-                    div[][
-                        text "Failed to display this AST"
-                    ]
         ]
 
 viewModuleCard: File_ -> Html Msg
@@ -219,14 +180,6 @@ viewModuleDetailContent file model =
                                 |> Result.withDefault
                                     (pre [] [ code [] [ text file.content ]])
                         ]
-                        -- h2[][ text "Abstract Syntax Tree" ],
-                        -- viewJsonTree file.name model,
-                        -- let
-                        --     functions = List.filter(\val -> Helper.filterFunction val) (Helper.getAllDeclarations ast)
-                        -- in
-                        --     div[](
-                        --         List.map (\val -> text ((Helper.getFunctionLOC val) |> Debug.toString)) functions
-                        --     )
                 ]
             ]
         Nothing ->

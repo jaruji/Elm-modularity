@@ -20,40 +20,8 @@ import File.Download as Download
 import Json.Encode as Encode exposing (dict)
 
 {--
-    metrics:
-        local:
-            LOC
-            Comments
-            Number of types
-            Number of functions
-            Number of Boilerplate Msgs
-            Locate MVU triplets (can only be done by name?)
-            Number of imports used together with number of calls for each import
-
-            Number of lambdas (NoL)
-            -- Lambda score (LS)
-            -- CPM (coupling)
-            -- MAD
-            -- MTD
-            -- MFD
-            -- Boilerplate
-        global:
-            ALOC
-            ANOT
-            ANOF
-            ANOD
-            ACPM
-            AMAD
-            AMTD
-            AMFD
-            Average boilerplate Msg
-            Average boilerplate loc
-        funkcie (ak zostane cas):
-            IDEG
-            OUTDEG
-            ATNR
-            CGDP
-            CGWD
+    This module contains the visualization and overall display of metric values. Metrics are calculated in Home page right after the modules are successfully loaded into the app.
+    Metric values in this modules are obtained from Main module at init.
 --}
 
 type alias Model = 
@@ -157,7 +125,7 @@ view model =
                         ],
                         div[ style "margin" "auto", style "float" "center" ][
                             button [ onClick (Swap Local), class "button-special", if model.page == Local then class "button-special-selected" else class "" ][ text "Modules"],
-                            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Averages" ]
+                            button [ onClick (Swap Global), class "button-special", if model.page == Global then class "button-special-selected" else class "" ][ text "Project averages" ]
                         ],
                         case model.page of
                             Local ->
@@ -308,7 +276,7 @@ localTableContent metrics name  =
     
 projectTableContent: Dict String Metric -> Html msg
 projectTableContent metrics =
-    table[ style "text-align" "center", style "width" "100%"][
+    table[ style "text-align" "left", style "width" "100%"][
         tr[][
             th[][ text "Metric" ],
             th[][ text "Value" ]

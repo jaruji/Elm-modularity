@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (getModuleNameRaw)
 import Analyser.AST.Parser as Parser exposing (findBoilerplateRaw)
-import Analyser.AST.Boilerplate exposing (Boilerplate_)
+import Analyser.AST.Boilerplate exposing (Boilerplate_, Type_(..))
 
 type alias Model = 
     {
@@ -44,13 +44,32 @@ view model =
                         div[ class "explanation" ][
                             text "The purpose of this page is to provide functionality regarding boilerplate pattern detection in Elm modules."
                         ],
+                        h2[][ text "Modules" ],
+                        div[ class "explanation" ][
+                            text "There are several criteria for detecting boilerplate types in Elm modules:",
+                            div[][
+                                text "1. The module has to have a type that uses a type of a external module."
+                            ],
+                            div[][
+                                text "2. A type alias of this external module has to be present in the type alias of our module"
+                            ],
+                            text "The boilerplate detection alghoritm detects only one boilerplate pattern. It is not foolproof, so it is possible that the users will get some false positive / false negative results."
+                        ],
                         div[](List.map(\val -> 
                             case val.ast of
                                 Just ast ->
-                                    div[][
-                                        h2[][ text (getModuleNameRaw ast)],
-                                        div[] <| List.map(\node -> viewBoilerplate node) (Parser.findBoilerplateRaw ast model.files)
-                                    ]
+                                    let
+                                        boilerplate = Parser.findBoilerplateRaw ast model.files
+                                    in 
+                                        case List.length boilerplate of
+                                            0 ->
+                                                text ""
+                                            _ ->
+                                                div[ class "card", style "width" "100%" ][
+                                                    h2[][ text (getModuleNameRaw ast)],
+                                                    div[] <| List.map(\node -> viewBoilerplate node) boilerplate
+                                                    --pre [] [ code [] [ text val.content ]]
+                                                ]
                                 _ ->
                                     text ""
                         ) model.files )
@@ -62,10 +81,18 @@ view model =
 viewBoilerplate: Boilerplate_ -> Html msg
 viewBoilerplate boilerplate =
     div[][
-        text (boilerplate.name),
-        text "  ",
-        text (String.join "." boilerplate.argument),
-        text (" - " ++ Debug.toString boilerplate.range)
+        case boilerplate.type_ of
+            Type_ a ->
+                text (a)
+            _ ->
+                text ""
+        , text "  "
+        , case boilerplate.moduleName of
+            Nothing ->
+                text ""
+            Just moduleName ->
+                text (String.join "." [moduleName, boilerplate.argument])
+        , text (" - " ++ Debug.toString boilerplate.range)
     ]
 
 getModel: (Model, Cmd Msg) -> Model
