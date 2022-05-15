@@ -438,9 +438,80 @@ verifyBoilerplateType files boilerplate =
                                         False
                              ) processed.declarations of
                                 Just _ ->
-                                    Just boilerplate
+                                    verifyIfAliasPresent processed boilerplate
                                 _ ->
                                     Nothing
         Nothing ->
             Nothing
    
+
+verifyIfAliasPresent: File -> Boilerplate_ -> Maybe Boilerplate_
+verifyIfAliasPresent {moduleDefinition, imports, declarations, comments} boilerplate =
+    case find(\val -> 
+        case value val of
+            AliasDeclaration alias_ ->
+                case boilerplate.moduleName of
+                    Nothing ->
+                        False
+                    Just name ->
+                        checkRecordForModule name (value alias_.typeAnnotation) imports
+            _ ->
+                False
+    
+    ) declarations of
+        Just _ ->
+            Just boilerplate
+        _ ->
+            Nothing
+
+checkRecordForModule: String -> TypeAnnotation -> List (Node Import) -> Bool
+checkRecordForModule moduleName ta imports =
+    case ta of
+        Record list ->
+            case find(\val ->
+                let
+                    node = value val
+                in
+                    let
+                        name = value (Tuple.first node)
+                        annotation = value (Tuple.second node)
+                    in
+                        case annotation of 
+                            Typed node1 _ ->
+                                let
+                                    tuple = value node1
+                                    moduleName_ = Tuple.first tuple
+                                in
+                                    if moduleNameToString2 moduleName_ == moduleName then
+                                        True
+                                    else
+                                        True
+                                        -- case find(\x -> 
+                                        --     let
+                                        --         import_= value x
+                                        --     in
+                                        --         case import_.moduleAlias of
+                                        --             Nothing ->
+                                        --                 False
+                                        --             Just res ->
+                                        --                 let
+                                        --                     alias_ = value res
+                                        --                 in
+                                        --                     if moduleNameToString2 alias_ == moduleNameToString2 moduleName_ then
+                                        --                         True
+                                        --                     else
+                                        --                         False
+                                        -- ) imports of
+                                        --     Just _ ->
+                                        --         True
+                                        --     _ ->
+                                        --         False
+                            _ ->
+                                False
+            ) list of
+                Just _ ->
+                    True
+                _ ->
+                    False
+        _ ->
+            False

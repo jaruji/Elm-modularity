@@ -342,28 +342,28 @@ view model =
                             div[ Attributes.class "card" ][
                                 lazy viewGraph model.graph
                             ]
-                        ],
-                        div[ Attributes.class "main-card"][
-                            div[ Attributes.class "card" ][
-                                Html.button[ Attributes.class "button-special", Events.onClick (CalculateSCC (stronglyConnectedComponents model.graph)) ][ text "Get SCC" ],
-                                case model.scc of
-                                    None ->
-                                        div[ Attributes.class "main-header" ][ text "Strongly connected components not generated" ]
-                                    Done res ->
-                                        case res of 
-                                            Ok ac ->
-                                                div[][
-                                                    div[ Attributes.class "main-header" ][ text "Graph is acylic."]
-                                                    -- lazy viewGraph ac somehow figure this out
-                                                ]
-                                            Err components ->
-                                                div[][ 
-                                                    div[ Attributes.class "main-header" ][ text "Graph has multiple components."],
-                                                    (List.map (\component -> lazy viewGraph component) components) |> div[]
-                                                ]
-                                                
-                            ]
                         ]
+                        -- div[ Attributes.class "main-card"][
+                        --     div[ Attributes.class "card" ][
+                        --         Html.button[ Attributes.class "button-special", Events.onClick (CalculateSCC (stronglyConnectedComponents model.graph)) ][ text "Get SCC" ],
+                        --         case model.scc of
+                        --             None ->
+                        --                 div[ Attributes.class "main-header" ][ text "Strongly connected components not generated" ]
+                        --             Done res ->
+                        --                 case res of 
+                        --                     Ok ac ->
+                        --                         div[][
+                        --                             div[ Attributes.class "main-header" ][ text "Graph is acylic."]
+                        --                             -- lazy viewGraph ac somehow figure this out
+                        --                         ]
+                        --                     Err components ->
+                        --                         div[][ 
+                        --                             div[ Attributes.class "main-header" ][ text "Graph has multiple components."],
+                        --                             (List.map (\component -> lazy viewGraph component) components) |> div[]
+                        --                         ]
+                                                
+                        --     ]
+                        -- ]
                     ]
         ]
     ]

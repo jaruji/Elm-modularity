@@ -1,5 +1,6 @@
 module Analyser.Metrics.Metric exposing (..)
 import List exposing (length)
+import List.Extra exposing (getAt)
 import Dict exposing (Dict, get, foldl, map, values, keys, fromList)
 import Analyser.File exposing (File_)
 import Analyser.AST.Helper as Helper exposing (..)
@@ -20,7 +21,8 @@ type alias Metric =
         description: String,
         metricType: MetricType,
         values: List Value,
-        averageValue: Float
+        averageValue: Float,
+        medianValue: Float
     }
 
 type MetricType 
@@ -35,11 +37,11 @@ type alias Value =
 
 init: String -> Float -> Float -> MetricType -> Metric
 init string lower upper mType =
-    ({ name = string, upperThreshold = upper, lowerThreshold = lower, description = "", metricType = mType, values = [], averageValue = 0.0})
+    ({ name = string, upperThreshold = upper, lowerThreshold = lower, description = "", metricType = mType, values = [], averageValue = 0.0, medianValue = 0.0})
 
 initWithValues: String -> Float -> Float -> String -> MetricType -> List Value -> Metric
 initWithValues string lower upper desc mType values =
-    ({ name = string, upperThreshold = upper, lowerThreshold = lower, description = desc, metricType = mType, values = values, averageValue = 0.0})
+    ({ name = string, upperThreshold = upper, lowerThreshold = lower, description = desc, metricType = mType, values = values, averageValue = 0.0, medianValue = 0.0})
 
 initValue: String -> Float -> Value
 initValue dec val =
@@ -67,9 +69,37 @@ averageMetric metric =
         else
             Round.roundNum decimals (sum / ((List.length(metric.values)) |> toFloat))
 
-setAverage: Metric -> Float -> Metric
-setAverage metric avg =
-    ({metric | averageValue = avg})
+medianMetric: Metric -> Float
+medianMetric metric =
+    let
+        n = (List.length metric.values) |> toFloat
+        values = metric.values
+    in
+        let
+            median = 
+                if remainderBy (Basics.round n) 2 == 0 then
+                    case getAt (Basics.round ((n/2))) values of
+                        Nothing ->
+                            -1
+                        Just val1 ->
+                            case getAt (Basics.round (n/2 + 1)) values of
+                                Nothing ->
+                                    -1
+                                Just val2 ->
+                                    (val1.value + val2.value) / 2
+                else
+                    case getAt (Basics.round ((n + 1)/2) ) values of
+                        Just val ->
+                            val.value
+                        _ ->
+                            -1
+        in
+            median
+
+setAverageAndMedian: Metric -> Float -> Float -> Metric
+setAverageAndMedian metric avg med =
+    ({metric | averageValue = avg, medianValue = med})
+    
 
 getNonEmptyLineCount: String -> Int
 getNonEmptyLineCount content =
@@ -319,7 +349,7 @@ calculateMetrics files =
         ced = calculateCED files
     in
         Dict.map(\_ val -> 
-            setAverage val (averageMetric val)
+            setAverageAndMedian val (averageMetric val) (medianMetric val)
         ) 
         (
             fromList[

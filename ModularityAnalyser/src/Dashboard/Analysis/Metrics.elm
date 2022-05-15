@@ -217,6 +217,9 @@ view model =
                                     ],
                                     div[ class "card" ][
                                         projectTableContent model.metrics
+                                    ],
+                                    div[ class "card" ][
+                                        projectTableContent2 model.metrics
                                     ]
                                 ]
                             
@@ -282,6 +285,16 @@ projectTableContent metrics =
             th[][ text "Value" ]
         ],
         (List.map(\val -> tr[][ td[][ text ("Average " ++ val.name)], td[][ text (val.averageValue |> toString) ]]) (values metrics)) |> tbody[]
+    ]
+
+projectTableContent2: Dict String Metric -> Html msg
+projectTableContent2 metrics =
+    table[ style "text-align" "left", style "width" "100%"][
+        tr[][
+            th[][ text "Metric" ],
+            th[][ text "Value" ]
+        ],
+        (List.map(\val -> tr[][ td[][ text ("Median of " ++ val.name)], td[][ text (val.medianValue |> toString) ]]) (values metrics)) |> tbody[]
     ]
 
 removeEmpty: String -> Bool

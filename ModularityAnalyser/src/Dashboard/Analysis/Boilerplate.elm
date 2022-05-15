@@ -48,10 +48,10 @@ view model =
                         div[ class "explanation" ][
                             text "There are several criteria for detecting boilerplate types in Elm modules:",
                             div[][
-                                text "1. The module has to have a type that uses a type of a external module."
+                                text "1. The module has to have a type that uses a type of an external module."
                             ],
                             div[][
-                                text "2. A type alias of this external module has to be present in the type alias of our module"
+                                text "2. A type alias of this external module has to be present in the type alias of our module."
                             ],
                             text "The boilerplate detection alghoritm detects only one boilerplate pattern. It is not foolproof, so it is possible that the users will get some false positive / false negative results."
                         ],
