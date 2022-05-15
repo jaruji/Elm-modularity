@@ -322,7 +322,8 @@ calculateMetrics files =
             setAverage val (averageMetric val)
         ) 
         (
-            fromList[ 
+            fromList[
+                --definition of all metrics, along with their calculation
                 ("LOC", initWithValues "LOC" 0 0 "Lines of code metric displays the count of the real lines of code, without empty lines." ModuleMetric (calculateLOC files)),
                 -- ("Comments", initWithValues "Comments" 0 0 ModuleMetric (calculateComments files)), 
                 ("NoF", initWithValues "NoF" 0 0 "Number of functions metric represents the number of function declarations in a module." ModuleMetric (calculateNoF files)), 
@@ -331,8 +332,11 @@ calculateMetrics files =
                 ("NoA", initWithValues "NoA" 0 0 "Number of aliases metric represents the number of type alias declarations in a module." ModuleMetric (calculateNoA files)), 
                 ("CA", initWithValues "CA" 0 0 "Afferent coupling metric represents the number of modules that are calling a specific module." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ca)), 
                 ("CE", initWithValues "CE" 0 0 "Efferent coupling metric represents the number of modules a specific module is calling." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ce)), 
-                ("CA(w)", initWithValues "CA(w)" 0 0 "Weighted afferent metric represents the number of external declarations that are calling a specific module." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) cad)), 
-                ("CE(w)", initWithValues "CE(w)" 0 0 "Weighted efferent coupling metric represents the number of external declarations a specific module is calling." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ced)), 
+                ("CA(w)", initWithValues "CA(w)" 0 0 "Weighted afferent metric represents the number of external declarations that are dependent on a specific module." ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) cad)), 
+                ("CE(w)", initWithValues "CE(w)" 0 0 
+                """ Weighted efferent coupling metric represents the number module declarations that are dependent on an external declaration. If a declaration depends on multiple external
+                declarations, the count is still increased by only 1. """ 
+                ModuleMetric (List.map(\val -> initValue (Tuple.first val) (Tuple.second val)) ced)), 
                 ("Instability", initWithValues "Instability" 0 0 "Instability metric is counted from CA and CE, it represents a module's resistance to change. It's values are in the interval of 0 to 1." ModuleMetric (calculateInstability ca ce)),
                 ("Instability(w)", initWithValues "Instability(w)" 0 0 "Weighted instability metric is counted from CA(w) and CE(w), it represents a module's resistance to change. It's values are in the interval of 0 to 1." ModuleMetric (calculateInstability cad ced)),
                 ("NoL", initWithValues "NoL" 0 0 "Number of lambdas metric represents the number of lambda function declarations in a module." ModuleMetric (calculateNoL files)),

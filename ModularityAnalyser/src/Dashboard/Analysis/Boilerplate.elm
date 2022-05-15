@@ -65,7 +65,7 @@ view model =
                                             0 ->
                                                 text ""
                                             _ ->
-                                                div[ class "card", style "width" "100%" ][
+                                                div[ class "card", style "width" "100%", style "min-height" "auto" ][
                                                     h2[][ text (getModuleNameRaw ast)],
                                                     div[] <| List.map(\node -> viewBoilerplate node) boilerplate
                                                     --pre [] [ code [] [ text val.content ]]
