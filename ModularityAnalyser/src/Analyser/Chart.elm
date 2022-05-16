@@ -16,6 +16,7 @@ import RadarChart
 --It uses the elm-charts library
 
 type alias Model =
+  --state to execute the hover over heatmap functionality -> popup with tooltip displayed over every node
   { hovering : List (CI.One { x : Float, y : Float } CI.Any) }
 
 
@@ -84,6 +85,7 @@ viewHeatmap model matrix filenames =
       in
         let 
           modifiedMatrix =
+            --adjacency matrix with real number of calls replacing the simple 1s (as in modules are neighbors)
             List.foldl(\val acc -> 
               acc 
               ++
@@ -99,6 +101,8 @@ viewHeatmap model matrix filenames =
 
 viewMetricBarplot : String -> Float -> Float -> Float -> List Value -> Html msg
 viewMetricBarplot name avg lower upper metrics =
+  --histogram, shows the distribution of metric values in all modules.
+  --has 3 additional lines over the histogram - average value, upper and lower thresholds
   let
       values = 
         List.map(\val -> 
@@ -129,6 +133,7 @@ viewMetricBarplot name avg lower upper metrics =
           values,
         C.withPlane <| \p ->
         [ 
+          --draw the 3 lines
           C.line[ 
             CA.x1 p.x.min,
             CA.y1 avg,
