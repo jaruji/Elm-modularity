@@ -155,11 +155,25 @@ view model =
                                     div[ class "explanation"][
                                         text "Heatmap visualizing the number of calls between each module. Color changes based on the severity of the dependency between two modules."
                                     ],
-                                    div[ class "chart-cards", 
-                                        --style "resize" "horizontal", 
-                                        --style "overflow" "hidden", 
-                                        style "width" "100%"][
-                                        div[ class "chartcard" ][
+                                    -- div[ class "card" ][
+                                    --     let
+                                    --         fileNames =
+                                    --             List.filterMap(\val ->
+                                    --                 case val.ast of
+                                    --                     Just ast ->
+                                    --                         Just (Helper.getModuleNameRaw ast)
+                                    --                     Nothing ->
+                                    --                         Nothing
+                                    --             ) files
+                                    --     in
+                                    --         table[ style "width" "100%", style "text-align" "left"][
+                                    --             thead[][
+                                    --                 tr[] <| List.map(\name -> th[ class "rotate" ][ div[][ span[][ text name ]] ]) fileNames
+                                    --             ]
+                                    --         ]
+                                    -- ],
+                                    div[][
+                                        div[][
                                             let
                                                 fileNames =
                                                     List.filterMap(\val ->
